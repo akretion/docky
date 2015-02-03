@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+help = """Voodoo help
+
+Usage:
+  voodoo new <project_name>
+  voodoo run
+  voodoo up
+  voodoo stop
+  voodoo (-h | --help)
+  voodoo --version
+
+Options:
+  -h --help     Show this screen.
+  --version     Show version.
+
+Done by Akretion ;)
+"""
+
+from docopt import docopt
+from subprocess import check_call
+from string import Template
+TEMPLATE = 'https://github.com/akretion/voodoo.git'
+
+arguments = docopt(help)
+
+#TODO support port offseting
+def get_keyvalue():
+    return {
+        'odoo_port': 8069,
+        'odoo_polling_port': 8072,
+    }
+
+#TODO add a yml file for voodoo main configuration
+def update_config():
+    file = open('voodoo.yml')
+    s = Template(file.read())
+    vals = get_keyvalue()
+    res = s.substitute(vals)
+    output = open('.voodoo.yml', 'w')
+    output.write(res)
+
+def new(arguments):
+    check_call(["git", "clone", TEMPLATE, arguments['<project_name>']])
+
+def run(arguments):
+    update_config()
+    check_call(["docker-compose", "-f", ".voodoo.yml",
+                "run", "voodoo", "byobu"])
+
+def up(arguments):
+    update_config()
+    check_call(["docker-compose", "-f", ".voodoo.yml", "up"])
+
+def stop(arguments):
+    check_call(["docker-compose", "stop"])
+
+actions = {
+    'new': new,
+    'run': run,
+    'up': up,
+    'stop': stop
+    }
+
+for action, function in actions.items():
+    if arguments[action]:
+        function(arguments)
