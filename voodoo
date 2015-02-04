@@ -6,8 +6,12 @@ help = """Voodoo help
 Usage:
   voodoo new <project_name>
   voodoo run
+  voodoo open
   voodoo up
   voodoo stop
+  voodoo rm
+  voodoo kill
+  voodoo ps
   voodoo (-h | --help)
   voodoo --version
 
@@ -21,7 +25,13 @@ Done by Akretion ;)
 from docopt import docopt
 from subprocess import check_call
 from string import Template
+from compose.cli.command import Command
+import logging
+log = logging.getLogger(__name__)
+
+
 TEMPLATE = 'https://github.com/akretion/voodoo.git'
+
 
 arguments = docopt(help)
 
@@ -47,20 +57,45 @@ def new(arguments):
 def run(arguments):
     update_config()
     check_call(["docker-compose", "-f", ".voodoo.yml",
-                "run", "voodoo", "byobu"])
+                "run", "voodoo", "bash"])
+
+def open_voodoo(arguments):
+    com = Command()
+    project = com.get_project('.voodoo.yml')
+    container = project.containers(service_names=['voodoo'], one_off=True)
+    if container:
+        check_call(["docker", "exec", "-ti", container[0].name, "bash"])
+    else:
+        log.error("No container found for the service voodoo"
+                  "in the project %s" % project.name)
 
 def up(arguments):
     update_config()
     check_call(["docker-compose", "-f", ".voodoo.yml", "up"])
 
 def stop(arguments):
-    check_call(["docker-compose", "stop"])
+    check_call(["docker-compose", "-f", ".voodoo.yml", "stop"])
+
+def kill(arguments):
+    check_call(["docker-compose", "-f", ".voodoo.yml", "kill"])
+
+def rm(arguments):
+    check_call(["docker-compose", "-f", ".voodoo.yml", "rm"])
+
+def ps(arguments):
+    check_call(["docker-compose", "-f", ".voodoo.yml", "ps"])
+
+
 
 actions = {
     'new': new,
     'run': run,
     'up': up,
-    'stop': stop
+    'stop': stop,
+    'open': open_voodoo,
+    'kill': kill,
+    'rm': rm,
+    'ps': ps,
     }
 
 for action, function in actions.items():
