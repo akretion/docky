@@ -57,7 +57,7 @@ def new(arguments):
 def run(arguments):
     update_config()
     check_call(["docker-compose", "-f", ".voodoo.yml",
-                "run", "voodoo", "bash"])
+                "run", "--service-ports", "voodoo", "bash"])
 
 def open_voodoo(arguments):
     com = Command()
@@ -84,8 +84,6 @@ def rm(arguments):
 
 def ps(arguments):
     check_call(["docker-compose", "-f", ".voodoo.yml", "ps"])
-
-
 
 actions = {
     'new': new,
