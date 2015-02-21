@@ -1,101 +1,161 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-help = """Voodoo help
-
-Usage:
-  voodoo new <project_name>
-  voodoo run
-  voodoo open
-  voodoo up
-  voodoo stop
-  voodoo rm
-  voodoo kill
-  voodoo ps
-  voodoo (-h | --help)
-  voodoo --version
-
-Options:
-  -h --help     Show this screen.
-  --version     Show version.
-
-Done by Akretion ;)
-"""
-
-from docopt import docopt
-from subprocess import check_call
-from string import Template
-from compose.cli.command import Command
+from inspect import getdoc
+import sys
+import socket
 import logging
-log = logging.getLogger(__name__)
+from string import Template
+from subprocess import check_call
 
+from compose.cli.main import TopLevelCommand, setup_logging, parse_doc_section
+from compose.cli.errors import UserError
+from compose.project import NoSuchService, ConfigurationError
+from compose.cli.docopt_command import NoSuchCommand
+from docker.errors import APIError
+from compose.service import BuildError
+
+log = logging.getLogger(__name__)
 
 TEMPLATE = 'https://github.com/akretion/voodoo.git'
 
 
-arguments = docopt(help)
+# inspired from http://stackoverflow.com
+# /questions/8100166/inheriting-methods-docstrings-in-python
+def fix_docs(cls):
+    for name, func in vars(cls).items():
+        if not func.__doc__:
+            for parent in cls.__bases__:
+                if hasattr(parent, name):
+                    parfunc = getattr(parent, name)
+                    if parfunc and getattr(parfunc, '__doc__', None):
+                        func.__doc__ = parfunc.__doc__
+                        break
+    return cls
 
-#TODO support port offseting
-def get_keyvalue():
-    return {
-        'odoo_port': 8069,
-        'odoo_polling_port': 8072,
-    }
 
-#TODO add a yml file for voodoo main configuration
-def update_config():
-    file = open('voodoo.yml')
-    s = Template(file.read())
-    vals = get_keyvalue()
-    res = s.substitute(vals)
-    output = open('.voodoo.yml', 'w')
-    output.write(res)
+def is_open(port):
+     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+     result = sock.connect_ex(('127.0.0.1', port))
+     if result == 0:
+        return True
+     else:
+        return False
 
-def new(arguments):
-    check_call(["git", "clone", TEMPLATE, arguments['<project_name>']])
 
-def run(arguments):
-    update_config()
-    check_call(["docker-compose", "-f", ".voodoo.yml",
-                "run", "--service-ports", "voodoo", "bash"])
 
-def open_voodoo(arguments):
-    com = Command()
-    project = com.get_project('.voodoo.yml')
-    container = project.containers(service_names=['voodoo'], one_off=True)
-    if container:
-        check_call(["docker", "exec", "-ti", container[0].name, "bash"])
-    else:
-        log.error("No container found for the service voodoo"
-                  "in the project %s" % project.name)
+@fix_docs
+class VoodooCommand(TopLevelCommand):
+    """Fast, isolated development environments using Docker.
 
-def up(arguments):
-    update_config()
-    check_call(["docker-compose", "-f", ".voodoo.yml", "up"])
+    Usage:
+      voodoo [options] [COMMAND] [ARGS...]
+      voodoo -h|--help
 
-def stop(arguments):
-    check_call(["docker-compose", "-f", ".voodoo.yml", "stop"])
+    Options:
+      --verbose                 Show more output
+      --version                 Print version and exit
+      -f, --file FILE           Specify an alternate compose file
+                                (default: voodoo.yml)
+      -p, --project-name NAME   Specify an alternate project name
+                                (default: directory name)
 
-def kill(arguments):
-    check_call(["docker-compose", "-f", ".voodoo.yml", "kill"])
+    Commands:
+      build     Build or rebuild services
+      help      Get help on a command
+      kill      Kill containers
+      logs      View output from containers
+      port      Print the public port for a port binding
+      ps        List containers
+      pull      Pulls service images
+      rm        Remove stopped containers
+      run       Run a one-off command
+      scale     Set number of containers for a service
+      start     Start services
+      stop      Stop services
+      restart   Restart services
+      up        Create and start containers
 
-def rm(arguments):
-    check_call(["docker-compose", "-f", ".voodoo.yml", "rm"])
+    """
 
-def ps(arguments):
-    check_call(["docker-compose", "-f", ".voodoo.yml", "ps"])
+    #TODO add a yml file for voodoo main configuration
+    def __init__(self, *args, **kwargs):
+        file = open('voodoo.yml')
+        s = Template(file.read())
+        vals = self.get_keyvalue()
+        res = s.substitute(vals)
+        output = open('.voodoo.yml', 'w')
+        output.write(res)
+        return super(VoodooCommand, self).__init__(*args, **kwargs)
 
-actions = {
-    'new': new,
-    'run': run,
-    'up': up,
-    'stop': stop,
-    'open': open_voodoo,
-    'kill': kill,
-    'rm': rm,
-    'ps': ps,
-    }
+    def run(self, project, options):
+        if not options.get('SERVICE'):
+            options['SERVICE'] = 'voodoo'
+        return super(VoodooCommand, self).run(project, options)
 
-for action, function in actions.items():
-    if arguments[action]:
-        function(arguments)
+    def get_keyvalue(self):
+        return {
+            'odoo_port': 8069,
+            'odoo_polling_port': 8072,
+        }
+
+    def get_config_path(self, file_path=None):
+        if not file_path:
+            file_path = '.voodoo.yml'
+        return super(VoodooCommand, self).get_config_path(file_path=file_path)
+
+    def new(self, project, options):
+        """
+        Start a new projet
+        Usage: new [options] PROJECT
+        """
+        check_call(["git", "clone", TEMPLATE, options['PROJECT']])
+
+    def open(self, project, options):
+        """
+        Start a new projet
+        Usage: open
+        """
+        container = project.containers(service_names=['voodoo'], one_off=True)
+        if container:
+            check_call(["docker", "exec", "-ti", container[0].name, "bash"])
+        else:
+            log.error("No container found for the service voodoo "
+                      "in the project %s" % project.name)
+
+    def perform_command(self, options, handler, command_options):
+        if options['COMMAND'] == 'new':
+            # Skip looking up the compose file.
+            handler(None, command_options)
+            return
+        else:
+            return super(VoodooCommand, self).perform_command(
+                options, handler, command_options)
+
+
+def main():
+    setup_logging()
+    try:
+        command = VoodooCommand()
+        command.sys_dispatch()
+    except KeyboardInterrupt:
+        log.error("\nAborting.")
+        sys.exit(1)
+    except (UserError, NoSuchService, ConfigurationError) as e:
+        log.error(e.msg)
+        sys.exit(1)
+    except NoSuchCommand as e:
+        log.error("No such command: %s", e.command)
+        log.error("")
+        log.error("\n".join(
+            parse_doc_section("commands:", getdoc(e.supercommand))))
+        sys.exit(1)
+    except APIError as e:
+        log.error(e.explanation)
+        sys.exit(1)
+    except BuildError as e:
+        log.error("Service '%s' failed to build: %s"
+                  % (e.service.name, e.reason))
+        sys.exit(1)
+
+main()
