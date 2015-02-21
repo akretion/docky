@@ -81,13 +81,17 @@ class VoodooCommand(TopLevelCommand):
 
     #TODO add a yml file for voodoo main configuration
     def __init__(self, *args, **kwargs):
-        file = open('voodoo.yml')
-        s = Template(file.read())
-        vals = self.get_keyvalue()
-        res = s.substitute(vals)
-        output = open('.voodoo.yml', 'w')
-        output.write(res)
-        return super(VoodooCommand, self).__init__(*args, **kwargs)
+        #TODO FIXME
+        try:
+            file = open('voodoo.yml')
+            s = Template(file.read())
+            vals = self.get_keyvalue()
+            res = s.substitute(vals)
+            output = open('.voodoo.yml', 'w')
+            output.write(res)
+            return super(VoodooCommand, self).__init__(*args, **kwargs)
+        except:
+            pass
 
     def run(self, project, options):
         if not options.get('SERVICE'):
