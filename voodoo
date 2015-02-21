@@ -96,6 +96,10 @@ class VoodooCommand(TopLevelCommand):
     def run(self, project, options):
         if not options.get('SERVICE'):
             options['SERVICE'] = 'voodoo'
+        if not options.get('--service-ports'):
+            options['--service-ports'] = True
+        if not options.get('COMMAND'):
+            options['COMMAND'] = 'bash'
         return super(VoodooCommand, self).run(project, options)
 
     def get_keyvalue(self):
