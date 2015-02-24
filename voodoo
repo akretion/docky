@@ -7,6 +7,8 @@ import socket
 import logging
 from string import Template
 from subprocess import check_call
+import os
+import yaml
 
 from compose.cli.main import TopLevelCommand, setup_logging, parse_doc_section
 from compose.cli.errors import UserError
@@ -79,8 +81,25 @@ class VoodooCommand(TopLevelCommand):
 
     """
 
-    #TODO add a yml file for voodoo main configuration
     def __init__(self, *args, **kwargs):
+        home = os.path.expanduser("~")
+        config_path = os.path.join(home, '.voodoo', 'config.yml')
+        if not os.path.isfile(config_path):
+            os.makedirs(os.path.join(home, '.voodoo', 'shared'))
+            conf_file = open(config_path, 'w')
+            conf_file.write(
+                "shared_eggs: True\n"
+                "shallow_clone_odoo: True\n"
+                )
+            self.shared_eggs = True
+            self.shallow_clone_odoo = True
+            log.info("Create default config file at %s" % config_file)
+        else:
+            conf_file = open(config_path, 'r')
+            conf = yaml.load(conf_file)
+            self.shared_eggs = conf.get('shared_eggs')
+            self.shallow_clone_odoo = conf.get('shallow_clone_odoo')
+
         #TODO FIXME
         try:
             file = open('voodoo.yml')
@@ -89,9 +108,10 @@ class VoodooCommand(TopLevelCommand):
             res = s.substitute(vals)
             output = open('.voodoo.yml', 'w')
             output.write(res)
-            return super(VoodooCommand, self).__init__(*args, **kwargs)
         except:
             pass
+
+        return super(VoodooCommand, self).__init__(*args, **kwargs)
 
     def run(self, project, options):
         if not options.get('SERVICE'):
@@ -112,6 +132,18 @@ class VoodooCommand(TopLevelCommand):
         if not file_path:
             file_path = '.voodoo.yml'
         return super(VoodooCommand, self).get_config_path(file_path=file_path)
+
+    def get_config(self, config_path):
+        config = super(VoodooCommand, self).get_config(config_path)
+        home = os.path.expanduser("~")
+        shared = os.path.join(home, '.voodoo', 'shared')
+        config['voodoo']['volumes'].append('%s:%s' % (shared, shared))
+        config['voodoo']['environment'] += [
+            'SHARED_FOLDER=%s' % shared,
+            'SHARED_EGGS=%s' % str(self.shared_eggs).lower(),
+            'SHALLOW_CLONE_ODOO=%s' % str(self.shallow_clone_odoo).lower(),
+            ]
+        return config
 
     def new(self, project, options):
         """
