@@ -19,8 +19,8 @@ from compose.service import BuildError
 
 log = logging.getLogger(__name__)
 
-TEMPLATE = 'https://github.com/akretion/voodoo.git'
-
+TEMPLATE = "https://github.com/akretion/voodoo.git"
+ODOO_GIT = "https://github.com/OCA/OCB.git"
 
 # inspired from http://stackoverflow.com
 # /questions/8100166/inheriting-methods-docstrings-in-python
@@ -82,23 +82,23 @@ class VoodooCommand(TopLevelCommand):
     """
 
     def __init__(self, *args, **kwargs):
-        home = os.path.expanduser("~")
-        config_path = os.path.join(home, '.voodoo', 'config.yml')
+        self.home = os.path.expanduser("~")
+        self.shared_folder = os.path.join(self.home, '.voodoo', 'shared')
+        config_path = os.path.join(self.home, '.voodoo', 'config.yml')
         if not os.path.isfile(config_path):
-            os.makedirs(os.path.join(home, '.voodoo', 'shared'))
+            os.makedirs(self.shared_folder)
             conf_file = open(config_path, 'w')
-            conf_file.write(
-                "shared_eggs: True\n"
-                "shallow_clone_odoo: True\n"
-                )
-            self.shared_eggs = True
-            self.shallow_clone_odoo = True
+            conf_file.write('\n'.join(
+                "shared_eggs: True",
+                "shared_odoo: False",
+                "shallow_clone_odoo: True",
+                ))
             log.info("Create default config file at %s" % config_file)
-        else:
-            conf_file = open(config_path, 'r')
-            conf = yaml.load(conf_file)
-            self.shared_eggs = conf.get('shared_eggs')
-            self.shallow_clone_odoo = conf.get('shallow_clone_odoo')
+        conf_file = open(config_path, 'r')
+        conf = yaml.load(conf_file)
+        self.shared_eggs = conf.get('shared_eggs', True)
+        self.shared_odoo = conf.get('shared_odoo', False)
+        self.shallow_clone_odoo = conf.get('shallow_clone_odoo', True)
 
         #TODO FIXME
         try:
@@ -113,6 +113,56 @@ class VoodooCommand(TopLevelCommand):
 
         return super(VoodooCommand, self).__init__(*args, **kwargs)
 
+    def clone_odoo(self, ref_path, dest_path, shallow_clone=False):
+        # TODO to improve the speed of initial config
+        # We may implement latter a caching system
+        # The idea will to have an existing copy of the repo
+        # and just mv it here
+        # and an new copy of repo while be the generated in background
+        call_params = ["git", "clone", "file://%s" % ref_path, dest_path]
+        if shallow_clone:
+            log.info("Start cloning odoo with shallow clone"
+                     "mode from local odoo")
+            call_params += ["--depth", "1"]
+        else:
+            log.info("Start cloning odoo from local odoo")
+        check_call(call_params)
+
+    def get_odoo(self, odoo_path):
+        odoo_ref_path = os.path.join(self.shared_folder, 'odoo')
+        if not os.path.exists(odoo_ref_path):
+            log.info(
+                "First run of voodoo, there is no odoo repo in %s. "
+                "Start to download odoo from github this can take a while...\n"
+                "If you have an existing Odoo repo (from OCA) you can stop it "
+                "and copy paste you repo in %s", odoo_ref_path, odoo_ref_path)
+            check_call(["git", "clone", ODOO_GIT, odoo_ref_path])
+        if self.shared_odoo:
+            shared_odoo_path = os.path.join(
+                self.shared_folder,
+                'shared_odoo',
+                self.shared_odoo,
+                )
+            if not os.path.exists(shared_odoo_path):
+                log.info(
+                    "Shared odoo is activated, but there is no shared "
+                    "repository in %s",  shared_odoo_path)
+                self.clone_odoo(
+                    odoo_ref_path,
+                    shared_odoo_path,
+                    self.shallow_clone_odoo,
+                    )
+
+            log.info("Create symlink from %s to %s",
+                     shared_odoo_path, odoo_path)
+            check_call(['ln', '-s', shared_odoo_path, odoo_path])
+        else:
+            self.clone_odoo(
+                odoo_ref_path,
+                odoo_path,
+                self.shallow_clone_odoo,
+                )
+
     def run(self, project, options):
         if not options.get('SERVICE'):
             options['SERVICE'] = 'voodoo'
@@ -120,6 +170,9 @@ class VoodooCommand(TopLevelCommand):
             options['--service-ports'] = True
         if not options.get('COMMAND'):
             options['COMMAND'] = 'bash'
+        odoo_path = os.path.join('parts', 'odoo')
+        if not os.path.exists(odoo_path):
+            self.get_odoo(odoo_path)
         return super(VoodooCommand, self).run(project, options)
 
     def get_keyvalue(self):
