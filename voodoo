@@ -148,7 +148,7 @@ class VoodooCommand(TopLevelCommand):
 
     def run(self, project, options):
         if not options.get('SERVICE'):
-            options['SERVICE'] = 'voodoo'
+            options['SERVICE'] = 'odoo'
         if not options.get('--service-ports'):
             options['--service-ports'] = True
         if not options.get('COMMAND'):
@@ -173,8 +173,8 @@ class VoodooCommand(TopLevelCommand):
         config = super(VoodooCommand, self).get_config(config_path)
         home = os.path.expanduser("~")
         shared = os.path.join(home, '.voodoo', 'shared')
-        config['voodoo']['volumes'].append('%s:%s' % (shared, shared))
-        config['voodoo']['environment'] += [
+        config['odoo']['volumes'].append('%s:%s' % (shared, shared))
+        config['odoo']['environment'] += [
             'SHARED_FOLDER=%s' % shared,
             'SHARED_EGGS=%s' % str(self.shared_eggs).lower(),
             ]
@@ -192,11 +192,11 @@ class VoodooCommand(TopLevelCommand):
         Open an new terminal in voodoo
         Usage: open
         """
-        container = project.containers(service_names=['voodoo'], one_off=True)
+        container = project.containers(service_names=['odoo'], one_off=True)
         if container:
             check_call(["docker", "exec", "-ti", container[0].name, "bash"])
         else:
-            log.error("No container found for the service voodoo "
+            log.error("No container found for the service odoo "
                       "in the project %s" % project.name)
 
     def perform_command(self, options, handler, command_options):
@@ -211,7 +211,7 @@ class VoodooCommand(TopLevelCommand):
     def dispatch(self, *args, **kwargs):
         # Inject default value for run method
         if args and args[0] and args[0][0] == 'run' and len(args[0]) == 1:
-            args[0].append('voodoo')
+            args[0].append('odoo')
         return super(VoodooCommand, self).dispatch(
             *args, **kwargs)
 
