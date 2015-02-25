@@ -5,10 +5,10 @@ from inspect import getdoc
 import sys
 import socket
 import logging
-from string import Template
 from subprocess import check_call
 import os
 import yaml
+import six
 
 from compose.cli.main import TopLevelCommand, setup_logging, parse_doc_section
 from compose.cli.errors import UserError
@@ -17,10 +17,17 @@ from compose.cli.docopt_command import NoSuchCommand
 from docker.errors import APIError
 from compose.service import BuildError
 
+
 log = logging.getLogger(__name__)
 
 TEMPLATE = "https://github.com/akretion/voodoo.git"
 ODOO_GIT = "https://github.com/OCA/OCB.git"
+
+DEFAULT_CONF = {
+    "shared_eggs": True,
+    "shared_odoo": False,
+}
+
 
 # inspired from http://stackoverflow.com
 # /questions/8100166/inheriting-methods-docstrings-in-python
@@ -44,7 +51,6 @@ def is_open(port):
         return True
      else:
         return False
-
 
 
 @fix_docs
@@ -81,23 +87,48 @@ class VoodooCommand(TopLevelCommand):
 
     """
 
+    def load_project_config(self, options):
+        explicit_config_path = options.get('--file')\
+            or os.environ.get('COMPOSE_FILE')\
+            or os.environ.get('FIG_FILE')
+        config_path = self.get_config_path(file_path=explicit_config_path)
+        try:
+            with open(config_path, 'r') as fh:
+                config = yaml.safe_load(fh)
+                voodoo_config = config.pop('voodoo')
+                self.set_config(voodoo_config)
+                self.compose_config = config
+        except IOError as e:
+            raise UserError(six.text_type(e))
+
+    def set_config(self, config):
+        for key in DEFAULT_CONF:
+            if key in config:
+                setattr(self, key, config[key])
+
+    def generate_default_home_config(self, config_path):
+        os.makedirs(self.shared_folder)
+        config_file = open(config_path, 'w')
+        config_file.write(yaml.dump(DEFAULT_CONF))
+        log.info("Create default config file at %s" % config_path)
+
     def __init__(self, *args, **kwargs):
+        super(VoodooCommand, self).__init__(*args, **kwargs)
         self.home = os.path.expanduser("~")
         self.shared_folder = os.path.join(self.home, '.voodoo', 'shared')
+        self.compose_config = None
+
         config_path = os.path.join(self.home, '.voodoo', 'config.yml')
+
+        # Create default config file in home if missing
         if not os.path.isfile(config_path):
-            os.makedirs(self.shared_folder)
-            conf_file = open(config_path, 'w')
-            conf_file.write('\n'.join(
-                "shared_eggs: True",
-                "shared_odoo: False",
-                ))
-            log.info("Create default config file at %s" % config_file)
-        conf_file = open(config_path, 'r')
-        conf = yaml.load(conf_file)
-        self.shared_eggs = conf.get('shared_eggs', True)
-        self.shared_odoo = conf.get('shared_odoo', False)
-        return super(VoodooCommand, self).__init__(*args, **kwargs)
+            self.generate_default_home_config(config_path)
+
+        # Load Configuration
+        config_file = open(config_path, 'r')
+        config = DEFAULT_CONF.copy()
+        config.update(yaml.safe_load(config_file))
+        self.set_config(config)
 
     def clone_odoo(self, ref_path, dest_path):
         # TODO to improve the speed of initial config
@@ -152,7 +183,7 @@ class VoodooCommand(TopLevelCommand):
         return super(VoodooCommand, self).get_config_path(file_path=file_path)
 
     def get_config(self, config_path):
-        config = super(VoodooCommand, self).get_config(config_path)
+        config = self.compose_config
         home = os.path.expanduser("~")
         shared = os.path.join(home, '.voodoo', 'shared')
         config['odoo']['volumes'].append('%s:%s' % (shared, shared))
@@ -182,6 +213,7 @@ class VoodooCommand(TopLevelCommand):
                       "in the project %s" % project.name)
 
     def perform_command(self, options, handler, command_options):
+        self.load_project_config(options)
         # no need of project params for new method
         if options['COMMAND'] == 'new':
             # Skip looking up the compose file.
@@ -196,6 +228,7 @@ class VoodooCommand(TopLevelCommand):
             args[0].append('odoo')
         return super(VoodooCommand, self).dispatch(
             *args, **kwargs)
+
 
 def main():
     setup_logging()
