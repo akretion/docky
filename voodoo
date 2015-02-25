@@ -97,18 +97,6 @@ class VoodooCommand(TopLevelCommand):
         conf = yaml.load(conf_file)
         self.shared_eggs = conf.get('shared_eggs', True)
         self.shared_odoo = conf.get('shared_odoo', False)
-
-        #TODO FIXME
-        try:
-            file = open('voodoo.yml')
-            s = Template(file.read())
-            vals = self.get_keyvalue()
-            res = s.substitute(vals)
-            output = open('.voodoo.yml', 'w')
-            output.write(res)
-        except:
-            pass
-
         return super(VoodooCommand, self).__init__(*args, **kwargs)
 
     def clone_odoo(self, ref_path, dest_path):
@@ -158,15 +146,9 @@ class VoodooCommand(TopLevelCommand):
             self.get_odoo(odoo_path)
         return super(VoodooCommand, self).run(project, options)
 
-    def get_keyvalue(self):
-        return {
-            'odoo_port': 8069,
-            'odoo_polling_port': 8072,
-        }
-
     def get_config_path(self, file_path=None):
         if not file_path:
-            file_path = '.voodoo.yml'
+            file_path = 'voodoo.yml'
         return super(VoodooCommand, self).get_config_path(file_path=file_path)
 
     def get_config(self, config_path):
