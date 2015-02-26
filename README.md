@@ -179,14 +179,6 @@ You can clone a voodoo branch to start your project as simple convenience repo f
 For further details, please simply refer to [Anybox recipe documentation](http://docs.anybox.fr/anybox.recipe.openerp/trunk/)
 
 
-## Use as a disposable Docker hackable development server on Linux
-
-See Quickstart on Ubuntu session for details.
-
-From the host or from inside the container, available ak commands are:
-
-```
-
 
 Note that the Docker workdir is your repo that is shared with Docker, so you won't loose your source changes nor loose time copying files.
 

@@ -57,6 +57,8 @@ class VoodooCommand(TopLevelCommand):
       help      Get help on a command
       kill      Kill containers
       logs      View output from containers
+      new       Create a new project
+      open      Open a new session inside the docker
       port      Print the public port for a port binding
       ps        List containers
       pull      Pulls service images
