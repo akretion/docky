@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from inspect import getdoc
-import sys
 import socket
 import logging
 from subprocess import check_call
@@ -10,13 +8,8 @@ import os
 import yaml
 import six
 
-from compose.cli.main import TopLevelCommand, setup_logging, parse_doc_section
+from compose.cli.main import TopLevelCommand
 from compose.cli.errors import UserError
-from compose.project import NoSuchService, ConfigurationError
-from compose.cli.docopt_command import NoSuchCommand
-from docker.errors import APIError
-from compose.service import BuildError
-
 
 log = logging.getLogger(__name__)
 
@@ -42,16 +35,6 @@ def fix_docs(cls):
                             'docker-compose', 'voodoo')
                         break
     return cls
-
-
-def is_open(port):
-     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-     result = sock.connect_ex(('127.0.0.1', port))
-     if result == 0:
-        return True
-     else:
-        return False
-
 
 @fix_docs
 class VoodooCommand(TopLevelCommand):
@@ -228,31 +211,3 @@ class VoodooCommand(TopLevelCommand):
             args[0].append('odoo')
         return super(VoodooCommand, self).dispatch(
             *args, **kwargs)
-
-
-def main():
-    setup_logging()
-    try:
-        command = VoodooCommand()
-        command.sys_dispatch()
-    except KeyboardInterrupt:
-        log.error("\nAborting.")
-        sys.exit(1)
-    except (UserError, NoSuchService, ConfigurationError) as e:
-        log.error(e.msg)
-        sys.exit(1)
-    except NoSuchCommand as e:
-        log.error("No such command: %s", e.command)
-        log.error("")
-        log.error("\n".join(
-            parse_doc_section("commands:", getdoc(e.supercommand))))
-        sys.exit(1)
-    except APIError as e:
-        log.error(e.explanation)
-        sys.exit(1)
-    except BuildError as e:
-        log.error("Service '%s' failed to build: %s"
-                  % (e.service.name, e.reason))
-        sys.exit(1)
-
-main()

@@ -126,7 +126,6 @@ You can destroy the container when you don't need it anymore with:
 [See Troubleshooting in the wiki](https://github.com/akretion/voodoo/wiki/Troubleshooting)
 
 ## Roadmap
-- pip installation
 - udpate/fix documentation
 - add pre-copy of odoo repo in background for generating quickly a new project (mv .odoocache)
 - review voodoo new (maybe it will better to have a template folder un voodoo cli)
