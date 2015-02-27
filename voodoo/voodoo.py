@@ -128,10 +128,13 @@ class VoodooCommand(TopLevelCommand):
         odoo_ref_path = os.path.join(self.shared_folder, 'odoo')
         if not os.path.exists(odoo_ref_path):
             log.info(
-                "First run of voodoo, there is no odoo repo in %s. "
-                "Start to download odoo from github this can take a while...\n"
-                "If you have an existing Odoo repo (from OCA) you can stop it "
-                "and copy paste you repo in %s", odoo_ref_path, odoo_ref_path)
+                "First run of Voodoo; there is no Odoo repo in %s! "
+                "Will now download Odoo from Github, "
+                "this can take a while...\n"
+                "If you already have a local Odoo repo (from OCA) 
+                "then you can you can abort the download "
+                "and paste your repo or make a symbolink link in %s", 
+                odoo_ref_path, odoo_ref_path)
             check_call(["git", "clone", ODOO_GIT, odoo_ref_path])
         if self.shared_odoo:
             shared_odoo_path = os.path.join(
