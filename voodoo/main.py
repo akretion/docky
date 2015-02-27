@@ -40,5 +40,3 @@ def main():
         log.error("Service '%s' failed to build: %s"
                   % (e.service.name, e.reason))
         sys.exit(1)
-
-main()

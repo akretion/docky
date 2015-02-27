@@ -157,6 +157,8 @@ class VoodooCommand(TopLevelCommand):
             options['--service-ports'] = True
         if not options.get('COMMAND'):
             options['COMMAND'] = 'bash'
+        if not os.path.exists('parts'):
+            os.makedirs('parts')
         odoo_path = os.path.join('parts', 'odoo')
         if not os.path.exists(odoo_path):
             self.get_odoo(odoo_path)
@@ -198,12 +200,12 @@ class VoodooCommand(TopLevelCommand):
                       "in the project %s" % project.name)
 
     def perform_command(self, options, handler, command_options):
-        self.load_project_config(options)
         # no need of project params for new method
         if options['COMMAND'] == 'new':
             # Skip looking up the compose file.
             handler(None, command_options)
             return
+        self.load_project_config(options)
         return super(VoodooCommand, self).perform_command(
             options, handler, command_options)
 
