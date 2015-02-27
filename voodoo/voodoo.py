@@ -7,6 +7,7 @@ from subprocess import check_call
 import os
 import yaml
 import six
+import sys
 
 from compose.cli.main import TopLevelCommand
 from compose.cli.errors import UserError
@@ -19,6 +20,10 @@ ODOO_GIT = "https://github.com/OCA/OCB.git"
 DEFAULT_CONF = {
     "shared_eggs": True,
     "shared_odoo": False,
+    "used_odoo_repo": "oca",
+    "odoo_repo_list": {
+        "oca": "https://github.com/oca/ocb.git",
+    },
 }
 
 
@@ -91,8 +96,9 @@ class VoodooCommand(TopLevelCommand):
             if key in config:
                 setattr(self, key, config[key])
 
-    def generate_default_home_config(self, config_path):
-        os.makedirs(self.shared_folder)
+    def _generate_default_home_config(self, config_path):
+        if not os.path.exists(self.shared_folder):
+            os.makedirs(self.shared_folder)
         config_file = open(config_path, 'w')
         config_file.write(yaml.dump(DEFAULT_CONF))
         log.info("Create default config file at %s" % config_path)
@@ -107,7 +113,7 @@ class VoodooCommand(TopLevelCommand):
 
         # Create default config file in home if missing
         if not os.path.isfile(config_path):
-            self.generate_default_home_config(config_path)
+            self._generate_default_home_config(config_path)
 
         # Load Configuration
         config_file = open(config_path, 'r')
@@ -125,17 +131,28 @@ class VoodooCommand(TopLevelCommand):
         check_call(["git", "clone", "file://%s" % ref_path, dest_path])
 
     def get_odoo(self, odoo_path):
-        odoo_ref_path = os.path.join(self.shared_folder, 'odoo')
+        odoo_cache_path = os.path.join(self.shared_folder, 'cached_odoo')
+        if not os.path.exists(odoo_cache_path):
+            os.makedirs(odoo_cache_path)
+        odoo_ref_path = os.path.join(odoo_cache_path, self.used_odoo_repo)
         if not os.path.exists(odoo_ref_path):
             log.info(
                 "First run of Voodoo; there is no Odoo repo in %s! "
                 "Will now download Odoo from Github, "
                 "this can take a while...\n"
-                "If you already have a local Odoo repo (from OCA) 
+                "If you already have a local Odoo repo (from OCA) "
                 "then you can you can abort the download "
-                "and paste your repo or make a symbolink link in %s", 
+                "and paste your repo or make a symbolink link in %s",
                 odoo_ref_path, odoo_ref_path)
-            check_call(["git", "clone", ODOO_GIT, odoo_ref_path])
+            if self.odoo_repo_list.get(self.used_odoo_repo, False):
+                git_repo = self.odoo_repo_list[self.used_odoo_repo]
+            else:
+                log.error(
+                    "Error: The repo '%s' is not in the repo list.",
+                    self.used_odoo_repo)
+                log.error("Please add it in the voodoo config file.")
+                sys.exit(1)
+            check_call(["git", "clone", git_repo, odoo_ref_path])
         if self.shared_odoo:
             shared_odoo_path = os.path.join(
                 self.shared_folder,
