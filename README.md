@@ -155,6 +155,10 @@ Note : to improve the performance when downloading odoo, an odoo project is down
 This two options 'shared_eggs' and 'shared_odoo' can be overrided in the project voodoo.yml. For that you just have to set this options in the voodoo section.
 
 
+### Other apps available
+pgcli
+
+[![Pgcli](https://github.com/amjith/pgcli/raw/master/screenshots/image02.png)](pgcli)
 
 TODO REVIEW OLD DESCRIPTION
 ===============================
