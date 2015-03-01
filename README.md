@@ -149,10 +149,15 @@ This mean that the eggs will be shared between you voodoo project saving some do
 
 shared_odoo [string or False] : If a string is set as shared odoo git repo will be created in ~/.voodoo/shared/shared_odoo/your_string. This give you the posibility to share an odoo git repository between some container. If False an new odoo repository will be created.
 
+odoo_repo_list [dict: {'repo_name': 'repo_location'}] : The list of the odoo repositories that can be used. Indeed you maybe want to use OCA repo for a project and the Odoo S.A. repo for another or even a specific repo. Ex: {'oca': 'https://github.com/oca/ocb.git'}
+
 Note : to improve the performance when downloading odoo, an odoo project is downloaded in ~/.voodoo/shared/odoo. Then when you start a new project the new odoo part is created from this local repository.
 
 
-This two options 'shared_eggs' and 'shared_odoo' can be overrided in the project voodoo.yml. For that you just have to set this options in the voodoo section.
+Options 'shared_eggs' and 'shared_odoo' can be overrided in the project voodoo.yml. For that you just have to set those options in the voodoo section.
+For the repository you want to use, add:
+    used_odoo_repo: 'name_of_the_repo'
+The name of the repo has to be in the odoo repo list in the file config.yml.
 
 
 ### Other apps available
