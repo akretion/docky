@@ -158,7 +158,7 @@ This two options 'shared_eggs' and 'shared_odoo' can be overrided in the project
 ### Other apps available
 pgcli
 
-[![Pgcli](https://github.com/amjith/pgcli/raw/master/screenshots/image02.png)](pgcli)
+[![Pgcli](https://github.com/amjith/pgcli/raw/master/screenshots/image02.png)](https://github.com/amjith/pgcli)
 
 TODO REVIEW OLD DESCRIPTION
 ===============================
