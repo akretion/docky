@@ -74,7 +74,8 @@ The voodoo.yml is like the docker-compose.yml from docker-compose. For more info
 will run your project and you will have a bash session directly in the odoo container
 
 #### voodoo open
-will open a new session to an existing running project. For example you may need on terminal for running odoo and a second terminal for doing some psql. Just run "voodoo open" and you have a new session inside the container
+will open a new session to an existing running project. For example you may need on terminal for running odoo and a second terminal for doing some psql. 
+Use: open a new terminal tab/window from your voodoo running session (you're now in the same folder), then just run "voodoo open":  you have a new session inside the container. You can open as many voodoo tab that you want for your convenience.
 
 #### List of all command
 
