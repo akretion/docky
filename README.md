@@ -145,12 +145,12 @@ One in ~/.voodoo/config.yml and one in your project voodoo.yml
 #### Config.yml
 For now there is two option for you default config
 
-shared_eggs [True or False] : If true the ~/.voodoo/shared/eggs will be mounted as eggs folder in your docker
+shared_eggs [True or False]: If true the ~/.voodoo/shared/eggs will be mounted as eggs folder in your docker
 This mean that the eggs will be shared between you voodoo project saving some download and space
 
-shared_odoo [string or False] : If a string is set as shared odoo git repo will be created in ~/.voodoo/shared/shared_odoo/your_string. This give you the posibility to share an odoo git repository between some container. If False an new odoo repository will be created.
+shared_odoo [string or False]: If a string is set as shared odoo git repo will be created in ~/.voodoo/shared/shared_odoo/your_string. This give you the posibility to share an odoo git repository between some container. If False an new odoo repository will be created.
 
-odoo_repo_list [dict: {'repo_name': 'repo_location'}] : The list of the odoo repositories that can be used. Indeed you maybe want to use OCA repo for a project and the Odoo S.A. repo for another or even a specific repo. Ex: {'oca': 'https://github.com/oca/ocb.git'}
+odoo_repo_list [dict]: {'repo_name': 'repo_location'} : The list of the odoo repositories that can be used. Indeed you maybe want to use OCA repo for a project and the Odoo S.A. repo for another or even a specific repo. Ex: {'oca': 'https://github.com/oca/ocb.git'}
 
 Note : to improve the performance when downloading odoo, an odoo project is downloaded in ~/.voodoo/shared/odoo. Then when you start a new project the new odoo part is created from this local repository.
 
