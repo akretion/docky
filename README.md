@@ -6,12 +6,20 @@ Some black magic for your Odoo projects! With Voodoo, it is you who controls the
 
 ### Install on Ubuntu
 
-#### Install or upgrade your Docker:
-```
-    sudo apt-get install docker.io
-```
+#### Prerequisite
 
-Give non root access to Docker if not done already:
+You need 64 bits architecture
+
+
+#### Install or upgrade your Docker:
+
+* Goto https://docs.docker.com/v1.5/installation/ubuntulinux/
+
+in the section Docker-maintained Package Installation
+
+install as explained
+
+* Give non root access to Docker if not done already:
 ```
   sudo gpasswd -a ${USER} docker
   sudo service docker restart # use docker.io instead of docker in Ubuntu 14.04
@@ -19,7 +27,7 @@ Give non root access to Docker if not done already:
 
 **you may have to LOGOUT and LOG BACK IN AGAIN for the group change to take effect!**
 
-A simple test to see if you have non root access is to list your docker images with
+* A simple test to see if you have non root access is to list your docker images with
 ```
    docker images # make sure you don't need sudo anymore here
 ```
