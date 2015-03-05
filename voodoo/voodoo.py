@@ -85,7 +85,7 @@ class VoodooCommand(TopLevelCommand):
         try:
             with open(config_path, 'r') as fh:
                 config = yaml.safe_load(fh)
-                voodoo_config = config.pop('voodoo', None)
+                voodoo_config = config.pop('voodoo', {})
                 self.set_config(voodoo_config)
                 self.compose_config = config
         except IOError as e:
