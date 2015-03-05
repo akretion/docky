@@ -100,7 +100,7 @@ class VoodooCommand(TopLevelCommand):
         if not os.path.exists(self.shared_folder):
             os.makedirs(self.shared_folder)
         config_file = open(config_path, 'w')
-        config_file.write(yaml.dump(DEFAULT_CONF))
+        config_file.write(yaml.dump(DEFAULT_CONF, default_flow_style=False))
         log.info("Create default config file at %s" % config_path)
 
     def __init__(self, *args, **kwargs):
