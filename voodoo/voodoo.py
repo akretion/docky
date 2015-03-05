@@ -8,6 +8,7 @@ import os
 import yaml
 import six
 import sys
+import voodoo
 
 from compose.cli.main import TopLevelCommand
 from compose.cli.errors import UserError
@@ -233,21 +234,28 @@ class VoodooCommand(TopLevelCommand):
             old_config_file = open(config_path, 'r')
             old_config = old_config_file.read()
             old_config_file.close()
-            new_config = {}
-            new_config.update(yaml.safe_load(old_config))
+            new_config = yaml.safe_load(old_config)
             if (new_config['odoo'].get('links') and
                 options['SERVICE_NAME'] in new_config['odoo']['links']):
-                log.error("The service %s has already been added to this project")
+                log.error(
+                    "The service '%s' has already been added to this project."
+                    % options['SERVICE_NAME'])
                 sys.exit(1)
             elif new_config['odoo'].get('links'):
                 new_config['odoo']['links'].append(options['SERVICE_NAME'])
             else:
                 new_config['odoo']['links'] = [options['SERVICE_NAME']]
+            service_path = os.path.join(os.path.dirname(voodoo.__file__),
+                                        'service.yml')
+            service_file = open(service_path, 'r')
+            service_config = yaml.safe_load(service_file)
+            if not options['SERVICE_NAME'] in service_config:
+                log.error(
+                    "The service '%s' is not defined in the 'service.yml' file."
+                    % options['SERVICE_NAME'])
+                sys.exit(1)
             new_config.update({
-                options['SERVICE_NAME']: {
-                    'image': 'akretion/lightweight-mailcatcher',
-                    'ports': ['1080:1080', '1025:1025']
-                }
+                options['SERVICE_NAME']: service_config[options['SERVICE_NAME']]
             })
             config_file = open(config_path, 'w')
             config_file.write(yaml.dump(new_config, default_flow_style=False))
