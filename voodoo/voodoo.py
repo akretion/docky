@@ -219,6 +219,46 @@ class VoodooCommand(TopLevelCommand):
             log.error("No container found for the service odoo "
                       "in the project %s" % project.name)
 
+    def service(self, project, options):
+        """
+        Link containers
+        Usage: service [options] COMMAND SERVICE_NAME [SERVICE_OPTIONS...]
+        """
+        container = project.containers(service_names=['odoo'], one_off=True)
+        if container:
+            log.error("Please stop the container before linking a new container.")
+            sys.exit(1)
+        if options['COMMAND'] == 'add':
+            config_path = self.get_config_path()
+            old_config_file = open(config_path, 'r')
+            old_config = old_config_file.read()
+            old_config_file.close()
+            new_config = {}
+            new_config.update(yaml.safe_load(old_config))
+            if (new_config['odoo'].get('links') and
+                options['SERVICE_NAME'] in new_config['odoo']['links']):
+                log.error("The service %s has already been added to this project")
+                sys.exit(1)
+            elif new_config['odoo'].get('links'):
+                new_config['odoo']['links'].append(options['SERVICE_NAME'])
+            else:
+                new_config['odoo']['links'] = [options['SERVICE_NAME']]
+            new_config.update({
+                options['SERVICE_NAME']: {
+                    'image': 'akretion/lightweight-mailcatcher',
+                    'ports': ['1080:1080', '1025:1025']
+                }
+            })
+            config_file = open(config_path, 'w')
+            config_file.write(yaml.dump(new_config, default_flow_style=False))
+            config_file.close()
+        else:
+            log.error("The command '%s' has not been implemented yet"
+                      % options['COMMAND'])
+            sys.exit(1)
+        return self.dispatch(['run'], {})
+
+
     def perform_command(self, options, handler, command_options):
         # no need of project params for new method
         if options['COMMAND'] == 'new':
