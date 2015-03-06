@@ -223,7 +223,7 @@ class VoodooCommand(TopLevelCommand):
     def service(self, project, options):
         """
         Link containers
-        Usage: service [options] COMMAND SERVICE_NAME [SERVICE_OPTIONS...]
+        Usage: service [options] COMMAND SERVICE_NAME
         """
         container = project.containers(service_names=['odoo'], one_off=True)
         if container:
