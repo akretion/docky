@@ -61,6 +61,12 @@ Enter in the project and run voodoo
 
 A new docker with odoo inside have been launch. Now let's start Odoo
 
+First run ak build to build you project with anybox buildout recipe
+```
+   ak build
+```
+
+Then launch ak run to start odoo
 ```
    ak run
 ```
