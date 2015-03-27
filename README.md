@@ -152,6 +152,9 @@ TODO improve me
       reload    Drop and load a database from a file args. ak reload [file] [dbname]
       dump      Dump a database ak dump [file] [dbname]
       help      Get help on a command
+      
+   Args:
+      -o        ak build option to build in offline mode
 ```
 
 
