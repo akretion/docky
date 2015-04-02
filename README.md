@@ -187,17 +187,6 @@ pgcli
 
 [![Pgcli](https://github.com/amjith/pgcli/raw/master/screenshots/image02.png)](https://github.com/amjith/pgcli)
 
-TODO REVIEW OLD DESCRIPTION
-===============================
-
-Firstly Voodoo is a **template repository** to clone and use as a seed for all your Odoo projects. Because it's based on the Anybox recipe 'de facto standard', it allows you to keep under git revision control, all your project branch dependencies (via the buildout.cfg file ) and your project specific modules (in the modules folder). Once you do that, your project becomes easy to share with any developer.
-
-Secondly Voodoo comes with a **complete development runtime**, with all compiled Python dependencies (for v7, v8 and master) and a disposable Postgresql server. It allows to very quickly fire up a new development server that closely matches the production without clutering your shinny but small computer SSD disk with stale dependencies all over the place.
-
-Because it uses Docker, it's very fast and lightweight. You'll never again find yourself unwilling to fix an old customer bug because the cost to setup a dev server is too high. Voodoo is also based on Devstep by Fabio Rehm.
-
-**WARNING** Voodoo is **NOT designed for production**: running user has too much privileges and database setup isn't for production.
-
 
 ### Usages
 
@@ -208,7 +197,6 @@ So several usages are possible: from the Odoo project repository to a complete d
 You can clone a voodoo branch to start your project as simple convenience repo for your project. With the buildout.cfg file you can pin exactly your shared branches dependencies. You also keep the project specific modules under revision control in the modules folder.
 
 For further details, please simply refer to [Anybox recipe documentation](http://docs.anybox.fr/anybox.recipe.openerp/trunk/)
-
 
 
 Note that the Docker workdir is your repo that is shared with Docker, so you won't loose your source changes nor loose time copying files.
