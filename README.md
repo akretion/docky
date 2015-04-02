@@ -181,6 +181,10 @@ For the repository you want to use, add:
     used_odoo_repo: 'name_of_the_repo'
 The name of the repo has to be in the odoo repo list in the file config.yml.
 
+### FAQ
+
+see wiki https://github.com/akretion/voodoo-cli/wiki
+
 
 ### Other apps available
 pgcli
