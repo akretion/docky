@@ -95,6 +95,9 @@ will run your project and you will have a bash session directly in the odoo cont
 will open a new session to an existing running project. For example you may need on terminal for running odoo and a second terminal for doing some psql. 
 Use: open a new terminal tab/window from your voodoo running session (you're now in the same folder), then just run "voodoo open":  you have a new session inside the container. You can open as many voodoo tab that you want for your convenience.
 
+#### voodoo service [add...] SERVICE_NAME
+will modify the voodoo.yml file of the project and link the odoo container to the new service. The service has to be set up in the service.yml file of this module
+
 #### List of all command
 
 ```
@@ -180,6 +183,10 @@ Options 'shared_eggs' and 'shared_odoo' can be overrided in the project voodoo.y
 For the repository you want to use, add:
     used_odoo_repo: 'name_of_the_repo'
 The name of the repo has to be in the odoo repo list in the file config.yml.
+
+#### Service.yml
+
+list of the available services that can be linked with odoo container. Defines also the default parameters of thoses services.
 
 ### FAQ
 

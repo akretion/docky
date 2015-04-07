@@ -8,6 +8,7 @@ import os
 import yaml
 import six
 import sys
+import voodoo
 
 from compose.cli.main import TopLevelCommand
 from compose.cli.errors import UserError
@@ -218,6 +219,53 @@ class VoodooCommand(TopLevelCommand):
         else:
             log.error("No container found for the service odoo "
                       "in the project %s" % project.name)
+
+    def service(self, project, options):
+        """
+        Link containers
+        Usage: service [options] COMMAND SERVICE_NAME
+        """
+        container = project.containers(service_names=['odoo'], one_off=True)
+        if container:
+            log.error("Please stop the container before linking a new container.")
+            sys.exit(1)
+        if options['COMMAND'] == 'add':
+            config_path = self.get_config_path()
+            old_config_file = open(config_path, 'r')
+            old_config = old_config_file.read()
+            old_config_file.close()
+            new_config = yaml.safe_load(old_config)
+            if (new_config['odoo'].get('links') and
+                options['SERVICE_NAME'] in new_config['odoo']['links']):
+                log.error(
+                    "The service '%s' has already been added to this project."
+                    % options['SERVICE_NAME'])
+                sys.exit(1)
+            elif new_config['odoo'].get('links'):
+                new_config['odoo']['links'].append(options['SERVICE_NAME'])
+            else:
+                new_config['odoo']['links'] = [options['SERVICE_NAME']]
+            service_path = os.path.join(os.path.dirname(voodoo.__file__),
+                                        'service.yml')
+            service_file = open(service_path, 'r')
+            service_config = yaml.safe_load(service_file)
+            if not options['SERVICE_NAME'] in service_config:
+                log.error(
+                    "The service '%s' is not defined in the 'service.yml' file."
+                    % options['SERVICE_NAME'])
+                sys.exit(1)
+            new_config.update({
+                options['SERVICE_NAME']: service_config[options['SERVICE_NAME']]
+            })
+            config_file = open(config_path, 'w')
+            config_file.write(yaml.dump(new_config, default_flow_style=False))
+            config_file.close()
+        else:
+            log.error("The command '%s' has not been implemented yet"
+                      % options['COMMAND'])
+            sys.exit(1)
+        return self.dispatch(['run'], {})
+
 
     def perform_command(self, options, handler, command_options):
         # no need of project params for new method
