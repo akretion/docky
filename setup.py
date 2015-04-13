@@ -34,5 +34,5 @@ setup(
     """,
     include_package_data=True,
     zip_safe=False,
-    data_files=[('config', ['voodoo/service.yml'])]
+    data_files=[('voodoo', ['service.yml'])]
 )
