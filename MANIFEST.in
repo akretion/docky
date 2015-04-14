@@ -1,1 +1,1 @@
-include voodoo/service.yml
+include voodoo/config/service.yml
