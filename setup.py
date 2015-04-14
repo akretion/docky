@@ -25,7 +25,6 @@ setup(
     description='Environement builder for Odoo',
     license="AGPLv3+",
     long_description=open('README.md').read(),
-    packages=find_packages(),
     install_requires=[
         r.strip() for r in open('requirement.txt').read().splitlines() ],
     entry_points="""
@@ -33,6 +32,8 @@ setup(
     voodoo=voodoo.main:main
     """,
     include_package_data=True,
+    packages = find_packages() + ['voodoo'],
+    package_dir={'config': ''},
+    package_data={'': ['config/service.yml']},
     zip_safe=False,
-    data_files=[('voodoo', ['service.yml'])]
 )

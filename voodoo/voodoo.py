@@ -246,7 +246,7 @@ class VoodooCommand(TopLevelCommand):
             else:
                 new_config['odoo']['links'] = [options['SERVICE_NAME']]
             service_path = os.path.join(os.path.dirname(voodoo.__file__),
-                                        'service.yml')
+                                        'config/service.yml')
             service_file = open(service_path, 'r')
             service_config = yaml.safe_load(service_file)
             if not options['SERVICE_NAME'] in service_config:
