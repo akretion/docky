@@ -15,7 +15,7 @@ from compose.cli.errors import UserError
 
 log = logging.getLogger(__name__)
 
-TEMPLATE = "https://github.com/akretion/voodoo.git"
+TEMPLATE = "https://github.com/akretion/voodoo-template.git"
 ODOO_GIT = "https://github.com/OCA/OCB.git"
 
 DEFAULT_CONF = {
