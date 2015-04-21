@@ -10,6 +10,7 @@ import six
 import sys
 import voodoo
 
+from compose import config
 from compose.cli.main import TopLevelCommand
 from compose.cli.errors import UserError
 
@@ -41,6 +42,26 @@ def fix_docs(cls):
                             'docker-compose', 'voodoo')
                         break
     return cls
+
+def voodoo_load_yaml(file_name):
+    try:
+        with open(file_name, 'r') as fh:
+            row_config = yaml.safe_load(fh)
+            voodoo_config = row_config.pop('voodoo', {})
+            config = row_config
+            home = os.path.expanduser("~")
+            shared = os.path.join(home, '.voodoo', 'shared')
+            config['odoo']['volumes'].append('%s:%s' % (shared, shared))
+            config['odoo']['environment'] += [
+                'SHARED_FOLDER=%s' % shared,
+                'SHARED_EGGS=%s' % str(voodoo_config['shared_eggs']).lower(),
+                ]
+            return config
+    except IOError as e:
+            raise UserError(six.text_type(e))
+
+config.load_yaml = voodoo_load_yaml
+
 
 @fix_docs
 class VoodooCommand(TopLevelCommand):
@@ -88,7 +109,6 @@ class VoodooCommand(TopLevelCommand):
                 config = yaml.safe_load(fh)
                 voodoo_config = config.pop('voodoo', {})
                 self.set_config(voodoo_config)
-                self.compose_config = config
         except IOError as e:
             raise UserError(six.text_type(e))
 
@@ -189,17 +209,6 @@ class VoodooCommand(TopLevelCommand):
         if not file_path:
             file_path = 'voodoo.yml'
         return super(VoodooCommand, self).get_config_path(file_path=file_path)
-
-    def get_config(self, config_path):
-        config = self.compose_config
-        home = os.path.expanduser("~")
-        shared = os.path.join(home, '.voodoo', 'shared')
-        config['odoo']['volumes'].append('%s:%s' % (shared, shared))
-        config['odoo']['environment'] += [
-            'SHARED_FOLDER=%s' % shared,
-            'SHARED_EGGS=%s' % str(self.shared_eggs).lower(),
-            ]
-        return config
 
     def new(self, project, options):
         """
