@@ -40,7 +40,7 @@ you choose to install it manually
 #### Install Voodoo:
 
 ```
-  sudo pip install git+https://github.com/akretion/voodoo-cli.git
+  sudo pip install git+https://github.com/akretion/voodoo.git
 ```
 
 
@@ -143,21 +143,24 @@ TODO improve me
       ak --help
 
     Commands:
-      run       Run Odoo
-      debug     Run Odoo in debug mode
-      build     Build Your Project using frozen.conf if existing or buildout.dev.cfg
-                If you have an existing frozen.cfg and you want to force the update
-                just add --update as arguments "ak build --update"
-      freeze    Freeze all dependency for your project
-      console   Open a Odoo Shell
-      psql      Open a Psql shell
-      load      Load a database from a file args. ak load [file] [dbname]
-      reload    Drop and load a database from a file args. ak reload [file] [dbname]
-      dump      Dump a database ak dump [file] [dbname]
-      help      Get help on a command
-      
+      run           Run Odoo
+      debug         Run Odoo in debug mode
+      build         Build Your Project using frozen.conf if existing or buildout.dev.cfg
+                    If you have an existing frozen.cfg and you want to force the update
+                    just add --update as arguments "ak build --update"
+      freeze        Freeze all dependency for your project
+      console       Open a Odoo Shell
+      code_test     Run flake8 and pylint tests on the module specified
+                    If no modules provided, test all files in 'modules' directory
+      server_test   Start Odoo with test enables (that launch unittest and yaml)
+      psql          Open a Psql shell
+      load          Load a database from a file args. ak load [file] [dbname]
+      reload        Drop and load a database from a file args. ak reload [file] [dbname]
+      dump          Dump a database ak dump [file] [dbname]
+      help          Get help on a command
+
    Args:
-      -o        ak build option to build in offline mode
+      -o            ak build option to build in offline mode
 ```
 
 
