@@ -40,7 +40,7 @@ you choose to install it manually
 #### Install Voodoo:
 
 ```
-  sudo pip install git+https://github.com/akretion/voodoo.git
+  sudo pip install git+https://github.com/akretion/voodoo.git --upgrade
 ```
 
 
