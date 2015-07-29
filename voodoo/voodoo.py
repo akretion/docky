@@ -22,6 +22,7 @@ ODOO_GIT = "https://github.com/OCA/OCB.git"
 DEFAULT_CONF = {
     "shared_eggs": True,
     "shared_odoo": False,
+    "gitconfig": "~/.gitconfig",
     "used_odoo_repo": "oca",
     "odoo_repo_list": {
         "oca": "https://github.com/oca/ocb.git",
@@ -43,15 +44,34 @@ def fix_docs(cls):
                         break
     return cls
 
+
 def voodoo_load_yaml(file_name):
     try:
+        # Load default voodoo config
+        default_config_path = os.path.join(
+            os.path.expanduser("~"), '.voodoo', 'config.yml')
+        with open(default_config_path, 'r') as fh:
+            voodoo_config = yaml.safe_load(fh)
+
         with open(file_name, 'r') as fh:
-            row_config = yaml.safe_load(fh)
-            voodoo_config = row_config.pop('voodoo', {})
-            config = row_config
+            #Load custom config
+            config = yaml.safe_load(fh)
+
+            #update voodoo config
+            voodoo_config.update(config.pop('voodoo', {}))
+
+            # share .voodoo folder in voodoo
             home = os.path.expanduser("~")
             shared = os.path.join(home, '.voodoo', 'shared')
             config['odoo']['volumes'].append('%s:%s' % (shared, shared))
+
+            # Add gitconfig in voodoo
+            if 'gitconfig' in voodoo_config:
+                gitconfig = os.path.expanduser(voodoo_config['gitconfig'])
+                config['odoo']['volumes'].append(
+                    '%s:/home/devstep/.gitconfig' % (gitconfig))
+
+            #Add environment variable
             config['odoo']['environment'] += [
                 'SHARED_FOLDER=%s' % shared,
                 'SHARED_EGGS=%s' % str(voodoo_config['shared_eggs']).lower(),
