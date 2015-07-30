@@ -8,18 +8,18 @@ Some black magic for your Odoo projects! With Voodoo, it is you who controls the
 
 #### Prerequisite
 
-You need 64 bits architecture
+You need a 64 bits architecture
 
 
 #### Install or upgrade your Docker:
 
-The official docker documentation propose the following script to install the last version of docker on Ubuntu
+The official docker documentation proposes the following script to install the last version of docker on Ubuntu
 
 ```
 curl -sSL https://get.docker.com/ubuntu/ | sudo sh
 ```
 You can have more information on the installation on https://docs.docker.com/v1.5/installation/ubuntulinux/
-in the section Docker-maintained Package Installation, please do not forget to install the last version if
+in the section Docker-maintained Package Installation, please do not forget to install the latest version if
 you choose to install it manually
 
 
@@ -76,15 +76,15 @@ Go to http://localhost:8069 Odoo is here !
 
 ### Voodoo Command
 
-Voodoo extend docker-compose so everything that docker-compose can do voodoo can too.
+Voodoo extends docker-compose so everything it can do docker-compose can do.
 
-Here is the main important command for more extra command you can read docker-compose documentation : http://docs.docker.com/compose/
+For more information about extra commands you can read the docker-compose documentation: http://docs.docker.com/compose/
 
 
 #### voodoo new
 will start a new custom project by cloning a default project template.
-The most important file are buildout.cfg, buildout.dev.cfg, voodoo.yml
-As you can guess voodoo is based on Anybox Recipe you can read all the documentation here [Anybox recipe documentation](http://pythonhosted.org/anybox.recipe.openerp/)
+The most important files are buildout.cfg, buildout.dev.cfg, voodoo.yml
+As you can guess Voodoo is based on Anybox Recipe you can read all the documentation here [Anybox recipe documentation](http://pythonhosted.org/anybox.recipe.openerp/)
 
 The voodoo.yml is like the docker-compose.yml from docker-compose. For more information read the docker-compose documentation and read the section voodoo.yml
 
