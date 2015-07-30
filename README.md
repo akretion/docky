@@ -76,9 +76,7 @@ Go to http://localhost:8069 Odoo is here !
 
 ### Voodoo Command
 
-Voodoo extends docker-compose so everything it can do docker-compose can do.
-
-For more information about extra commands you can read the docker-compose documentation: http://docs.docker.com/compose/
+Voodoo extends docker-compose so it can do everything docker-compose can do. For more information about extra commands you can read the docker-compose documentation: http://docs.docker.com/compose
 
 
 #### voodoo new
