@@ -116,6 +116,7 @@ class VoodooCommand(TopLevelCommand):
       stop      Stop services
       restart   Restart services
       up        Create and start containers
+      provision Provisioning tool
 
     """
 
@@ -210,6 +211,15 @@ class VoodooCommand(TopLevelCommand):
             check_call(['ln', '-s', shared_odoo_path, odoo_path])
         else:
             self.clone_odoo(odoo_ref_path, odoo_path)
+
+    def provision(self, project, options):
+        pwd = os.getcwd()
+        cmd = ['docker', 'run', '-ti',
+                '-v', "%s/.ssh:/root/.ssh_host" % (os.path.expanduser("~"),),
+                '-v', "%s/Berksfile:/Berksfile" % (pwd,),
+                '-v', "%s/.kitchen.yml:/.kitchen.yml" % (pwd,),
+                'akretion/chefdk'] 
+        return check_call(cmd)
 
     def run(self, project, options):
         if not options.get('SERVICE'):
@@ -307,6 +317,8 @@ class VoodooCommand(TopLevelCommand):
             options, handler, command_options)
 
     def dispatch(self, *args, **kwargs):
+        if args and args[0] and args[0][0] == 'provision':
+            return self.provision(VoodooCommand, self)
         # Inject default value for run method
         if args and args[0] and args[0][0] == 'run' and len(args[0]) == 1:
             args[0].append('odoo')
