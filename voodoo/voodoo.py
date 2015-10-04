@@ -214,6 +214,13 @@ class VoodooCommand(TopLevelCommand):
 
     def provision(self, project, options):
         pwd = os.getcwd()
+        bundler_cmd = sys.argv[2:] or ["kitchen", "converge"]
+        cmd = ['docker', 'run', '-ti',
+                '-v', "%s/.ssh:/root/.ssh_host" % (os.path.expanduser("~"),),
+                '-v', "%s:/workspace" % (pwd,),
+                'akretion/chefdk'] + bundler_cmd
+        return check_call(cmd)
+
         cmd = ['docker', 'run', '-ti',
                 '-v', "%s/.ssh:/root/.ssh_host" % (os.path.expanduser("~"),),
                 '-v', "%s/Berksfile:/Berksfile" % (pwd,),
