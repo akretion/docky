@@ -4,6 +4,8 @@
 import socket
 import logging
 from subprocess import check_call
+from subprocess import check_output
+from subprocess import CalledProcessError
 import os
 import shutil
 import yaml
@@ -239,7 +241,6 @@ class VoodooCommand(TopLevelCommand):
                 if check_output(["grep", 'remote "clodoo"', ".git/config"]):
                     check_call(["git", "remote", "remove", "clodoo"])
             except CalledProcessError:
-                print "CalledProcessError1"
                 pass
             try:
                 app = list(reversed(os.getcwd().split('/')))[0]
