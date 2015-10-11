@@ -34,6 +34,6 @@ setup(
     include_package_data=True,
     packages = find_packages() + ['voodoo'],
     package_dir={'config': ''},
-    package_data={'': ['config/service.yml', 'config/.kitchen.yml', 'config/Berksfile']},
+    package_data={'': ['config/service.yml', 'config/.kitchen.yml']},
     zip_safe=False,
 )

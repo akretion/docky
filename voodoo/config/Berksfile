@@ -1,3 +1,0 @@
-source "https://supermarket.chef.io"
-
-cookbook 'clodoo', git: 'ssh://git@gitlab.akretion.com:10022/devops/clodoo.git'

@@ -214,10 +214,6 @@ class VoodooCommand(TopLevelCommand):
             self.clone_odoo(odoo_ref_path, odoo_path)
 
     def provision(self, project, options):
-        if not os.path.isfile('Berksfile'):
-            berks_path = os.path.join(os.path.dirname(voodoo.__file__),
-                                        'config/Berksfile')
-            shutil.copy2(berks_path, 'Berksfile')
         if not os.path.isfile('.kitchen.yml'):
             log.warning(".kitchen.yml file is missing.\n"
                      "-> Creating default .kitchen.yml\n"
@@ -231,8 +227,6 @@ class VoodooCommand(TopLevelCommand):
         bundler_cmd = sys.argv[2:] or ["kitchen", "converge"]
         cmd = ['docker', 'run', '-ti',
                '-v', "%s/.ssh:/root/.ssh_host" % (os.path.expanduser("~"),),
--              '-v', "%s/Berksfile:/Berksfile" % (pwd,),
--              '-v', "%s/.kitchen.yml:/.kitchen.yml" % (pwd,),
                '-v', "%s:/workspace" % (pwd,),
                'akretion/chefdk'] + bundler_cmd 
         return check_call(cmd)
