@@ -1,0 +1,18 @@
+---
+driver:
+  name: ssh
+  hostname: SERVER_IP
+  username: root
+
+provisioner:
+  name: chef_zero
+
+platforms:
+  - name: ubuntu
+
+suites:
+  - name: default
+    run_list:
+      - recipe[clodoo]
+    attributes:
+      trust_root: false

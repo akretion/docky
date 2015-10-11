@@ -5,6 +5,7 @@ import socket
 import logging
 from subprocess import check_call
 import os
+import shutil
 import yaml
 import six
 import sys
@@ -213,19 +214,27 @@ class VoodooCommand(TopLevelCommand):
             self.clone_odoo(odoo_ref_path, odoo_path)
 
     def provision(self, project, options):
+        if not os.path.isfile('Berksfile'):
+            berks_path = os.path.join(os.path.dirname(voodoo.__file__),
+                                        'config/Berksfile')
+            shutil.copy2(berks_path, 'Berksfile')
+        if not os.path.isfile('.kitchen.yml'):
+            log.warning(".kitchen.yml file is missing.\n"
+                     "-> Creating default .kitchen.yml\n"
+                     "You should now edit it and at least\n"
+                     "set the server ip and run provision again")
+            kitchen_path = os.path.join(os.path.dirname(voodoo.__file__),
+                                        'config/.kitchen.yml')
+            shutil.copy2(kitchen_path, '.kitchen.yml')
+            return False
         pwd = os.getcwd()
         bundler_cmd = sys.argv[2:] or ["kitchen", "converge"]
         cmd = ['docker', 'run', '-ti',
-                '-v', "%s/.ssh:/root/.ssh_host" % (os.path.expanduser("~"),),
-                '-v', "%s:/workspace" % (pwd,),
-                'akretion/chefdk'] + bundler_cmd
-        return check_call(cmd)
-
-        cmd = ['docker', 'run', '-ti',
-                '-v', "%s/.ssh:/root/.ssh_host" % (os.path.expanduser("~"),),
-                '-v', "%s/Berksfile:/Berksfile" % (pwd,),
-                '-v', "%s/.kitchen.yml:/.kitchen.yml" % (pwd,),
-                'akretion/chefdk'] 
+               '-v', "%s/.ssh:/root/.ssh_host" % (os.path.expanduser("~"),),
+-              '-v', "%s/Berksfile:/Berksfile" % (pwd,),
+-              '-v', "%s/.kitchen.yml:/.kitchen.yml" % (pwd,),
+               '-v', "%s:/workspace" % (pwd,),
+               'akretion/chefdk'] + bundler_cmd 
         return check_call(cmd)
 
     def run(self, project, options):
