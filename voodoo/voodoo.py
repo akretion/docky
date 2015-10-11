@@ -117,7 +117,7 @@ class VoodooCommand(TopLevelCommand):
       stop      Stop services
       restart   Restart services
       up        Create and start containers
-      provision Provisioning tool
+      chefdk    Chef Development Kit wrapper
 
     """
 
@@ -213,23 +213,45 @@ class VoodooCommand(TopLevelCommand):
         else:
             self.clone_odoo(odoo_ref_path, odoo_path)
 
-    def provision(self, project, options):
+    def chefdk(self, project, options):
         if not os.path.isfile('.kitchen.yml'):
             log.warning(".kitchen.yml file is missing.\n"
                      "-> Creating default .kitchen.yml\n"
                      "You should now edit it and at least\n"
-                     "set the server ip and run provision again")
+                     "set the server ip and run the command again")
             kitchen_path = os.path.join(os.path.dirname(voodoo.__file__),
                                         'config/.kitchen.yml')
             shutil.copy2(kitchen_path, '.kitchen.yml')
             return False
-        pwd = os.getcwd()
-        bundler_cmd = sys.argv[2:] or ["kitchen", "converge"]
-        cmd = ['docker', 'run', '-ti',
-               '-v', "%s/.ssh:/root/.ssh_host" % (os.path.expanduser("~"),),
-               '-v', "%s:/workspace" % (pwd,),
-               'akretion/chefdk'] + bundler_cmd 
-        return check_call(cmd)
+        ip_part = check_output(["grep", "^  hostname:", ".kitchen.yml"])
+        ip = ip_part.replace("hostname:", "").strip()
+        if ip != "SERVER_IP":
+            pwd = os.getcwd()
+            bundler_cmd = sys.argv[2:] or ["kitchen", "converge"]
+            home = os.path.expanduser("~")
+            cmd = ['docker', 'run', '-ti',
+                   '-v', "%s/.ssh:/root/.ssh_host" % (home,),
+                   '-v', "%s:/workspace" % (pwd,),
+                   'akretion/chefdk'] + bundler_cmd
+            res = check_call(cmd)
+
+            try:
+                if check_output(["grep", 'remote "clodoo"', ".git/config"]):
+                    check_call(["git", "remote", "remove", "clodoo"])
+            except CalledProcessError:
+                print "CalledProcessError1"
+                pass
+            try:
+                app = list(reversed(os.getcwd().split('/')))[0]
+                check_call(["git", "remote", "add",
+                            "clodoo", "akretion@%s:%s" % (ip, app)])
+                log.info("clodoo remote set to akretion@%s:%s" % (ip, app))
+            except CalledProcessError:
+                pass
+            return res
+        else:
+            log.warning("you should configure your own SERVER_IP"
+                        "in .kitchen.yml and run the command again")
 
     def run(self, project, options):
         if not options.get('SERVICE'):
@@ -328,8 +350,8 @@ class VoodooCommand(TopLevelCommand):
             options, handler, command_options)
 
     def dispatch(self, *args, **kwargs):
-        if args and args[0] and args[0][0] == 'provision':
-            return self.provision(VoodooCommand, self)
+        if args and args[0] and args[0][0] == 'chefdk':
+            return self.chefdk(VoodooCommand, self)
         # Inject default value for run method
         if args and args[0] and args[0][0] == 'run' and len(args[0]) == 1:
             args[0].append('odoo')

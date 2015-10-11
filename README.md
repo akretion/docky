@@ -128,7 +128,7 @@ will modify the voodoo.yml file of the project and link the odoo container to th
       stop      Stop services
       restart   Restart services
       up        Create and start containers
-      provision Provisioning tool
+      chefdk    Chef Development Kit wrapper
 ```
 
 
