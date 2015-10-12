@@ -1,8 +1,11 @@
 ---
 driver:
-  name: ssh
+  name: ssh_gzip
   hostname: SERVER_IP
   username: root
+#  port:
+#  password:
+#  ssh_key:
 
 provisioner:
   name: chef_zero
