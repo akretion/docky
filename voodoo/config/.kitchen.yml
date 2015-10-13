@@ -15,6 +15,7 @@ platforms:
 
 suites:
   - name: default
+    data_bags_path: "../data_bags"
     run_list:
       - recipe[clodoo]
     attributes:
