@@ -279,7 +279,8 @@ class VoodooCommand(TopLevelCommand):
         Usage: new [options] PROJECT
         """
         check_call(["git", "clone", TEMPLATE, options['PROJECT']])
-        check_call(["git", "remote", "remove", "origin"])
+# TODO the following may work if we deal with CWD
+#        check_call(["git", "remote", "remove", "origin"]) 
 
     def open(self, project, options):
         """
