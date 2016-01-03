@@ -16,9 +16,9 @@ You need a 64 bits architecture
 The official docker documentation proposes the following script to install the last version of docker on Ubuntu
 
 ```
-curl -sSL https://get.docker.com/ubuntu/ | sudo sh
+wget -qO- https://get.docker.com/ | sh
 ```
-You can have more information on the installation on https://docs.docker.com/v1.5/installation/ubuntulinux/
+You can have more information on the installation on https://docs.docker.com/v1.6/installation/ubuntulinux/
 in the section Docker-maintained Package Installation, please do not forget to install the latest version if
 you choose to install it manually
 
