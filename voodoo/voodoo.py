@@ -25,7 +25,6 @@ ODOO_GIT = "https://github.com/OCA/OCB.git"
 DEFAULT_CONF = {
     "shared_eggs": True,
     "shared_odoo": False,
-    "gitconfig": "~/.gitconfig",
     "used_odoo_repo": "oca",
     "odoo_repo_list": {
         "oca": "https://github.com/oca/ocb.git",
@@ -67,12 +66,6 @@ def voodoo_load_yaml(file_name):
             home = os.path.expanduser("~")
             shared = os.path.join(home, '.voodoo', 'shared')
             config['odoo']['volumes'].append('%s:%s' % (shared, shared))
-
-            # Add gitconfig in voodoo
-            if 'gitconfig' in voodoo_config:
-                gitconfig = os.path.expanduser(voodoo_config['gitconfig'])
-                config['odoo']['volumes'].append(
-                    '%s:/home/devstep/.gitconfig' % (gitconfig))
 
             #Add environment variable
             config['odoo']['environment'] += [
