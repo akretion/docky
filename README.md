@@ -3,6 +3,7 @@
 Odoo dockerized.
 
 > For beginners: get an odoo instance without effort
+
 > For developers: reproductible odoo environments 
 
 
@@ -14,7 +15,41 @@ Odoo dockerized.
 Voodoo leverage Docker-compose and  [Anybox's buildout](http://pythonhosted.org/anybox.recipe.openerp/) for odoo.
 
 In your __host__ run __voodoo__ commands to bootstrap the project and launch docker.
+
 Then in your __guest__, run __ak__ commands to update odoo depencies (odoo modules), trigger update scripts and restart odoo server.
+
+
+
+###  Getting Started
+
+Create a new project
+
+```
+    voodoo new my_project
+```
+
+Enter in the project directory then run voodoo
+
+```
+   cd my_project
+   voodoo run
+```
+It will run a new docker image with odoo and postgres inside.
+
+
+Now let's start Odoo
+
+First run ak build to build you project with anybox buildout recipe
+```
+   ak build
+```
+
+Then launch ak run to start odoo
+```
+   ak run
+```
+
+Go to http://localhost:8069 Odoo is here !
 
 
 ### Install on Ubuntu
@@ -59,37 +94,6 @@ Please do not forget to install the latest version if you choose to install it m
 ```
 
 
-###  Quick Start
-
-Create a new project
-
-```
-    voodoo new my_project
-```
-
-Enter in the project directory then run voodoo
-
-```
-   cd my_project
-   voodoo run
-```
-It will run a new docker image with odoo and postgres inside.
-
-
-Now let's start Odoo
-
-First run ak build to build you project with anybox buildout recipe
-```
-   ak build
-```
-
-Then launch ak run to start odoo
-```
-   ak run
-```
-
-Go to http://localhost:8069 Odoo is here !
-
 
 ### Voodoo Command
 
@@ -105,7 +109,7 @@ will run your project and give you a bash session directly in the odoo container
 #### voodoo open
 will open a new session to an existing running container. 
 
-For example you may need on terminal for running odoo and a second terminal for doing some psql. 
+For example you may need a first terminal for running odoo and a second terminal for doing some psql. 
 
 #### voodoo service [add...] SERVICE_NAME
 will modify the voodoo.yml file of the project and link the odoo container to the new service. The service has to be set up in the service.yml file of this module
@@ -229,10 +233,8 @@ pgcli
 [![Pgcli](https://github.com/amjith/pgcli/raw/master/screenshots/image02.png)](https://github.com/amjith/pgcli)
 
 
-### Usages
-
-
-## Use as a simple Odoo project repository managed by Anybox recipe (without using Docker)
+### Another usage
+Use as a simple Odoo project repository managed by Anybox recipe (without using Docker)
 
 You can clone a voodoo branch to start your project as simple convenience repo for your project. With the buildout.cfg file you can pin exactly your shared branches dependencies. You also keep the project specific modules under revision control in the modules folder.
 
