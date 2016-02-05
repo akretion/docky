@@ -16,7 +16,7 @@ Voodoo leverage Docker-compose and  [Anybox's buildout](http://pythonhosted.org/
 
 In your __host__ run __voodoo__ commands to bootstrap the project and launch docker.
 
-Then in your __guest__ (container), run __ak__ commands to update odoo depencies (odoo modules), trigger update scripts and restart odoo server.
+Then in your __guest__ (container), run __ak__ commands to update odoo dependencies (odoo modules), trigger update scripts and restart odoo server.
 
 
 
