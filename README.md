@@ -57,6 +57,7 @@ Go to http://localhost:8069 Odoo is here !
 #### Prerequisite
 
 * You need a 64 bits architecture.
+* You will need to install the Python development headers (python-dev)
 * Your user needs to have system uid = 1000  (known issue)
 
 
