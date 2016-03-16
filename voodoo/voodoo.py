@@ -31,6 +31,11 @@ DEFAULT_CONF = {
         "oca": "https://github.com/oca/ocb.git",
     },
 }
+OCA_HELPER_REPOSITORIES = [
+    'maintainer-tools',
+    'maintainer-quality-tools',
+    'pylint-odoo',
+]
 
 
 # inspired from http://stackoverflow.com
@@ -142,8 +147,19 @@ class VoodooCommand(TopLevelCommand):
                 setattr(self, key, config[key])
 
     def _generate_default_home_config(self, config_path):
+        # Create folders
         if not os.path.exists(self.shared_folder):
             os.makedirs(self.shared_folder)
+        erp_folder = os.path.join(self.home, '.voodoo', 'erp_helper')
+        if not os.path.exists(erp_folder):
+            os.makedirs(erp_folder)
+            # Clone Quality repos
+            log.info("Start cloning ERP helpers tools")
+            for repo in OCA_HELPER_REPOSITORIES:
+                check_call([
+                    "git", "clone",
+                    "https://github.com/OCA/%s.git" % repo, erp_folder])
+        # Set configuration
         config_file = open(config_path, 'w')
         config_file.write(yaml.dump(DEFAULT_CONF, default_flow_style=False))
         log.info("Create default config file at %s" % config_path)
@@ -280,7 +296,7 @@ class VoodooCommand(TopLevelCommand):
         """
         check_call(["git", "clone", TEMPLATE, options['PROJECT']])
 # TODO the following may work if we deal with CWD
-#        check_call(["git", "remote", "remove", "origin"]) 
+#        check_call(["git", "remote", "remove", "origin"])
 
     def open(self, project, options):
         """
