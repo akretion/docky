@@ -119,7 +119,6 @@ class VoodooCommand(TopLevelCommand):
       stop      Stop services
       restart   Restart services
       up        Create and start containers
-      chefdk    Chef Development Kit wrapper
 
     """
 
@@ -214,45 +213,6 @@ class VoodooCommand(TopLevelCommand):
             check_call(['ln', '-s', shared_odoo_path, odoo_path])
         else:
             self.clone_odoo(odoo_ref_path, odoo_path)
-
-    def chefdk(self, project, options):
-        if not os.path.isfile('.kitchen.yml'):
-            log.warning(".kitchen.yml file is missing.\n"
-                     "-> Creating default .kitchen.yml\n"
-                     "You should now edit it and at least\n"
-                     "set the server ip and run the command again")
-            kitchen_path = os.path.join(os.path.dirname(voodoo.__file__),
-                                        'config/.kitchen.yml')
-            shutil.copy2(kitchen_path, '.kitchen.yml')
-            return False
-        ip_part = check_output(["grep", "^  hostname:", ".kitchen.yml"])
-        ip = ip_part.replace("hostname:", "").strip()
-        if ip != "SERVER_IP":
-            pwd = os.getcwd()
-            bundler_cmd = sys.argv[2:] or ["kitchen", "converge"]
-            home = os.path.expanduser("~")
-            cmd = ['docker', 'run', '-ti',
-                   '-v', "%s/.ssh:/root/.ssh_host" % (home,),
-                   '-v', "%s:/workspace" % (pwd,),
-                   'akretion/chefdk'] + bundler_cmd
-            res = check_call(cmd)
-
-            try:
-                if check_output(["grep", 'remote "clodoo"', ".git/config"]):
-                    check_call(["git", "remote", "remove", "clodoo"])
-            except CalledProcessError:
-                pass
-            try:
-                app = list(reversed(os.getcwd().split('/')))[0]
-                check_call(["git", "remote", "add",
-                            "clodoo", "akretion@%s:%s" % (ip, app)])
-                log.info("clodoo remote set to akretion@%s:%s" % (ip, app))
-            except CalledProcessError:
-                pass
-            return res
-        else:
-            log.warning("you should configure your own SERVER_IP"
-                        "in .kitchen.yml and run the command again")
 
     def run(self, project, options):
         if not options.get('SERVICE'):
