@@ -122,7 +122,7 @@ class VoodooRun(VoodooSub):
 
 
 @Voodoo.subcommand("open")
-class VoodooOpen(cli.Application):
+class VoodooOpen(VoodooSub):
 
     def main(self, *args):
         project = get_project('.')
@@ -136,7 +136,7 @@ class VoodooOpen(cli.Application):
 
 
 @Voodoo.subcommand("kill")
-class VoodooKill(cli.Application):
+class VoodooKill(VoodooSub):
 
     def main(self, *args):
         # docker compose do not kill the container odoo as is was run
@@ -147,7 +147,7 @@ class VoodooKill(cli.Application):
 
 
 @Voodoo.subcommand("new")
-class VoodooNew(cli.Application):
+class VoodooNew(VoodooSub):
 
     def main(self, name):
         # TODO It will be better to use autocompletion
@@ -171,11 +171,16 @@ class VoodooNew(cli.Application):
             self._exec(git["checkout", version])
 
 
-class VoodooForward(cli.Application):
+class VoodooForward(VoodooSub):
     _cmd = None
 
     def main(self, *args):
         return self._exec(compose[self._cmd])
+
+
+@Voodoo.subcommand("build")
+class VoodooBuild(VoodooForward):
+    _cmd = "build"
 
 
 @Voodoo.subcommand("start")
