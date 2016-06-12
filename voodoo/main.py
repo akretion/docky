@@ -28,7 +28,7 @@ class Voodoo(cli.Application):
 
     dryrunFlag = cli.Flag(["dry-run"], help="Dry run mode")
 
-    def log_and_run(self, cmd, retcode=FG):
+    def _exec(self, cmd, retcode=FG):
 	"""Log cmd before exec."""
 	logging.info(cmd)
 	if (self.dryrunFlag):
@@ -76,8 +76,14 @@ class Voodoo(cli.Application):
         logging.info('Verbose mode activated')
 
 
+class VoodooSub(cli.Application):
+
+    def _exec(self, *args, **kwargs):
+        self.parent._exec(*args, **kwargs)
+
+
 @Voodoo.subcommand("run")
-class VoodooRun(cli.Application):
+class VoodooRun(VoodooSub):
 
     def _get_odoo_cache_path(self):
         cache_path = os.path.join(self.parent.shared_folder, 'cached_odoo')
@@ -93,28 +99,26 @@ class VoodooRun(cli.Application):
                 "then you can you can abort the download "
                 "and paste your repo or make a symbolink link in %s",
                 odoo_ref_path, odoo_ref_path)
-            self.parent.log_and_run(
-                git["clone", self.parent.odoo, odoo_cache_path])
+            self._exec(git["clone", self.parent.odoo, odoo_cache_path])
         else:
             print "Update Odoo cache"
             with local.cwd(odoo_cache_path):
-                self.parent.log_and_run(git["pull"])
+                self._exec(git["pull"])
         return odoo_cache_path
 
     def _get_odoo(self, odoo_path):
         if not os.path.exists('parts'):
             os.makedirs('parts')
         odoo_cache_path = self._get_odoo_cache_path()
-        self.parent.log_and_run(
-            git["clone", "file://%s" % odoo_cache_path, odoo_path])
+        self._exec(git["clone", "file://%s" % odoo_cache_path, odoo_path])
 
     def main(self, *args):
         odoo_path = os.path.join('parts', 'odoo')
         if not os.path.exists(odoo_path):
             self._get_odoo(odoo_path)
         # Remove useless dead container before running a new one
-        self.parent.log_and_run(compose['rm', '--all', '-f'])
-        self.parent.log_and_run(compose['run', 'odoo', 'bash'])
+        self._exec(compose['rm', '--all', '-f'])
+        self._exec(compose['run', 'odoo', 'bash'])
 
 
 @Voodoo.subcommand("open")
@@ -125,8 +129,7 @@ class VoodooOpen(cli.Application):
         container = project.containers(
             service_names=['odoo'], one_off=OneOffFilter.include)
         if container:
-            self.parent.log_and_run(
-                docker["exec", "-ti", container[0].name, "bash"])
+            self._exec(docker["exec", "-ti", container[0].name, "bash"])
         else:
             log.error("No container found for the service odoo "
                       "in the project %s" % project.name)
@@ -152,7 +155,7 @@ class VoodooNew(cli.Application):
         # https://github.com/tomerfiliba/plumbum/blob/master/plumbum
         # /cli/application.py#L341
         # And https://github.com/kislyuk/argcomplete/issues/116
-        self.parent.log_and_run(git["clone", self.parent.template, name])
+        self._exec(git["clone", self.parent.template, name])
         get_version = (
             git['branch', '-a']
             | grep['remote']
@@ -165,14 +168,14 @@ class VoodooNew(cli.Application):
             versions,
             default = "9.0")
         with local.cwd(name):
-            self.parent.log_and_run(git["checkout", version])
+            self._exec(git["checkout", version])
 
 
 class VoodooForward(cli.Application):
     _cmd = None
 
     def main(self, *args):
-        return self.parent.log_and_run(compose[self._cmd])
+        return self._exec(compose[self._cmd])
 
 
 @Voodoo.subcommand("start")
