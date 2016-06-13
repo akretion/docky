@@ -169,17 +169,31 @@ class VoodooRun(VoodooSub):
         odoo_cache_path = self._get_odoo_cache_path()
         self._exec(git["clone", "file://%s" % odoo_cache_path, odoo_path])
 
-    def _add_eggs_symlink(self):
-        home = os.path.expanduser("~")
-        src = os.path.join(home, '.voodoo', 'shared', 'eggs')
-        os.symlink(src, 'eggs')
+    def _copy_eggs_directory(self, dest):
+        self._exec(self.compose[
+            'run', 'odoo', 'cp', '-r', '/opt/voodoo/eggs', dest])
 
-    def main(self, *args):
+    def _init_run(self):
+        # Create odoo directory from cache if do not exist
         odoo_path = os.path.join('parts', 'odoo')
         if not os.path.exists(odoo_path):
             self._get_odoo(odoo_path)
-        if not os.path.exists('eggs') and self.parent.shared_eggs:
-            self._add_eggs_symlink()
+
+        # Create shared eggs directory if not exist
+        home = os.path.expanduser("~")
+        eggs_path = os.path.join(home, '.voodoo', 'shared', 'eggs')
+        if not os.path.exists(eggs_path):
+            self._copy_eggs_directory(eggs_path)
+
+        # Init eggs directory : share it or generate a new one
+        if not os.path.exists('eggs'):
+            if self.parent.shared_eggs:
+                os.symlink(src, 'eggs')
+            else:
+                self._copy_eggs_directory(eggs_path)
+
+    def main(self, *args):
+        self._init_run()
         # Remove useless dead container before running a new one
         self._exec(self.compose['rm', '--all', '-f'])
         self._exec(self.compose['run', 'odoo', 'bash'])
