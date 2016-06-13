@@ -169,10 +169,17 @@ class VoodooRun(VoodooSub):
         odoo_cache_path = self._get_odoo_cache_path()
         self._exec(git["clone", "file://%s" % odoo_cache_path, odoo_path])
 
+    def _add_eggs_symlink(self):
+        home = os.path.expanduser("~")
+        src = os.path.join(home, '.voodoo', 'shared', 'eggs')
+        os.symlink(src, 'eggs')
+
     def main(self, *args):
         odoo_path = os.path.join('parts', 'odoo')
         if not os.path.exists(odoo_path):
             self._get_odoo(odoo_path)
+        if not os.path.exists('eggs') and self.parent.shared_eggs:
+            self._add_eggs_symlink()
         # Remove useless dead container before running a new one
         self._exec(self.compose['rm', '--all', '-f'])
         self._exec(self.compose['run', 'odoo', 'bash'])
