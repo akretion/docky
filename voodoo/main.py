@@ -138,6 +138,8 @@ class VoodooSub(cli.Application):
         if not os.path.exists(DEV_DOCKER_COMPOSE_FILENAME):
             self._generate_dev_dockerfile()
         self.compose = compose['-f', DEV_DOCKER_COMPOSE_FILENAME]
+        self.config_path = DEV_DOCKER_COMPOSE_FILENAME
+
 
 @Voodoo.subcommand("run")
 class VoodooRun(VoodooSub):
@@ -188,7 +190,7 @@ class VoodooRun(VoodooSub):
         # Init eggs directory : share it or generate a new one
         if not os.path.exists('eggs'):
             if self.parent.shared_eggs:
-                os.symlink(src, 'eggs')
+                os.symlink(eggs_path, 'eggs')
             else:
                 self._copy_eggs_directory(eggs_path)
 
@@ -203,7 +205,7 @@ class VoodooRun(VoodooSub):
 class VoodooOpen(VoodooSub):
 
     def main(self, *args):
-        project = get_project('.')
+        project = get_project('.', [self.config_path])
         container = project.containers(
             service_names=['odoo'], one_off=OneOffFilter.include)
         if container:
@@ -219,7 +221,7 @@ class VoodooKill(VoodooSub):
     def main(self, *args):
         # docker compose do not kill the container odoo as is was run
         # manually, so we implement our own kill
-        project = get_project('.')
+        project = get_project('.', config_path=[self.config_path])
         containers = project.containers(one_off=OneOffFilter.include)
         parallel_kill(containers, {'signal': 'SIGKILL'})
 
@@ -282,8 +284,8 @@ class VoodooLogs(VoodooForward):
 
 
 @Voodoo.subcommand("pull")
-class VoodooLogs(VoodooForward):
-    _cmd = "logs"
+class VoodooPull(VoodooForward):
+    _cmd = "pull"
 
 
 def main():
