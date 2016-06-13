@@ -21,6 +21,42 @@ DEFAULT_CONF = {
     "template": "https://github.com/akretion/voodoo-template.git",
 }
 
+DEV_DOCKER_COMPOSE_FILENAME = 'dev.docker-compose.yml'
+
+ODOO_DEV_DOCKER_COMPOSE_CONFIG = """
+version: '2'
+
+services:
+  odoo:
+    extends:
+       file: docker-compose.yml
+       service: odoo
+    environment:
+    - POSTGRESQL_DATA=/workspace/.db
+    - POSTGRESQL_DB=db
+    links:
+    - db
+    - mailcatcher
+    ports:
+    - 8069:8069
+    - 8072:8072
+    volumes:
+    - .:/workspace
+  mailcatcher:
+    image: akretion/lightweight-mailcatcher
+    ports:
+    - 1080:1080
+    - 1025:1025
+  db:
+    image: postgres:9.5
+    environment:
+    - POSTGRES_PASSWORD='odoo'
+    - POSTGRES_USER='odoo'
+    - POSTGRES_DB='db'
+    volumes:
+    - .db:/var/lib/postgresql/data
+"""
+
 
 class Voodoo(cli.Application):
     PROGNAME = "voodoo"
@@ -81,6 +117,27 @@ class VoodooSub(cli.Application):
     def _exec(self, *args, **kwargs):
         self.parent._exec(*args, **kwargs)
 
+    def _generate_dev_dockerfile(self):
+        dc_file = open('docker-compose.yml', 'r')
+        config = yaml.safe_load(dc_file)
+        if 'odoo' in config['services']:
+            template = ODOO_DEV_DOCKER_COMPOSE_CONFIG
+        else:
+            raise NotImplemented
+        config = yaml.safe_load(template)
+        dc_tmp_file = open('dev.docker-compose.yml', 'w')
+        # share .voodoo folder in voodoo
+        home = os.path.expanduser("~")
+        shared = os.path.join(home, '.voodoo', 'shared')
+        config['services']['odoo']['volumes'].append(
+            '%s:%s' % (shared, shared))
+        dc_tmp_file.write(yaml.dump(config, default_flow_style=False))
+
+    def __init__(self, *args, **kwargs):
+        super(VoodooSub, self).__init__(*args, **kwargs)
+        if not os.path.exists(DEV_DOCKER_COMPOSE_FILENAME):
+            self._generate_dev_dockerfile()
+        self.compose = compose['-f', DEV_DOCKER_COMPOSE_FILENAME]
 
 @Voodoo.subcommand("run")
 class VoodooRun(VoodooSub):
@@ -117,8 +174,8 @@ class VoodooRun(VoodooSub):
         if not os.path.exists(odoo_path):
             self._get_odoo(odoo_path)
         # Remove useless dead container before running a new one
-        self._exec(compose['rm', '--all', '-f'])
-        self._exec(compose['run', 'odoo', 'bash'])
+        self._exec(self.compose['rm', '--all', '-f'])
+        self._exec(self.compose['run', 'odoo', 'bash'])
 
 
 @Voodoo.subcommand("open")
@@ -175,7 +232,7 @@ class VoodooForward(VoodooSub):
     _cmd = None
 
     def main(self, *args):
-        return self._exec(compose[self._cmd])
+        return self._exec(self.compose[self._cmd])
 
 
 @Voodoo.subcommand("build")
