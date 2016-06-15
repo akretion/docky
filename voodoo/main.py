@@ -176,6 +176,9 @@ class VoodooRun(VoodooSub):
             'run', 'odoo', 'cp', '-r', '/opt/voodoo/eggs', dest])
 
     def _init_run(self):
+        # create db folder if missing
+        if not os.path.exists('.db'):
+            os.makedirs('.db')
         # Create odoo directory from cache if do not exist
         odoo_path = os.path.join('parts', 'odoo')
         if not os.path.exists(odoo_path):
