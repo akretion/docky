@@ -24,37 +24,33 @@ DEFAULT_CONF = {
 DEV_DOCKER_COMPOSE_FILENAME = 'dev.docker-compose.yml'
 
 ODOO_DEV_DOCKER_COMPOSE_CONFIG = """
-version: '2'
-
 services:
+  db:
+    environment:
+    - POSTGRES_PASSWORD=odoo
+    - POSTGRES_USER=odoo
+    - POSTGRES_DB=db
+    image: akretion/voodoo-postgresql
+    volumes:
+      - .db:/var/lib/postgresql/data
+  mailcatcher:
+    image: akretion/lightweight-mailcatcher
+    ports:
+    - 1280:1080
+    - 1225:1025
   odoo:
     extends:
-       file: docker-compose.yml
-       service: odoo
-    environment:
-    - POSTGRESQL_DATA=/workspace/.db
-    - POSTGRESQL_DB=db
+      file: docker-compose.yml
+      service: odoo
     links:
     - db
     - mailcatcher
     ports:
-    - 8069:8069
-    - 8072:8072
+    - 8169:8069
+    - 8172:8072
     volumes:
     - .:/workspace
-  mailcatcher:
-    image: akretion/lightweight-mailcatcher
-    ports:
-    - 1080:1080
-    - 1025:1025
-  db:
-    image: postgres:9.5
-    environment:
-    - POSTGRES_PASSWORD='odoo'
-    - POSTGRES_USER='odoo'
-    - POSTGRES_DB='db'
-    volumes:
-    - .db:/var/lib/postgresql/data
+version: '2'
 """
 
 
@@ -125,13 +121,21 @@ class VoodooSub(cli.Application):
         else:
             raise NotImplemented
         config = yaml.safe_load(template)
-        dc_tmp_file = open('dev.docker-compose.yml', 'w')
-        # share .voodoo folder in voodoo
-        home = os.path.expanduser("~")
-        shared = os.path.join(home, '.voodoo', 'shared')
-        config['services']['odoo']['volumes'].append(
-            '%s:%s' % (shared, shared))
-        dc_tmp_file.write(yaml.dump(config, default_flow_style=False))
+        with open('dev.docker-compose.yml', 'w') as dc_tmp_file:
+
+            # share .voodoo folder in voodoo
+            home = os.path.expanduser("~")
+            shared = os.path.join(home, '.voodoo', 'shared')
+            config['services']['odoo']['volumes'].append(
+                '%s:%s' % (shared, shared))
+
+            #inject uid for sharing db folder with host
+            uid = os.getuid()
+            for key in ['USERMAP_UID', 'USERMAP_GID']:
+                config['services']['db']['environment'].append(
+                    "%s=%s" % (key,uid))
+
+            dc_tmp_file.write(yaml.dump(config, default_flow_style=False))
 
     def __init__(self, *args, **kwargs):
         super(VoodooSub, self).__init__(*args, **kwargs)
@@ -292,7 +296,4 @@ class VoodooPull(VoodooForward):
 
 
 def main():
-    Voodoo.run()
-
-if __name__ == "__main__":
     Voodoo.run()
