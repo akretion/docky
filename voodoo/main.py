@@ -205,7 +205,7 @@ class VoodooRun(VoodooSub):
         self._init_run()
         # Remove useless dead container before running a new one
         self._exec(self.compose['rm', '--all', '-f'])
-        self._exec(self.compose['run', 'odoo', 'bash'])
+        self._exec(self.compose['run', '--service-ports', 'odoo', 'bash'])
 
 
 @Voodoo.subcommand("open")
