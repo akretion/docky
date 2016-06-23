@@ -139,6 +139,8 @@ class VoodooSub(cli.Application):
 
     def __init__(self, *args, **kwargs):
         super(VoodooSub, self).__init__(*args, **kwargs)
+        if args and args[0] == 'voodoo new':
+            return
         if not os.path.exists(DEV_DOCKER_COMPOSE_FILENAME):
             self._generate_dev_dockerfile()
         self.compose = compose['-f', DEV_DOCKER_COMPOSE_FILENAME]
@@ -243,12 +245,12 @@ class VoodooNew(VoodooSub):
         # /cli/application.py#L341
         # And https://github.com/kislyuk/argcomplete/issues/116
         self._exec(git["clone", self.parent.template, name])
-        get_version = (
-            git['branch', '-a']
-            | grep['remote']
-            | grep['-v', 'HEAD']
-            | sed['s/remotes\/origin\///g'])
-        versions = [v.strip() for v in get_version().split('\n')]
+        with local.cwd(name):
+            get_version = (git['branch', '-a']
+                | grep['remote']
+                | grep['-v', 'HEAD']
+                | sed['s/remotes\/origin\///g'])
+            versions = [v.strip() for v in get_version().split('\n')]
         versions.sort()
         version = choose(
             "Select your template?",
