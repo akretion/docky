@@ -39,6 +39,8 @@ services:
     - 1280:1080
     - 1225:1025
   odoo:
+    environment:
+    - PYTHONDONTWRITEBYTECODE=True
     extends:
       file: docker-compose.yml
       service: odoo
@@ -141,7 +143,7 @@ class VoodooSub(cli.Application):
             config['services']['odoo']['volumes'].append(
                 '%s:%s' % (shared, shared))
 
-            #inject uid for sharing db folder with host
+            # inject uid for sharing db folder with host
             uid = os.getuid()
             for key in ['USERMAP_UID', 'USERMAP_GID']:
                 config['services']['db']['environment'].append(
