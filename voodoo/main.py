@@ -32,7 +32,7 @@ services:
     - POSTGRES_DB=db
     image: akretion/voodoo-postgresql
     volumes:
-      - .db:/var/lib/postgresql/data
+    - .db:/var/lib/postgresql/data
   mailcatcher:
     image: akretion/lightweight-mailcatcher
     ports:
@@ -46,8 +46,8 @@ services:
     - db
     - mailcatcher
     ports:
-    - 8169:8069
-    - 8172:8072
+    - 8069:8069
+    - 8072:8072
     volumes:
     - .:/workspace
 version: '2'
@@ -58,15 +58,24 @@ class Voodoo(cli.Application):
     PROGNAME = "voodoo"
     VERSION = "1.0"
 
-    dryrunFlag = cli.Flag(["dry-run"], help="Dry run mode")
+    dryrun = cli.Flag(["dry-run"], help="Dry run mode")
 
-    def _exec(self, cmd, retcode=FG):
-	"""Log cmd before exec."""
-	logging.info(cmd)
-	if (self.dryrunFlag):
-	    print cmd
-	    return True
-	return cmd & retcode
+    def _run(self, cmd, retcode=FG):
+        """Run a command in a new process and log it"""
+        logging.info(cmd)
+        if (self.dryrun):
+            print cmd
+            return True
+        return cmd & retcode
+
+    def _exec(self, cmd, args=[]):
+        """Run a command in the same process and log it
+        this will replace the current process by the cmd"""
+        logging.info([cmd, args])
+        if (self.dryrun):
+            print "os.execvpe (%s, %s, env)" % (cmd, [cmd] + args)
+            return True
+        os.execvpe(cmd, [cmd] + args, local.env)
 
     def _get_home(self):
         return os.path.expanduser("~")
@@ -112,6 +121,9 @@ class VoodooSub(cli.Application):
 
     def _exec(self, *args, **kwargs):
         self.parent._exec(*args, **kwargs)
+
+    def _run(self, *args, **kwargs):
+        self.parent._run(*args, **kwargs)
 
     def _generate_dev_dockerfile(self):
         dc_file = open('docker-compose.yml', 'r')
@@ -164,21 +176,21 @@ class VoodooRun(VoodooSub):
                 "then you can you can abort the download "
                 "and paste your repo or make a symbolink link in %s",
                 odoo_ref_path, odoo_ref_path)
-            self._exec(git["clone", self.parent.odoo, odoo_cache_path])
+            self._run(git["clone", self.parent.odoo, odoo_cache_path])
         else:
             print "Update Odoo cache"
             with local.cwd(odoo_cache_path):
-                self._exec(git["pull"])
+                self._run(git["pull"])
         return odoo_cache_path
 
     def _get_odoo(self, odoo_path):
         if not os.path.exists('parts'):
             os.makedirs('parts')
         odoo_cache_path = self._get_odoo_cache_path()
-        self._exec(git["clone", "file://%s" % odoo_cache_path, odoo_path])
+        self._run(git["clone", "file://%s" % odoo_cache_path, odoo_path])
 
     def _copy_eggs_directory(self, dest):
-        self._exec(self.compose[
+        self._run(self.compose[
             'run', 'odoo', 'cp', '-r', '/opt/voodoo/eggs', dest])
 
     def _init_run(self):
@@ -206,8 +218,9 @@ class VoodooRun(VoodooSub):
     def main(self, *args):
         self._init_run()
         # Remove useless dead container before running a new one
-        self._exec(self.compose['rm', '--all', '-f'])
-        self._exec(self.compose['run', '--service-ports', 'odoo', 'bash'])
+        self._run(self.compose['rm', '--all', '-f'])
+        self._exec(
+            'docker-compose', ['run', '--service-ports', 'odoo', 'bash'])
 
 
 @Voodoo.subcommand("open")
@@ -218,7 +231,7 @@ class VoodooOpen(VoodooSub):
         container = project.containers(
             service_names=['odoo'], one_off=OneOffFilter.include)
         if container:
-            self._exec(docker["exec", "-ti", container[0].name, "bash"])
+            self._run(docker["exec", "-ti", container[0].name, "bash"])
         else:
             log.error("No container found for the service odoo "
                       "in the project %s" % project.name)
@@ -244,7 +257,7 @@ class VoodooNew(VoodooSub):
         # https://github.com/tomerfiliba/plumbum/blob/master/plumbum
         # /cli/application.py#L341
         # And https://github.com/kislyuk/argcomplete/issues/116
-        self._exec(git["clone", self.parent.template, name])
+        self._run(git["clone", self.parent.template, name])
         with local.cwd(name):
             get_version = (git['branch', '-a']
                 | grep['remote']
@@ -257,14 +270,14 @@ class VoodooNew(VoodooSub):
             versions,
             default = "9.0")
         with local.cwd(name):
-            self._exec(git["checkout", version])
+            self._run(git["checkout", version])
 
 
 class VoodooForward(VoodooSub):
     _cmd = None
 
     def main(self, *args):
-        return self._exec(self.compose[self._cmd])
+        return self._run(self.compose[self._cmd])
 
 
 @Voodoo.subcommand("build")
