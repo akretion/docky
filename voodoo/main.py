@@ -219,8 +219,10 @@ class VoodooRun(VoodooSub):
         self._init_run()
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '--all', '-f'])
-        self._exec(
-            'docker-compose', ['run', '--service-ports', 'odoo', 'bash'])
+        self._exec('docker-compose', [
+            '-f', DEV_DOCKER_COMPOSE_FILENAME,
+            'run', '--service-ports',
+            'odoo', 'bash'])
 
 
 @Voodoo.subcommand("open")
