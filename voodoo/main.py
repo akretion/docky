@@ -105,8 +105,8 @@ class Voodoo(cli.Application):
 
         # Update config file if needed
         if new_config != config:
-            logging.info("The Voodoo Configuration have been updated, "
-                         "please take a look to the new config file")
+            logging.warning("The Voodoo Configuration have been updated, "
+                            "please take a look to the new config file")
             if not os.path.exists(self.shared_folder):
                 os.makedirs(self.shared_folder)
             config_file = open(config_path, 'w')
@@ -163,6 +163,7 @@ class VoodooSub(cli.Application):
 
 @Voodoo.subcommand("run")
 class VoodooRun(VoodooSub):
+    """Run your infra and enter in your dev container"""
 
     def _get_odoo_cache_path(self):
         cache_path = os.path.join(self.parent.shared_folder, 'cached_odoo')
@@ -229,13 +230,15 @@ class VoodooRun(VoodooSub):
 
 @Voodoo.subcommand("open")
 class VoodooOpen(VoodooSub):
+    """Open a session in your running dev container"""
 
     def main(self, *args):
         project = get_project('.', [self.config_path])
         container = project.containers(
             service_names=['odoo'], one_off=OneOffFilter.include)
         if container:
-            self._run(docker["exec", "-ti", container[0].name, "bash"])
+            self._exec('docker',
+                       ["exec", "-ti", container[0].name, "bash"])
         else:
             log.error("No container found for the service odoo "
                       "in the project %s" % project.name)
@@ -243,6 +246,7 @@ class VoodooOpen(VoodooSub):
 
 @Voodoo.subcommand("kill")
 class VoodooKill(VoodooSub):
+    """Kill all running container of the project"""
 
     def main(self, *args):
         # docker compose do not kill the container odoo as is was run
@@ -254,6 +258,7 @@ class VoodooKill(VoodooSub):
 
 @Voodoo.subcommand("new")
 class VoodooNew(VoodooSub):
+    """Create a new project"""
 
     def main(self, name):
         # TODO It will be better to use autocompletion
@@ -286,31 +291,37 @@ class VoodooForward(VoodooSub):
 
 @Voodoo.subcommand("build")
 class VoodooBuild(VoodooForward):
+    """Build the image container"""
     _cmd = "build"
 
 
 @Voodoo.subcommand("start")
-class VoodooStop(VoodooForward):
+class VoodooStart(VoodooForward):
+    """Start your infra"""
     _cmd = "start"
 
 
 @Voodoo.subcommand("stop")
 class VoodooStop(VoodooForward):
+    """Stop your infra"""
     _cmd = "stop"
 
 
 @Voodoo.subcommand("ps")
-class VoodooStop(VoodooForward):
+class VoodooPs(VoodooForward):
+    """Show the container status"""
     _cmd = "ps"
 
 
 @Voodoo.subcommand("logs")
 class VoodooLogs(VoodooForward):
+    """Show the logs"""
     _cmd = "logs"
 
 
 @Voodoo.subcommand("pull")
 class VoodooPull(VoodooForward):
+    """Pull last project images"""
     _cmd = "pull"
 
 
