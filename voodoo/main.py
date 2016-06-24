@@ -163,7 +163,7 @@ class VoodooSub(cli.Application):
 
 @Voodoo.subcommand("run")
 class VoodooRun(VoodooSub):
-    """Run your infra and enter in your dev container"""
+    """Start services and enter in your dev container"""
 
     def _get_odoo_cache_path(self):
         cache_path = os.path.join(self.parent.shared_folder, 'cached_odoo')
@@ -230,7 +230,7 @@ class VoodooRun(VoodooSub):
 
 @Voodoo.subcommand("open")
 class VoodooOpen(VoodooSub):
-    """Open a session in your running dev container"""
+    """Open a new session inside your dev container"""
 
     def main(self, *args):
         project = get_project('.', [self.config_path])
@@ -291,37 +291,37 @@ class VoodooForward(VoodooSub):
 
 @Voodoo.subcommand("build")
 class VoodooBuild(VoodooForward):
-    """Build the image container"""
+    """Build or rebuild services"""
     _cmd = "build"
 
 
 @Voodoo.subcommand("start")
 class VoodooStart(VoodooForward):
-    """Start your infra"""
+    """Start services"""
     _cmd = "start"
 
 
 @Voodoo.subcommand("stop")
 class VoodooStop(VoodooForward):
-    """Stop your infra"""
+    """Stop services"""
     _cmd = "stop"
 
 
 @Voodoo.subcommand("ps")
 class VoodooPs(VoodooForward):
-    """Show the container status"""
+    """List containers"""
     _cmd = "ps"
 
 
 @Voodoo.subcommand("logs")
 class VoodooLogs(VoodooForward):
-    """Show the logs"""
+    """View output from containers"""
     _cmd = "logs"
 
 
 @Voodoo.subcommand("pull")
 class VoodooPull(VoodooForward):
-    """Pull last project images"""
+    """Pulls service images"""
     _cmd = "pull"
 
 
