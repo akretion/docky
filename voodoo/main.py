@@ -111,7 +111,7 @@ class Voodoo(cli.Application):
                 os.makedirs(self.shared_folder)
             config_file = open(config_path, 'w')
             config_file.write(yaml.dump(new_config, default_flow_style=False))
-            logging.info("Update default config file at %s" % config_path)
+            logging.warning("Update default config file at %s" % config_path)
 
     @cli.switch("--verbose", help="Verbose mode")
     def set_log_level(self):
@@ -171,14 +171,14 @@ class VoodooRun(VoodooSub):
             os.makedirs(cache_path)
         odoo_cache_path = os.path.join(cache_path, 'odoo')
         if not os.path.exists(odoo_cache_path):
-            logging.info(
-                "First run of Voodoo; there is no Odoo repo in %s! "
+            print (
+                "First run of Voodoo; there is no Odoo repo in %s! \n"
                 "Will now download Odoo from Github, "
                 "this can take a while...\n"
                 "If you already have a local Odoo repo (from OCA) "
                 "then you can you can abort the download "
-                "and paste your repo or make a symbolink link in %s",
-                odoo_ref_path, odoo_ref_path)
+                "and paste your repo or make a symbolink link in %s"
+                % (odoo_cache_path, odoo_cache_path))
             self._run(git["clone", self.parent.odoo, odoo_cache_path])
         else:
             print "Update Odoo cache"
