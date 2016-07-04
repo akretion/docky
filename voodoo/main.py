@@ -33,6 +33,7 @@ services:
     image: akretion/voodoo-postgresql
     volumes:
     - .db:/var/lib/postgresql/data
+    - .db/socket/:/var/run/postgresql/
   mailcatcher:
     image: akretion/lightweight-mailcatcher
     ports:
@@ -52,6 +53,7 @@ services:
     - 8072:8072
     volumes:
     - .:/workspace
+    - .db/socket/:/var/run/postgresql/
 version: '2'
 """
 
@@ -200,6 +202,11 @@ class VoodooRun(VoodooSub):
         # create db folder if missing
         if not os.path.exists('.db'):
             os.makedirs('.db')
+
+        # create db socket folder if missing
+        if not os.path.exists('.db/socket'):
+            os.makedirs('.db/socket')
+
         # Create odoo directory from cache if do not exist
         odoo_path = os.path.join('parts', 'odoo')
         if not os.path.exists(odoo_path):
