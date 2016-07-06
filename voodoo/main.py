@@ -129,7 +129,7 @@ class VoodooSub(cli.Application):
     def _run(self, *args, **kwargs):
         self.parent._run(*args, **kwargs)
 
-    def _generate_dev_dockerfile(self):
+    def _generate_odoo_dev_dockerfile(self):
         dc_file = open('docker-compose.yml', 'r')
         config = yaml.safe_load(dc_file)
         if 'odoo' in config['services']:
@@ -153,14 +153,27 @@ class VoodooSub(cli.Application):
 
             dc_tmp_file.write(yaml.dump(config, default_flow_style=False))
 
+    def _get_main_service(self):
+        dc_file = open('docker-compose.yml', 'r')
+        config = yaml.safe_load(dc_file)
+        for name, vals in config['services'].items():
+            if vals.get('labels', {}).get('main_service') == "True":
+                return name
+        return None
+
     def __init__(self, *args, **kwargs):
         super(VoodooSub, self).__init__(*args, **kwargs)
         if args and args[0] == 'voodoo new':
             return
+        self.main_service = self._get_main_service()
         if not os.path.exists(DEV_DOCKER_COMPOSE_FILENAME):
-            self._generate_dev_dockerfile()
-        self.compose = compose['-f', DEV_DOCKER_COMPOSE_FILENAME]
-        self.config_path = DEV_DOCKER_COMPOSE_FILENAME
+            if self.main_service == 'odoo':
+                self._generate_odoo_dev_dockerfile()
+        if os.path.isfile(DEV_DOCKER_COMPOSE_FILENAME):
+            self.config_path = DEV_DOCKER_COMPOSE_FILENAME
+        else:
+            self.config_path = 'docker-compose.yml'
+        self.compose = compose['-f', self.config_path]
 
 
 @Voodoo.subcommand("run")
@@ -198,7 +211,7 @@ class VoodooRun(VoodooSub):
         self._run(self.compose[
             'run', 'odoo', 'cp', '-r', '/opt/voodoo/eggs', dest])
 
-    def _init_run(self):
+    def _init_odoo_run(self):
         # create db folder if missing
         if not os.path.exists('.db'):
             os.makedirs('.db')
@@ -226,13 +239,15 @@ class VoodooRun(VoodooSub):
                 self._copy_eggs_directory(eggs_path)
 
     def main(self, *args):
-        self._init_run()
+        service = self.main_service
+        if service == 'odoo':
+            self._init_odoo_run()
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '--all', '-f'])
         self._exec('docker-compose', [
-            '-f', DEV_DOCKER_COMPOSE_FILENAME,
+            '-f', self.config_path,
             'run', '--service-ports',
-            'odoo', 'bash'])
+            self.main_service, 'bash'])
 
 
 @Voodoo.subcommand("open")
