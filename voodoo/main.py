@@ -257,7 +257,7 @@ class VoodooOpen(VoodooSub):
     def main(self, *args):
         project = get_project('.', [self.config_path])
         container = project.containers(
-            service_names=['odoo'], one_off=OneOffFilter.include)
+            service_names=[self.main_service], one_off=OneOffFilter.include)
         if container:
             self._exec('docker',
                        ["exec", "-ti", container[0].name, "bash"])
