@@ -17,45 +17,58 @@ compose = local['docker-compose']
 
 DEFAULT_CONF = {
     "shared_eggs": True,
+    "shared_gems": True,
     "odoo": "https://github.com/oca/ocb.git",
     "template": "https://github.com/akretion/voodoo-template.git",
+    "map_user_for_service": ["db"],
 }
 
 DEV_DOCKER_COMPOSE_FILENAME = 'dev.docker-compose.yml'
 
-ODOO_DEV_DOCKER_COMPOSE_CONFIG = """
-services:
-  db:
-    environment:
-    - POSTGRES_PASSWORD=odoo
-    - POSTGRES_USER=odoo
-    - POSTGRES_DB=db
-    image: akretion/voodoo-postgresql
-    volumes:
-    - .db:/var/lib/postgresql/data
-    - .db/socket/:/var/run/postgresql/
-  mailcatcher:
-    image: akretion/lightweight-mailcatcher
-    ports:
-    - 1280:1080
-    - 1225:1025
-  odoo:
-    environment:
-    - PYTHONDONTWRITEBYTECODE=True
-    extends:
-      file: docker-compose.yml
-      service: odoo
-    links:
-    - db
-    - mailcatcher
-    ports:
-    - 8069:8069
-    - 8072:8072
-    volumes:
-    - .:/workspace
-    - .db/socket/:/var/run/postgresql/
-version: '2'
-"""
+ODOO_DEV_DOCKER_COMPOSE_CONFIG = {
+'odoo': """
+    services:
+      db:
+        environment:
+        - POSTGRES_PASSWORD=odoo
+        - POSTGRES_USER=odoo
+        - POSTGRES_DB=db
+        image: akretion/voodoo-postgresql
+        volumes:
+        - .db:/var/lib/postgresql/data
+        - .db/socket/:/var/run/postgresql/
+      mailcatcher:
+        image: akretion/lightweight-mailcatcher
+        ports:
+        - 1280:1080
+        - 1225:1025
+      odoo:
+        environment:
+        - PYTHONDONTWRITEBYTECODE=True
+        extends:
+          file: docker-compose.yml
+          service: odoo
+        links:
+        - db
+        - mailcatcher
+        #ports:
+        #- 8069:8069
+        #- 8072:8072
+        volumes:
+        - .:/workspace
+        - .db/socket/:/var/run/postgresql/
+    version: '2'
+    """,
+'wagon': """
+    services:
+      wagon:
+        extends:
+          file: docker-compose.yml
+          service: wagon
+        #ports:
+        #- 3333:3333
+    version: '2'
+"""}
 
 
 class Voodoo(cli.Application):
@@ -99,21 +112,21 @@ class Voodoo(cli.Application):
 
         # Update configuration with default value and remove dead key
         new_config = DEFAULT_CONF.copy()
-        for key, value in config.items():
-            if key in DEFAULT_CONF:
+        for key, value in DEFAULT_CONF.items():
+            if key in config:
                 new_config[key] = config[key]
-                # Set Configuration
-                setattr(self, key, config[key])
+            # Set Configuration
+            setattr(self, key, new_config[key])
 
         # Update config file if needed
         if new_config != config:
-            logging.warning("The Voodoo Configuration have been updated, "
-                            "please take a look to the new config file")
+            print ("The Voodoo Configuration have been updated, "
+                   "please take a look to the new config file")
             if not os.path.exists(self.shared_folder):
                 os.makedirs(self.shared_folder)
             config_file = open(config_path, 'w')
             config_file.write(yaml.dump(new_config, default_flow_style=False))
-            logging.warning("Update default config file at %s" % config_path)
+            print "Update default config file at %s" % config_path
 
     @cli.switch("--verbose", help="Verbose mode")
     def set_log_level(self):
@@ -129,29 +142,36 @@ class VoodooSub(cli.Application):
     def _run(self, *args, **kwargs):
         self.parent._run(*args, **kwargs)
 
-    def _generate_odoo_dev_dockerfile(self):
+    def _add_shared_home(self, config):
+        # share .voodoo folder in voodoo
+        home = os.path.expanduser("~")
+        shared = os.path.join(home, '.voodoo', 'shared')
+        if not 'volumes' in config['services'][self.main_service]:
+            config['services'][self.main_service]['volumes'] = []
+        config['services'][self.main_service]['volumes'].append(
+            '%s:%s' % (shared, shared))
+
+    def _add_map_uid(self, config):
+        # inject uid for sharing file with some host
+        uid = os.getuid()
+        for service in self.parent.map_user_for_service:
+            if service in config['services']:
+                if not 'environment' in config['services'][self.main_service]:
+                    config['services'][self.main_service]['environment'] = []
+                for key in ['USERMAP_UID', 'USERMAP_GID']:
+                    config['services'][service]['environment'].append(
+                        "%s=%s" % (key,uid))
+
+    def _generate_dev_dockerfile(self):
         dc_file = open('docker-compose.yml', 'r')
         config = yaml.safe_load(dc_file)
-        if 'odoo' in config['services']:
-            template = ODOO_DEV_DOCKER_COMPOSE_CONFIG
-        else:
-            raise NotImplemented
-        config = yaml.safe_load(template)
-        with open('dev.docker-compose.yml', 'w') as dc_tmp_file:
-
-            # share .voodoo folder in voodoo
-            home = os.path.expanduser("~")
-            shared = os.path.join(home, '.voodoo', 'shared')
-            config['services']['odoo']['volumes'].append(
-                '%s:%s' % (shared, shared))
-
-            # inject uid for sharing db folder with host
-            uid = os.getuid()
-            for key in ['USERMAP_UID', 'USERMAP_GID']:
-                config['services']['db']['environment'].append(
-                    "%s=%s" % (key,uid))
-
-            dc_tmp_file.write(yaml.dump(config, default_flow_style=False))
+        if self.main_service in ODOO_DEV_DOCKER_COMPOSE_CONFIG:
+            template = ODOO_DEV_DOCKER_COMPOSE_CONFIG[self.main_service]
+            config = yaml.safe_load(template)
+            with open('dev.docker-compose.yml', 'w') as dc_tmp_file:
+                self._add_shared_home(config)
+                self._add_map_uid(config)
+                dc_tmp_file.write(yaml.dump(config, default_flow_style=False))
 
     def _get_main_service(self):
         dc_file = open('docker-compose.yml', 'r')
@@ -166,9 +186,7 @@ class VoodooSub(cli.Application):
         if args and args[0] == 'voodoo new':
             return
         self.main_service = self._get_main_service()
-        if not os.path.exists(DEV_DOCKER_COMPOSE_FILENAME):
-            if self.main_service == 'odoo':
-                self._generate_odoo_dev_dockerfile()
+        self._generate_dev_dockerfile()
         if os.path.isfile(DEV_DOCKER_COMPOSE_FILENAME):
             self.config_path = DEV_DOCKER_COMPOSE_FILENAME
         else:
@@ -238,10 +256,26 @@ class VoodooRun(VoodooSub):
             else:
                 self._copy_eggs_directory(eggs_path)
 
+    def _init_ruby_run(self):
+        # Create shared eggs directory if not exist
+        home = os.path.expanduser("~")
+        gems_path = os.path.join(home, '.voodoo', 'shared', 'gems')
+        if not os.path.exists(gems_path):
+            os.makedirs(gems_path)
+
+        # Init gems directory : share it or generate a new one
+        if not os.path.exists('gems'):
+            if self.parent.shared_gems:
+                os.symlink(gems_path, 'gems')
+            else:
+                os.makedirs('gems')
+
     def main(self, *args):
         service = self.main_service
         if service == 'odoo':
             self._init_odoo_run()
+        elif service in ['ruby', 'rails', 'wagon']:
+            self._init_ruby_run()
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '--all', '-f'])
         self._exec('docker-compose', [
