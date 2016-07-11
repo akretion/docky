@@ -31,12 +31,11 @@ ODOO_DEV_DOCKER_COMPOSE_CONFIG = {
     services:
       db:
         environment:
-        - POSTGRES_PASSWORD=odoo
         - POSTGRES_USER=odoo
         - POSTGRES_DB=db
         image: akretion/voodoo-postgresql
         volumes:
-        - .db:/var/lib/postgresql/data
+        - .db/data/:/var/lib/postgresql/data
         - .db/socket/:/var/run/postgresql/
       mailcatcher:
         image: akretion/lightweight-mailcatcher
@@ -236,13 +235,11 @@ class VoodooRun(VoodooSub):
             'run', 'odoo', 'cp', '-r', '/opt/voodoo/eggs', dest])
 
     def _init_odoo_run(self):
-        # create db folder if missing
-        if not os.path.exists('.db'):
-            os.makedirs('.db')
-
-        # create db socket folder if missing
-        if not os.path.exists('.db/socket'):
-            os.makedirs('.db/socket')
+        # create db directory data and socket if missing
+        for directory in ['socket', 'data']:
+            path = os.path.join('.db', directory)
+            if not os.path.exists(path):
+                os.makedirs(path)
 
         # Create odoo directory from cache if do not exist
         odoo_path = os.path.join('parts', 'odoo')
