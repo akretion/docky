@@ -67,6 +67,8 @@ ODOO_DEV_DOCKER_COMPOSE_CONFIG = {
           service: wagon
         ports:
         - 3333:3333
+        volumes:
+        - .:/workspace
     networks:
       default:
         external:
@@ -262,16 +264,16 @@ class VoodooRun(VoodooSub):
     def _init_ruby_run(self):
         # Create shared eggs directory if not exist
         home = os.path.expanduser("~")
-        gems_path = os.path.join(home, '.voodoo', 'shared', 'gems')
-        if not os.path.exists(gems_path):
-            os.makedirs(gems_path)
+        bundle_path = os.path.join(home, '.voodoo', 'shared', 'bundle')
+        if not os.path.exists(bundle_path):
+            os.makedirs(bundle_path)
 
-        # Init gems directory : share it or generate a new one
-        if not os.path.exists('gems'):
+        # Init gems/bundle directory : share it or generate a new one
+        if not os.path.exists('bundle'):
             if self.parent.shared_gems:
-                os.symlink(gems_path, 'gems')
+                os.symlink(bundle_path, 'bundle')
             else:
-                os.makedirs('gems')
+                os.makedirs(os.path.join('bundle', 'bin'))
 
     def main(self, *args):
         service = self.main_service
