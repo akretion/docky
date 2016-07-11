@@ -21,6 +21,7 @@ DEFAULT_CONF = {
     "odoo": "https://github.com/oca/ocb.git",
     "template": "https://github.com/akretion/voodoo-template.git",
     "map_user_for_service": ["db"],
+    "env": "dev",
 }
 
 DEV_DOCKER_COMPOSE_FILENAME = 'dev.docker-compose.yml'
@@ -51,22 +52,26 @@ ODOO_DEV_DOCKER_COMPOSE_CONFIG = {
         links:
         - db
         - mailcatcher
-        #ports:
-        #- 8069:8069
-        #- 8072:8072
+        ports:
+        - 8069:8069
+        - 8072:8072
         volumes:
         - .:/workspace
         - .db/socket/:/var/run/postgresql/
     version: '2'
-    """,
+""",
 'wagon': """
     services:
       wagon:
         extends:
           file: docker-compose.yml
           service: wagon
-        #ports:
-        #- 3333:3333
+        ports:
+        - 3333:3333
+    networks:
+      default:
+        external:
+          name: your_odoo_project_default  # use voodoo inspect
     version: '2'
 """}
 
@@ -186,9 +191,10 @@ class VoodooSub(cli.Application):
         if args and args[0] == 'voodoo new':
             return
         self.main_service = self._get_main_service()
-        self._generate_dev_dockerfile()
-        if os.path.isfile(DEV_DOCKER_COMPOSE_FILENAME):
+        if self.parent.env == 'dev':
             self.config_path = DEV_DOCKER_COMPOSE_FILENAME
+            if not os.path.isfile(self.config_path):
+                self._generate_dev_dockerfile()
         else:
             self.config_path = 'docker-compose.yml'
         self.compose = compose['-f', self.config_path]
