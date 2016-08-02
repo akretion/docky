@@ -79,7 +79,6 @@ ODOO_DEV_DOCKER_COMPOSE_CONFIG = {
 
 class Voodoo(cli.Application):
     PROGNAME = "voodoo"
-    VERSION = "1.0"
 
     dryrun = cli.Flag(["dry-run"], help="Dry run mode")
 
@@ -152,7 +151,7 @@ class VoodooSub(cli.Application):
         # share .voodoo folder in voodoo
         home = os.path.expanduser("~")
         shared = os.path.join(home, '.voodoo', 'shared')
-        if not 'volumes' in config['services'][self.main_service]:
+        if 'volumes' not in config['services'][self.main_service]:
             config['services'][self.main_service]['volumes'] = []
         config['services'][self.main_service]['volumes'].append(
             '%s:%s' % (shared, shared))
@@ -162,11 +161,11 @@ class VoodooSub(cli.Application):
         uid = os.getuid()
         for service in self.parent.map_user_for_service:
             if service in config['services']:
-                if not 'environment' in config['services'][self.main_service]:
+                if 'environment' not in config['services'][self.main_service]:
                     config['services'][self.main_service]['environment'] = []
                 for key in ['USERMAP_UID', 'USERMAP_GID']:
                     config['services'][service]['environment'].append(
-                        "%s=%s" % (key,uid))
+                        "%s=%s" % (key, uid))
 
     def _generate_dev_dockerfile(self):
         dc_file = open('docker-compose.yml', 'r')
@@ -311,8 +310,8 @@ class VoodooOpen(VoodooSub):
             self._exec('docker',
                        ["exec", "-ti", container[0].name, "bash"])
         else:
-            log.error("No container found for the service odoo "
-                      "in the project %s" % project.name)
+            logging.error("No container found for the service odoo "
+                          "in the project '%s'" % project.name)
 
 
 @Voodoo.subcommand("kill")
@@ -339,16 +338,17 @@ class VoodooNew(VoodooSub):
         # And https://github.com/kislyuk/argcomplete/issues/116
         self._run(git["clone", self.parent.template, name])
         with local.cwd(name):
-            get_version = (git['branch', '-a']
-                | grep['remote']
-                | grep['-v', 'HEAD']
-                | sed['s/remotes\/origin\///g'])
+            get_version = (
+                git['branch', '-a'] |
+                grep['remote'] |
+                grep['-v', 'HEAD'] |
+                sed['s/remotes\/origin\///g'])
             versions = [v.strip() for v in get_version().split('\n')]
         versions.sort()
         version = choose(
             "Select your template?",
             versions,
-            default = "9.0")
+            default="9.0")
         with local.cwd(name):
             self._run(git["checkout", version])
 
