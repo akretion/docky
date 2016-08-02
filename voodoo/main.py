@@ -180,6 +180,16 @@ class VoodooSub(cli.Application):
                 dc_tmp_file.write(yaml.dump(config, default_flow_style=False))
 
     def _get_main_service(self):
+        if not os.path.isfile('docker-compose.yml'):
+            # old voodoo project don't contain this file, now yes
+            with open('docker-compose.yml', 'w') as f:
+                f.write("""
+version: '2'
+services:
+  odoo:
+    image: akretion/voodoo:2.0.0
+    labels:
+      main_service: "True" """)
         dc_file = open('docker-compose.yml', 'r')
         config = yaml.safe_load(dc_file)
         for name, vals in config['services'].items():
