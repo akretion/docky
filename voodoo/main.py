@@ -221,7 +221,7 @@ class VoodooRun(VoodooSub):
                 % (odoo_cache_path, odoo_cache_path))
             self._run(git["clone", self.parent.odoo, odoo_cache_path])
         else:
-            print "Update Odoo cache"
+            print "Updating Odoo cache..."
             with local.cwd(odoo_cache_path):
                 self._run(git["pull"])
         return odoo_cache_path
