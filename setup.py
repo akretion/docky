@@ -3,10 +3,12 @@ import codecs
 import os
 import re
 
+
 def read(*parts):
     path = os.path.join(os.path.dirname(__file__), *parts)
     with codecs.open(path, encoding='utf-8') as fobj:
         return fobj.read()
+
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
@@ -22,16 +24,16 @@ setup(
     author='Akretion',
     author_email='contact@akretion.com',
     url='https://github.com/akretion/voodoo-cli/',
-    description='Environement builder for Odoo',
+    description='Environment builder for Odoo',
     license="AGPLv3+",
     long_description=open('README.md').read(),
     install_requires=[
-        r.strip() for r in open('requirement.txt').read().splitlines() ],
+        r.strip() for r in open('requirement.txt').read().splitlines()],
     entry_points="""
     [console_scripts]
     voodoo=voodoo.main:main
     """,
     include_package_data=True,
-    packages = find_packages() + ['voodoo'],
+    packages=find_packages() + ['voodoo'],
     zip_safe=False,
 )
