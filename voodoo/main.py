@@ -7,10 +7,12 @@ from plumbum.commands.modifiers import FG, TF, BG
 from plumbum.cli.terminal import choose
 import logging
 import os
+import sys
 from compose.cli.command import get_project
 from compose.project import OneOffFilter
 from compose.parallel import parallel_kill
 import yaml
+from .hook import Deploy, InitRunDev, GenerateDevComposeFile
 
 compose = local['docker-compose']
 
@@ -20,61 +22,10 @@ DEFAULT_CONF = {
     "shared_gems": True,
     "odoo": "https://github.com/oca/ocb.git",
     "template": "https://github.com/akretion/voodoo-template.git",
-    "map_user_for_service": ["db"],
     "env": "dev",
 }
 
 DOCKER_COMPOSE_PATH = '%s.docker-compose.yml'
-
-ODOO_DEV_DOCKER_COMPOSE_CONFIG = {
-'odoo': """
-    services:
-      db:
-        environment:
-        - POSTGRES_USER=odoo
-        - POSTGRES_DB=db
-        image: akretion/voodoo-postgresql
-        volumes:
-        - .db/data/:/var/lib/postgresql/data
-        - .db/socket/:/var/run/postgresql/
-      mailcatcher:
-        image: akretion/lightweight-mailcatcher
-        ports:
-        - 1280:1080
-        - 1225:1025
-      odoo:
-        environment:
-        - PYTHONDONTWRITEBYTECODE=True
-        extends:
-          file: docker-compose.yml
-          service: odoo
-        links:
-        - db
-        - mailcatcher
-        ports:
-        - 8069:8069
-        - 8072:8072
-        volumes:
-        - .:/workspace
-        - .db/socket/:/var/run/postgresql/
-    version: '2'
-""",
-'wagon': """
-    services:
-      wagon:
-        extends:
-          file: docker-compose.yml
-          service: wagon
-        ports:
-        - 3333:3333
-        volumes:
-        - .:/workspace
-    networks:
-      default:
-        external:
-          name: your_odoo_project_default  # use voodoo inspect
-    version: '2'
-"""}
 
 
 class Voodoo(cli.Application):
@@ -148,44 +99,30 @@ class VoodooSub(cli.Application):
     def _run(self, *args, **kwargs):
         self.parent._run(*args, **kwargs)
 
-    def _add_shared_home(self, config):
-        # share .voodoo folder in voodoo
-        home = os.path.expanduser("~")
-        shared = os.path.join(home, '.voodoo', 'shared')
-        if not 'volumes' in config['services'][self.main_service]:
-            config['services'][self.main_service]['volumes'] = []
-        config['services'][self.main_service]['volumes'].append(
-            '%s:%s' % (shared, shared))
-
-    def _add_map_uid(self, config):
-        # inject uid for sharing file with some host
-        uid = os.getuid()
-        for service in self.parent.map_user_for_service:
-            if service in config['services']:
-                if not 'environment' in config['services'][self.main_service]:
-                    config['services'][self.main_service]['environment'] = []
-                for key in ['USERMAP_UID', 'USERMAP_GID']:
-                    config['services'][service]['environment'].append(
-                        "%s=%s" % (key,uid))
-
-    def _generate_dev_dockerfile(self):
-        dc_file = open('docker-compose.yml', 'r')
-        config = yaml.safe_load(dc_file)
-        if self.main_service in ODOO_DEV_DOCKER_COMPOSE_CONFIG:
-            template = ODOO_DEV_DOCKER_COMPOSE_CONFIG[self.main_service]
-            config = yaml.safe_load(template)
-            with open('dev.docker-compose.yml', 'w') as dc_tmp_file:
-                self._add_shared_home(config)
-                self._add_map_uid(config)
-                dc_tmp_file.write(yaml.dump(config, default_flow_style=False))
+    def _get_main_compose_file(self):
+        for fname in ['docker-compose.yml', 'prod.docker-compose.yml']:
+            if os.path.isfile(fname):
+                return fname
+        print "No docker.compose.yml or prod.docker.compose.yml found"
+        sys.exit(0)
 
     def _get_main_service(self):
-        dc_file = open(self.config_path, 'r')
+        dc_fname = self._get_main_compose_file()
+        dc_file = open(dc_fname, 'r')
         config = yaml.safe_load(dc_file)
         for name, vals in config['services'].items():
             if vals.get('labels', {}).get('main_service') == "True":
                 return name
-        return None
+        print (
+            'No main service found, please define one in %s'
+            'by adding the following label : main_service: "True"'
+            'to your main service' )
+        sys.exit(0)
+
+    def run_hook(self, cls):
+        for subcls in cls.__subclasses__():
+            if subcls._service == self.main_service:
+                return subcls(self).run()
 
     def __init__(self, *args, **kwargs):
         super(VoodooSub, self).__init__(*args, **kwargs)
@@ -195,159 +132,24 @@ class VoodooSub(cli.Application):
         self.main_service = self._get_main_service()
         if self.parent.env == 'dev':
             if not os.path.isfile(self.config_path):
-                self._generate_dev_dockerfile()
+                self.run_hook(GenerateDevComposeFile)
         self.compose = compose['-f', self.config_path]
-
-
-class Deploy(object):
-    _service = None
-
-    def _build(self):
-        self._run(self._compose['build'])
-
-    def _stop_container(self):
-        self._run(self._compose['down'])
-
-    def _start_maintenance(self):
-        pass
-
-    def _update_app(self):
-        pass
-
-    def _stop_maintenance(self):
-        pass
-
-    def _start_container(self):
-        self._run(self._compose['up', '-d'])
-
-    def __init__(self, voodoo):
-        self._run = voodoo._run
-        self._compose = voodoo.compose
-        self.env = voodoo.parent.env
-        super(Deploy, self).__init__()
-
-    def run(self):
-        print '== Start Building the application =='
-        self._build()
-        print '== Stop the application =='
-        self._stop_container()
-        print '== Start the maintenance page =='
-        self._start_maintenance()
-        print '== Update the application =='
-        self._update_app()
-        print '== Stop the maintenance page =='
-        self._stop_maintenance()
-        print '== Start the application =='
-        self._start_container()
-
-
-class OdooDeploy(Deploy):
-    _service = 'odoo'
-
-    def _build(self):
-        buildout_file = "%s.buildout.cfg" % self.env
-        if not os.path.isfile(buildout_file):
-            print (
-                "The %s is missing, please add one before deploying"
-                % buildout_file)
-        return super(OdooDeploy, self)._build()
-
-    def _update_app(self):
-        print "we have to run the ak upgrade in the container"
-        pass
 
 
 @Voodoo.subcommand("deploy")
 class VoodooDeploy(VoodooSub):
     """Deploy your application"""
-
     def main(self):
-        for cls in Deploy.__subclasses__():
-            if cls._service == self.main_service:
-                cls(self).run()
-                break
+        self.run_hook(Deploy)
 
 
 @Voodoo.subcommand("run")
 class VoodooRun(VoodooSub):
     """Start services and enter in your dev container"""
 
-    def _get_odoo_cache_path(self):
-        cache_path = os.path.join(self.parent.shared_folder, 'cached_odoo')
-        if not os.path.exists(cache_path):
-            os.makedirs(cache_path)
-        odoo_cache_path = os.path.join(cache_path, 'odoo')
-        if not os.path.exists(odoo_cache_path):
-            print (
-                "First run of Voodoo; there is no Odoo repo in %s! \n"
-                "Will now download Odoo from Github, "
-                "this can take a while...\n"
-                "If you already have a local Odoo repo (from OCA) "
-                "then you can you can abort the download "
-                "and paste your repo or make a symbolink link in %s"
-                % (odoo_cache_path, odoo_cache_path))
-            self._run(git["clone", self.parent.odoo, odoo_cache_path])
-        else:
-            print "Update Odoo cache"
-            with local.cwd(odoo_cache_path):
-                self._run(git["pull"])
-        return odoo_cache_path
-
-    def _get_odoo(self, odoo_path):
-        if not os.path.exists('parts'):
-            os.makedirs('parts')
-        odoo_cache_path = self._get_odoo_cache_path()
-        self._run(git["clone", "file://%s" % odoo_cache_path, odoo_path])
-
-    def _copy_eggs_directory(self, dest):
-        self._run(self.compose[
-            'run', 'odoo', 'cp', '-r', '/opt/voodoo/eggs', dest])
-
-    def _init_odoo_run(self):
-        # create db directory data and socket if missing
-        for directory in ['socket', 'data']:
-            path = os.path.join('.db', directory)
-            if not os.path.exists(path):
-                os.makedirs(path)
-
-        # Create odoo directory from cache if do not exist
-        odoo_path = os.path.join('parts', 'odoo')
-        if not os.path.exists(odoo_path):
-            self._get_odoo(odoo_path)
-
-        # Create shared eggs directory if not exist
-        home = os.path.expanduser("~")
-        eggs_path = os.path.join(home, '.voodoo', 'shared', 'eggs')
-        if not os.path.exists(eggs_path):
-            self._copy_eggs_directory(eggs_path)
-
-        # Init eggs directory : share it or generate a new one
-        if not os.path.exists('eggs'):
-            if self.parent.shared_eggs:
-                os.symlink(eggs_path, 'eggs')
-            else:
-                self._copy_eggs_directory(eggs_path)
-
-    def _init_ruby_run(self):
-        # Create shared eggs directory if not exist
-        home = os.path.expanduser("~")
-        bundle_path = os.path.join(home, '.voodoo', 'shared', 'bundle')
-        if not os.path.exists(bundle_path):
-            os.makedirs(bundle_path)
-
-        # Init gems/bundle directory : share it or generate a new one
-        if not os.path.exists('bundle'):
-            if self.parent.shared_gems:
-                os.symlink(bundle_path, 'bundle')
-            else:
-                os.makedirs(os.path.join('bundle', 'bin'))
-
     def main(self, *args):
-        service = self.main_service
-        if service == 'odoo' and self.parent.env == 'dev':
-            self._init_odoo_run()
-        elif service in ['ruby', 'rails', 'wagon']:
-            self._init_ruby_run()
+        if self.parent.env == 'dev':
+            self.run_hook(InitRunDev)
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '--all', '-f'])
         self._exec('docker-compose', [

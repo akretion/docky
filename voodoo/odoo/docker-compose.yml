@@ -1,0 +1,30 @@
+services:
+  db:
+    environment:
+    - POSTGRES_USER=odoo
+    - POSTGRES_DB=db
+    image: akretion/voodoo-postgresql
+    volumes:
+    - .db/data/:/var/lib/postgresql/data
+    - .db/socket/:/var/run/postgresql/
+  mailcatcher:
+    image: akretion/lightweight-mailcatcher
+    ports:
+    - 1280:1080
+    - 1225:1025
+  odoo:
+    environment:
+    - PYTHONDONTWRITEBYTECODE=True
+    extends:
+      file: docker-compose.yml
+      service: odoo
+    links:
+    - db
+    - mailcatcher
+    ports:
+    - 8069:8069
+    - 8072:8072
+    volumes:
+    - .:/workspace
+    - .db/socket/:/var/run/postgresql/
+version: '2'

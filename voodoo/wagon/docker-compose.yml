@@ -1,0 +1,14 @@
+services:
+  wagon:
+    extends:
+      file: docker-compose.yml
+      service: wagon
+    ports:
+    - 3333:3333
+    volumes:
+    - .:/workspace
+networks:
+  default:
+    external:
+      name: your_odoo_project_default  # use voodoo inspect
+version: '2'
