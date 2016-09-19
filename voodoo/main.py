@@ -24,7 +24,7 @@ DEFAULT_CONF = {
     "env": "dev",
 }
 
-DEV_DOCKER_COMPOSE_FILENAME = 'dev.docker-compose.yml'
+DOCKER_COMPOSE_PATH = '%s.docker-compose.yml'
 
 ODOO_DEV_DOCKER_COMPOSE_CONFIG = {
 'odoo': """
@@ -180,7 +180,7 @@ class VoodooSub(cli.Application):
                 dc_tmp_file.write(yaml.dump(config, default_flow_style=False))
 
     def _get_main_service(self):
-        dc_file = open('docker-compose.yml', 'r')
+        dc_file = open(self.config_path, 'r')
         config = yaml.safe_load(dc_file)
         for name, vals in config['services'].items():
             if vals.get('labels', {}).get('main_service') == "True":
@@ -191,14 +191,81 @@ class VoodooSub(cli.Application):
         super(VoodooSub, self).__init__(*args, **kwargs)
         if args and args[0] == 'voodoo new':
             return
+        self.config_path = DOCKER_COMPOSE_PATH % self.parent.env
         self.main_service = self._get_main_service()
         if self.parent.env == 'dev':
-            self.config_path = DEV_DOCKER_COMPOSE_FILENAME
             if not os.path.isfile(self.config_path):
                 self._generate_dev_dockerfile()
-        else:
-            self.config_path = 'docker-compose.yml'
         self.compose = compose['-f', self.config_path]
+
+
+class Deploy(object):
+    _service = None
+
+    def _build(self):
+        self._run(self._compose['build'])
+
+    def _stop_container(self):
+        self._run(self._compose['down'])
+
+    def _start_maintenance(self):
+        pass
+
+    def _update_app(self):
+        pass
+
+    def _stop_maintenance(self):
+        pass
+
+    def _start_container(self):
+        self._run(self._compose['up', '-d'])
+
+    def __init__(self, voodoo):
+        self._run = voodoo._run
+        self._compose = voodoo.compose
+        self.env = voodoo.parent.env
+        super(Deploy, self).__init__()
+
+    def run(self):
+        print '== Start Building the application =='
+        self._build()
+        print '== Stop the application =='
+        self._stop_container()
+        print '== Start the maintenance page =='
+        self._start_maintenance()
+        print '== Update the application =='
+        self._update_app()
+        print '== Stop the maintenance page =='
+        self._stop_maintenance()
+        print '== Start the application =='
+        self._start_container()
+
+
+class OdooDeploy(Deploy):
+    _service = 'odoo'
+
+    def _build(self):
+        buildout_file = "%s.buildout.cfg" % self.env
+        if not os.path.isfile(buildout_file):
+            print (
+                "The %s is missing, please add one before deploying"
+                % buildout_file)
+        return super(OdooDeploy, self)._build()
+
+    def _update_app(self):
+        print "we have to run the ak upgrade in the container"
+        pass
+
+
+@Voodoo.subcommand("deploy")
+class VoodooDeploy(VoodooSub):
+    """Deploy your application"""
+
+    def main(self):
+        for cls in Deploy.__subclasses__():
+            if cls._service == self.main_service:
+                cls(self).run()
+                break
 
 
 @Voodoo.subcommand("run")
@@ -277,7 +344,7 @@ class VoodooRun(VoodooSub):
 
     def main(self, *args):
         service = self.main_service
-        if service == 'odoo':
+        if service == 'odoo' and self.parent.env == 'dev':
             self._init_odoo_run()
         elif service in ['ruby', 'rails', 'wagon']:
             self._init_ruby_run()
@@ -301,7 +368,7 @@ class VoodooOpen(VoodooSub):
             self._exec('docker',
                        ["exec", "-ti", container[0].name, "bash"])
         else:
-            log.error("No container found for the service odoo "
+            logging.error("No container found for the service odoo "
                       "in the project %s" % project.name)
 
 
@@ -368,16 +435,16 @@ class VoodooBuild(VoodooForward):
     _cmd = "build"
 
 
-@Voodoo.subcommand("start")
-class VoodooStart(VoodooForward):
-    """Start services"""
-    _cmd = "start"
+@Voodoo.subcommand("up")
+class VoodooUp(VoodooForward):
+    """Start all services"""
+    _cmd = "up"
 
 
-@Voodoo.subcommand("stop")
-class VoodooStop(VoodooForward):
-    """Stop services"""
-    _cmd = "stop"
+@Voodoo.subcommand("down")
+class VoodooDown(VoodooForward):
+    """Stop all services"""
+    _cmd = "down"
 
 
 @Voodoo.subcommand("ps")
