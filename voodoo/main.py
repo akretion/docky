@@ -5,7 +5,6 @@ from plumbum import cli, local
 from plumbum.cmd import git, docker, grep, sed
 from plumbum.commands.modifiers import FG, TF, BG
 from plumbum.cli.terminal import choose
-import logging
 import os
 import sys
 from compose.cli.command import get_project
@@ -27,6 +26,28 @@ DEFAULT_CONF = {
 
 DOCKER_COMPOSE_PATH = '%s.docker-compose.yml'
 
+import logging
+
+
+logger = logging.getLogger('voodoo')
+formatter = logging.Formatter("%(message)s")
+logger.setLevel(logging.INFO)
+
+# Optionnal code for colorized log
+from rainbow_logging_handler import RainbowLoggingHandler
+handler = RainbowLoggingHandler(
+    sys.stderr,
+    color_message_info = ('green' , None , True),
+)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+# End of optional code
+
+
+def raise_error(message):
+    logger.error(message)
+    sys.exit(0)
+
 
 class Voodoo(cli.Application):
     PROGNAME = "voodoo"
@@ -36,18 +57,18 @@ class Voodoo(cli.Application):
 
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""
-        logging.info(cmd)
+        logger.debug(cmd)
         if (self.dryrun):
-            print cmd
+            logger.info(cmd)
             return True
         return cmd & retcode
 
     def _exec(self, cmd, args=[]):
         """Run a command in the same process and log it
         this will replace the current process by the cmd"""
-        logging.info([cmd, args])
+        logger.debug([cmd, args])
         if (self.dryrun):
-            print "os.execvpe (%s, %s, env)" % (cmd, [cmd] + args)
+            logger.info("os.execvpe (%s, %s, env)", cmd, [cmd] + args)
             return True
         os.execvpe(cmd, [cmd] + args, local.env)
 
@@ -77,18 +98,18 @@ class Voodoo(cli.Application):
 
         # Update config file if needed
         if new_config != config:
-            print ("The Voodoo Configuration have been updated, "
-                   "please take a look to the new config file")
+            logger.info("The Voodoo Configuration have been updated, "
+                        "please take a look to the new config file")
             if not os.path.exists(self.shared_folder):
                 os.makedirs(self.shared_folder)
             config_file = open(config_path, 'w')
             config_file.write(yaml.dump(new_config, default_flow_style=False))
-            print "Update default config file at %s" % config_path
+            logger.info("Update default config file at %s", config_path)
 
     @cli.switch("--verbose", help="Verbose mode")
     def set_log_level(self):
-        logging.root.setLevel(logging.INFO)
-        logging.info('Verbose mode activated')
+        logger.setLevel(logging.DEBUG)
+        logger.debug('Verbose mode activated')
 
 
 class VoodooSub(cli.Application):
@@ -103,8 +124,7 @@ class VoodooSub(cli.Application):
         for fname in ['docker-compose.yml', 'prod.docker-compose.yml']:
             if os.path.isfile(fname):
                 return fname
-        print "No docker.compose.yml or prod.docker.compose.yml found"
-        sys.exit(0)
+        raise_error("No docker.compose.yml or prod.docker.compose.yml found")
 
     def _get_main_service(self):
         dc_fname = self._get_main_compose_file()
@@ -113,16 +133,15 @@ class VoodooSub(cli.Application):
         for name, vals in config['services'].items():
             if vals.get('labels', {}).get('main_service') == "True":
                 return name
-        print (
+        raise_error(
             'No main service found, please define one in %s'
             'by adding the following label : main_service: "True"'
-            'to your main service' )
-        sys.exit(0)
+            'to your main service')
 
     def run_hook(self, cls):
         for subcls in cls.__subclasses__():
             if subcls._service == self.main_service:
-                return subcls(self).run()
+                return subcls(self, logger).run()
 
     def __init__(self, *args, **kwargs):
         super(VoodooSub, self).__init__(*args, **kwargs)
@@ -142,9 +161,8 @@ class VoodooDeploy(VoodooSub):
 
     def main(self):
         if self.parent.env == 'dev':
-            print ("Deploy can not be used in dev mode, "
-                   "please configure .voodoo/config.yml")
-            sys.exit(0)
+            raise_error("Deploy can not be used in dev mode, "
+                        "please configure .voodoo/config.yml")
         self.run_hook(Deploy)
 
 
@@ -175,8 +193,8 @@ class VoodooOpen(VoodooSub):
             self._exec('docker',
                        ["exec", "-ti", container[0].name, "bash"])
         else:
-            logging.error("No container found for the service odoo "
-                      "in the project %s" % project.name)
+            raise_error("No container found for the service odoo "
+                        "in the project %s" % project.name)
 
 
 @Voodoo.subcommand("kill")
@@ -224,9 +242,9 @@ class VoodooInspect(VoodooSub):
     def main(self):
         project = get_project('.', config_path=[self.config_path])
         network = project.networks.networks['default'].inspect()
-        print "Network name : %s" % network['Name']
+        logger.info("Network name : %s", network['Name'])
         for uid, container in network['Containers'].items():
-            print "%s : %s" % (container['Name'], container['IPv4Address'])
+            logger.info("%s : %s", container['Name'], container['IPv4Address'])
 
 
 class VoodooForward(VoodooSub):

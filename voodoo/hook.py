@@ -4,10 +4,13 @@
 import os
 import pkg_resources
 import yaml
+from datetime import datetime
+
 
 class Hook(object):
 
-    def __init__(self, voodoo):
+    def __init__(self, voodoo, logger):
+        self.logger = logger
         self._run = voodoo._run
         self._compose = getattr(voodoo, 'compose', None)
         self.env = voodoo.parent.env
@@ -16,6 +19,10 @@ class Hook(object):
 
 class Deploy(Hook):
     _service = None
+
+    def __init__(self, *args, **kwargs):
+        super(Deploy, self).__init__(*args, **kwargs)
+        self._called_log = []
 
     def _build(self):
         self._run(self._compose['build'])
@@ -26,7 +33,7 @@ class Deploy(Hook):
     def _start_maintenance(self):
         pass
 
-    def _update_app(self):
+    def _update_application(self):
         pass
 
     def _stop_maintenance(self):
@@ -35,19 +42,31 @@ class Deploy(Hook):
     def _start_container(self):
         self._run(self._compose['up', '-d'])
 
+    def _call_and_log(self, func, message):
+        start = datetime.now()
+        self.logger.info(message)
+        getattr(self, func)()
+        end = datetime.now()
+        funcname = func.replace('_', ' ').strip().capitalize()
+        message = '%s done in %s' % (funcname, end - start)
+        self.logger.info(message)
+        self._called_log.append(message)
+
+    def _resume_log(self):
+        self.logger.info("\n\nDeploy Log Resume:\n")
+        for msg in self._called_log:
+            self.logger.info(msg)
+
+    def _deploy(self):
+        self._call_and_log('_build', 'Start Building the application:')
+        self._call_and_log('_stop_container', 'Stop the application:')
+        self._call_and_log('_update_application', 'Update the application:')
+        self._call_and_log('_stop_maintenance', 'Stop the maintenance page:')
+        self._call_and_log('_start_container', 'Start the application:')
+
     def run(self):
-        print '== Start Building the application =='
-        self._build()
-        print '== Stop the application =='
-        self._stop_container()
-        print '== Start the maintenance page =='
-        self._start_maintenance()
-        print '== Update the application =='
-        self._update_app()
-        print '== Stop the maintenance page =='
-        self._stop_maintenance()
-        print '== Start the application =='
-        self._start_container()
+        self._call_and_log('_deploy', 'Deploying the Application')
+        self._resume_log()
 
 
 class InitRunDev(Hook):

@@ -1,2 +1,3 @@
 docker-compose
 plumbum
+rainbow_logging_handler

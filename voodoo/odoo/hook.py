@@ -17,7 +17,7 @@ class OdooDeploy(Deploy):
                 % buildout_file)
         return super(OdooDeploy, self)._build()
 
-    def _update_app(self):
+    def _update_application(self):
         self._run(self._compose['run', 'odoo', 'ak', 'upgrade'])
 
 
