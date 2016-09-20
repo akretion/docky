@@ -139,7 +139,12 @@ class VoodooSub(cli.Application):
 @Voodoo.subcommand("deploy")
 class VoodooDeploy(VoodooSub):
     """Deploy your application"""
+
     def main(self):
+        if self.parent.env == 'dev':
+            print ("Deploy can not be used in dev mode, "
+                   "please configure .voodoo/config.yml")
+            sys.exit(0)
         self.run_hook(Deploy)
 
 

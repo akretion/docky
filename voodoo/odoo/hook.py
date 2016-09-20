@@ -18,8 +18,7 @@ class OdooDeploy(Deploy):
         return super(OdooDeploy, self)._build()
 
     def _update_app(self):
-        print "we have to run the ak upgrade in the container"
-        pass
+        self._run(self._compose['run', 'odoo', 'ak', 'upgrade'])
 
 
 class GenerateDevComposeFile(GenerateDevComposeFile):
