@@ -13,11 +13,11 @@ services:
     - 1280:1080
     - 1225:1025
   odoo:
+    image: akretion/voodoo:latest
     environment:
     - PYTHONDONTWRITEBYTECODE=True
-    extends:
-      file: docker-compose.yml
-      service: odoo
+    labels:
+      main_service: "True"
     links:
     - db
     - mailcatcher
