@@ -11,6 +11,7 @@ class Hook(object):
 
     def __init__(self, voodoo, logger):
         self.logger = logger
+        self.voodoo = voodoo
         self._run = voodoo._run
         self._compose = getattr(voodoo, 'compose', None)
         self.env = voodoo.parent.env

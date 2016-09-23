@@ -2,6 +2,8 @@
 # coding: utf-8
 
 from ..hook import Deploy, InitRunDev, GenerateDevComposeFile
+from plumbum import local
+from plumbum.cmd import git
 
 import os
 
@@ -30,7 +32,7 @@ class OdooInitRunDev(InitRunDev):
     _service = 'odoo'
 
     def _get_odoo_cache_path(self):
-        cache_path = os.path.join(self.parent.shared_folder, 'cached_odoo')
+        cache_path = os.path.join(self.voodoo.parent.shared_folder, 'cached_odoo')
         if not os.path.exists(cache_path):
             os.makedirs(cache_path)
         odoo_cache_path = os.path.join(cache_path, 'odoo')
@@ -43,7 +45,7 @@ class OdooInitRunDev(InitRunDev):
                 "then you can you can abort the download "
                 "and paste your repo or make a symbolink link in %s"
                 % (odoo_cache_path, odoo_cache_path))
-            self._run(git["clone", self.parent.odoo, odoo_cache_path])
+            self._run(git["clone", self.voodoo.parent.odoo, odoo_cache_path])
         else:
             print "Update Odoo cache"
             with local.cwd(odoo_cache_path):
@@ -57,7 +59,7 @@ class OdooInitRunDev(InitRunDev):
         self._run(git["clone", "file://%s" % odoo_cache_path, odoo_path])
 
     def _copy_eggs_directory(self, dest):
-        self._run(self.compose[
+        self._run(self._compose[
             'run', 'odoo', 'cp', '-r', '/opt/voodoo/eggs', dest])
 
     def run(self):
@@ -80,7 +82,7 @@ class OdooInitRunDev(InitRunDev):
 
         # Init eggs directory : share it or generate a new one
         if not os.path.exists('eggs'):
-            if self.parent.shared_eggs:
+            if self.voodoo.parent.shared_eggs:
                 os.symlink(eggs_path, 'eggs')
             else:
                 self._copy_eggs_directory(eggs_path)
