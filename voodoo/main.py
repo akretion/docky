@@ -5,12 +5,13 @@ from plumbum import cli, local
 from plumbum.cmd import git, docker, grep, sed
 from plumbum.commands.modifiers import FG, TF, BG
 from plumbum.cli.terminal import choose
-import logging
 import os
+import sys
 from compose.cli.command import get_project
 from compose.project import OneOffFilter
 from compose.parallel import parallel_kill
 import yaml
+from .hook import Deploy, InitRunDev, GenerateDevComposeFile
 
 compose = local['docker-compose']
 
@@ -20,61 +21,32 @@ DEFAULT_CONF = {
     "shared_gems": True,
     "odoo": "https://github.com/oca/ocb.git",
     "template": "https://github.com/akretion/voodoo-template.git",
-    "map_user_for_service": ["db"],
     "env": "dev",
 }
 
-DEV_DOCKER_COMPOSE_FILENAME = 'dev.docker-compose.yml'
+DOCKER_COMPOSE_PATH = '%s.docker-compose.yml'
 
-ODOO_DEV_DOCKER_COMPOSE_CONFIG = {
-'odoo': """
-    services:
-      db:
-        environment:
-        - POSTGRES_USER=odoo
-        - POSTGRES_DB=db
-        image: akretion/voodoo-postgresql
-        volumes:
-        - .db/data/:/var/lib/postgresql/data
-        - .db/socket/:/var/run/postgresql/
-      mailcatcher:
-        image: akretion/lightweight-mailcatcher
-        ports:
-        - 1280:1080
-        - 1225:1025
-      odoo:
-        environment:
-        - PYTHONDONTWRITEBYTECODE=True
-        extends:
-          file: docker-compose.yml
-          service: odoo
-        links:
-        - db
-        - mailcatcher
-        ports:
-        - 8069:8069
-        - 8072:8072
-        volumes:
-        - .:/workspace
-        - .db/socket/:/var/run/postgresql/
-    version: '2'
-""",
-'wagon': """
-    services:
-      wagon:
-        extends:
-          file: docker-compose.yml
-          service: wagon
-        ports:
-        - 3333:3333
-        volumes:
-        - .:/workspace
-    networks:
-      default:
-        external:
-          name: your_odoo_project_default  # use voodoo inspect
-    version: '2'
-"""}
+import logging
+
+
+logger = logging.getLogger('voodoo')
+formatter = logging.Formatter("%(message)s")
+logger.setLevel(logging.INFO)
+
+# Optionnal code for colorized log
+from rainbow_logging_handler import RainbowLoggingHandler
+handler = RainbowLoggingHandler(
+    sys.stderr,
+    color_message_info = ('green' , None , True),
+)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+# End of optional code
+
+
+def raise_error(message):
+    logger.error(message)
+    sys.exit(0)
 
 
 class Voodoo(cli.Application):
@@ -85,18 +57,18 @@ class Voodoo(cli.Application):
 
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""
-        logging.info(cmd)
+        logger.debug(cmd)
         if (self.dryrun):
-            print cmd
+            logger.info(cmd)
             return True
         return cmd & retcode
 
     def _exec(self, cmd, args=[]):
         """Run a command in the same process and log it
         this will replace the current process by the cmd"""
-        logging.info([cmd, args])
+        logger.debug([cmd, args])
         if (self.dryrun):
-            print "os.execvpe (%s, %s, env)" % (cmd, [cmd] + args)
+            logger.info("os.execvpe (%s, %s, env)", cmd, [cmd] + args)
             return True
         os.execvpe(cmd, [cmd] + args, local.env)
 
@@ -126,18 +98,18 @@ class Voodoo(cli.Application):
 
         # Update config file if needed
         if new_config != config:
-            print ("The Voodoo Configuration have been updated, "
-                   "please take a look to the new config file")
+            logger.info("The Voodoo Configuration have been updated, "
+                        "please take a look to the new config file")
             if not os.path.exists(self.shared_folder):
                 os.makedirs(self.shared_folder)
             config_file = open(config_path, 'w')
             config_file.write(yaml.dump(new_config, default_flow_style=False))
-            print "Update default config file at %s" % config_path
+            logger.info("Update default config file at %s", config_path)
 
     @cli.switch("--verbose", help="Verbose mode")
     def set_log_level(self):
-        logging.root.setLevel(logging.INFO)
-        logging.info('Verbose mode activated')
+        logger.setLevel(logging.DEBUG)
+        logger.debug('Verbose mode activated')
 
 
 class VoodooSub(cli.Application):
@@ -148,139 +120,59 @@ class VoodooSub(cli.Application):
     def _run(self, *args, **kwargs):
         self.parent._run(*args, **kwargs)
 
-    def _add_shared_home(self, config):
-        # share .voodoo folder in voodoo
-        home = os.path.expanduser("~")
-        shared = os.path.join(home, '.voodoo', 'shared')
-        if not 'volumes' in config['services'][self.main_service]:
-            config['services'][self.main_service]['volumes'] = []
-        config['services'][self.main_service]['volumes'].append(
-            '%s:%s' % (shared, shared))
-
-    def _add_map_uid(self, config):
-        # inject uid for sharing file with some host
-        uid = os.getuid()
-        for service in self.parent.map_user_for_service:
-            if service in config['services']:
-                if not 'environment' in config['services'][self.main_service]:
-                    config['services'][self.main_service]['environment'] = []
-                for key in ['USERMAP_UID', 'USERMAP_GID']:
-                    config['services'][service]['environment'].append(
-                        "%s=%s" % (key,uid))
-
-    def _generate_dev_dockerfile(self):
-        dc_file = open('docker-compose.yml', 'r')
-        config = yaml.safe_load(dc_file)
-        if self.main_service in ODOO_DEV_DOCKER_COMPOSE_CONFIG:
-            template = ODOO_DEV_DOCKER_COMPOSE_CONFIG[self.main_service]
-            config = yaml.safe_load(template)
-            with open('dev.docker-compose.yml', 'w') as dc_tmp_file:
-                self._add_shared_home(config)
-                self._add_map_uid(config)
-                dc_tmp_file.write(yaml.dump(config, default_flow_style=False))
+    def _get_main_compose_file(self):
+        for fname in ['docker-compose.yml', 'prod.docker-compose.yml']:
+            if os.path.isfile(fname):
+                return fname
+        raise_error("No docker.compose.yml or prod.docker.compose.yml found")
 
     def _get_main_service(self):
-        dc_file = open('docker-compose.yml', 'r')
+        dc_fname = self._get_main_compose_file()
+        dc_file = open(dc_fname, 'r')
         config = yaml.safe_load(dc_file)
         for name, vals in config['services'].items():
             if vals.get('labels', {}).get('main_service') == "True":
                 return name
-        return None
+        raise_error(
+            'No main service found, please define one in %s'
+            'by adding the following label : main_service: "True"'
+            'to your main service')
+
+    def run_hook(self, cls):
+        for subcls in cls.__subclasses__():
+            if subcls._service == self.main_service:
+                return subcls(self, logger).run()
 
     def __init__(self, *args, **kwargs):
         super(VoodooSub, self).__init__(*args, **kwargs)
         if args and args[0] == 'voodoo new':
             return
+        self.config_path = DOCKER_COMPOSE_PATH % self.parent.env
         self.main_service = self._get_main_service()
         if self.parent.env == 'dev':
-            self.config_path = DEV_DOCKER_COMPOSE_FILENAME
             if not os.path.isfile(self.config_path):
-                self._generate_dev_dockerfile()
-        else:
-            self.config_path = 'docker-compose.yml'
+                self.run_hook(GenerateDevComposeFile)
         self.compose = compose['-f', self.config_path]
+
+
+@Voodoo.subcommand("deploy")
+class VoodooDeploy(VoodooSub):
+    """Deploy your application"""
+
+    def main(self):
+        if self.parent.env == 'dev':
+            raise_error("Deploy can not be used in dev mode, "
+                        "please configure .voodoo/config.yml")
+        self.run_hook(Deploy)
 
 
 @Voodoo.subcommand("run")
 class VoodooRun(VoodooSub):
     """Start services and enter in your dev container"""
 
-    def _get_odoo_cache_path(self):
-        cache_path = os.path.join(self.parent.shared_folder, 'cached_odoo')
-        if not os.path.exists(cache_path):
-            os.makedirs(cache_path)
-        odoo_cache_path = os.path.join(cache_path, 'odoo')
-        if not os.path.exists(odoo_cache_path):
-            print (
-                "First run of Voodoo; there is no Odoo repo in %s! \n"
-                "Will now download Odoo from Github, "
-                "this can take a while...\n"
-                "If you already have a local Odoo repo (from OCA) "
-                "then you can you can abort the download "
-                "and paste your repo or make a symbolink link in %s"
-                % (odoo_cache_path, odoo_cache_path))
-            self._run(git["clone", self.parent.odoo, odoo_cache_path])
-        else:
-            print "Updating Odoo cache..."
-            with local.cwd(odoo_cache_path):
-                self._run(git["pull"])
-        return odoo_cache_path
-
-    def _get_odoo(self, odoo_path):
-        if not os.path.exists('parts'):
-            os.makedirs('parts')
-        odoo_cache_path = self._get_odoo_cache_path()
-        self._run(git["clone", "file://%s" % odoo_cache_path, odoo_path])
-
-    def _copy_eggs_directory(self, dest):
-        self._run(self.compose[
-            'run', 'odoo', 'cp', '-r', '/opt/voodoo/eggs', dest])
-
-    def _init_odoo_run(self):
-        # create db directory data and socket if missing
-        for directory in ['socket', 'data']:
-            path = os.path.join('.db', directory)
-            if not os.path.exists(path):
-                os.makedirs(path)
-
-        # Create odoo directory from cache if do not exist
-        odoo_path = os.path.join('parts', 'odoo')
-        if not os.path.exists(odoo_path):
-            self._get_odoo(odoo_path)
-
-        # Create shared eggs directory if not exist
-        home = os.path.expanduser("~")
-        eggs_path = os.path.join(home, '.voodoo', 'shared', 'eggs')
-        if not os.path.exists(eggs_path):
-            self._copy_eggs_directory(eggs_path)
-
-        # Init eggs directory : share it or generate a new one
-        if not os.path.exists('eggs'):
-            if self.parent.shared_eggs:
-                os.symlink(eggs_path, 'eggs')
-            else:
-                self._copy_eggs_directory(eggs_path)
-
-    def _init_ruby_run(self):
-        # Create shared eggs directory if not exist
-        home = os.path.expanduser("~")
-        bundle_path = os.path.join(home, '.voodoo', 'shared', 'bundle')
-        if not os.path.exists(bundle_path):
-            os.makedirs(bundle_path)
-
-        # Init gems/bundle directory : share it or generate a new one
-        if not os.path.exists('bundle'):
-            if self.parent.shared_gems:
-                os.symlink(bundle_path, 'bundle')
-            else:
-                os.makedirs(os.path.join('bundle', 'bin'))
-
     def main(self, *args):
-        service = self.main_service
-        if service == 'odoo':
-            self._init_odoo_run()
-        elif service in ['ruby', 'rails', 'wagon']:
-            self._init_ruby_run()
+        if self.parent.env == 'dev':
+            self.run_hook(InitRunDev)
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '--all', '-f'])
         self._exec('docker-compose', [
@@ -301,8 +193,8 @@ class VoodooOpen(VoodooSub):
             self._exec('docker',
                        ["exec", "-ti", container[0].name, "bash"])
         else:
-            log.error("No container found for the service odoo "
-                      "in the project %s" % project.name)
+            raise_error("No container found for the service odoo "
+                        "in the project %s" % project.name)
 
 
 @Voodoo.subcommand("kill")
@@ -350,9 +242,9 @@ class VoodooInspect(VoodooSub):
     def main(self):
         project = get_project('.', config_path=[self.config_path])
         network = project.networks.networks['default'].inspect()
-        print "Network name : %s" % network['Name']
+        logger.info("Network name : %s", network['Name'])
         for uid, container in network['Containers'].items():
-            print "%s : %s" % (container['Name'], container['IPv4Address'])
+            logger.info("%s : %s", container['Name'], container['IPv4Address'])
 
 
 class VoodooForward(VoodooSub):
@@ -368,16 +260,16 @@ class VoodooBuild(VoodooForward):
     _cmd = "build"
 
 
-@Voodoo.subcommand("start")
-class VoodooStart(VoodooForward):
-    """Start services"""
-    _cmd = "start"
+@Voodoo.subcommand("up")
+class VoodooUp(VoodooForward):
+    """Start all services"""
+    _cmd = "up"
 
 
-@Voodoo.subcommand("stop")
-class VoodooStop(VoodooForward):
-    """Stop services"""
-    _cmd = "stop"
+@Voodoo.subcommand("down")
+class VoodooDown(VoodooForward):
+    """Stop all services"""
+    _cmd = "down"
 
 
 @Voodoo.subcommand("ps")

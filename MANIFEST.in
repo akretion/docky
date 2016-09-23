@@ -1,1 +1,2 @@
-include voodoo/config/service.yml
+include voodoo/odoo/docker-compose.yml
+include voodoo/wagon/docker-compose.yml
