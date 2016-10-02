@@ -181,11 +181,20 @@ class VoodooRun(VoodooSub):
         if self.parent.env == 'dev':
             self.run_hook(InitRunDev)
         # Remove useless dead container before running a new one
-        self._run(self.compose['rm', '--all', '-f'])
-        self._exec('docker-compose', [
-            '-f', self.config_path,
-            'run', '--service-ports',
-            self.main_service, 'bash'])
+        self._run(self.compose['rm', '-f'])
+        try:
+            self._run(self.compose[
+                '-f', self.config_path,
+                'run', '--service-ports',
+                self.main_service, 'bash'])
+        except Exception, e:
+            if e.retcode == 130: #ctrl+d exit code
+                pass
+            else:
+                raise
+        logger.info("Stop running container")
+        self._run(self.compose[
+            '-f', self.config_path, 'down', '--remove-orphans'])
 
 
 @Voodoo.subcommand("open")
