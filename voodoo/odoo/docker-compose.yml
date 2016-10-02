@@ -8,6 +8,8 @@ services:
     - .db/data/:/var/lib/postgresql/data
     - .db/socket/:/var/run/postgresql/
   mailcatcher:
+    description: Mailcatcher is a fake mail server
+    optional: True
     image: akretion/lightweight-mailcatcher
     ports:
     - 1280:1080
@@ -20,7 +22,6 @@ services:
       main_service: "True"
     links:
     - db
-    - mailcatcher
     ports:
     - 8069:8069
     - 8072:8072

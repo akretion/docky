@@ -5,6 +5,7 @@ import os
 import pkg_resources
 import yaml
 from datetime import datetime
+from plumbum.cli.terminal import ask
 
 
 class Hook(object):
@@ -110,7 +111,25 @@ class GenerateDevComposeFile(Hook):
             service['volumes'] = []
         service['volumes'].append('%s:%s' % (shared, shared))
 
+    def _ask_optional_service(self):
+        """Container can be set as optional by adding the key
+        "optional" and "description". This method will ask the user to
+        use or not this optional container"""
+        for name, config in self.config['services'].items():
+            if config.get('optional'):
+                install = ask(
+                    "%s. Do you want to install it"
+                    % config['description'], default=False)
+                if install:
+                    # remove useless dockercompose key
+                    del self.config['services'][name]['description']
+                    del self.config['services'][name]['optional']
+                    self.config['services']['odoo']['links'].append(name)
+                else:
+                    del self.config['services'][name]
+
     def _update_config_file(self):
+        self._ask_optional_service()
         self._add_shared_home()
         self._add_map_uid()
 

@@ -4,7 +4,7 @@
 from plumbum import cli, local
 from plumbum.cmd import git, docker, grep, sed
 from plumbum.commands.modifiers import FG, TF, BG
-from plumbum.cli.terminal import choose
+from plumbum.cli.terminal import choose, ask
 import os
 import sys
 from compose.cli.command import get_project
@@ -151,7 +151,14 @@ class VoodooSub(cli.Application):
         self.main_service = self._get_main_service()
         if self.parent.env == 'dev':
             if not os.path.isfile(self.config_path):
-                self.run_hook(GenerateDevComposeFile)
+                generate = ask(
+                    "There is not dev.docker-compose.yml file.\n"
+                    "Do you want to generate one automatically",
+                    default=True)
+                if generate:
+                    self.run_hook(GenerateDevComposeFile)
+                else:
+                    raise_error("No dev.docker-compose.yml file, abort!")
         self.compose = compose['-f', self.config_path]
 
 
