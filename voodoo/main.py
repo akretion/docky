@@ -226,23 +226,12 @@ class VoodooNew(VoodooSub):
     """Create a new project"""
 
     def main(self, name):
-        # TODO It will be better to use autocompletion
-        # see plumbum and argcomplete
-        # https://github.com/tomerfiliba/plumbum/blob/master/plumbum
-        # /cli/application.py#L341
-        # And https://github.com/kislyuk/argcomplete/issues/116
-        self._run(git["clone", self.parent.template, name])
-        with local.cwd(name):
-            get_version = (git['branch', '-a']
-                | grep['remote']
-                | grep['-v', 'HEAD']
-                | sed['s/remotes\/origin\///g'])
-            versions = [v.strip() for v in get_version().split('\n')]
-        versions.sort()
+        versions = ['9.0', '8.0', '7.0']
         version = choose(
-            "Select your template?",
+            "Select your odoo template?",
             versions,
             default = "9.0")
+        self._run(git["clone", self.parent.template, name])
         with local.cwd(name):
             self._run(git["checkout", version])
 
