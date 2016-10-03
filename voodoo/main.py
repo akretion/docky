@@ -12,8 +12,9 @@ from compose.project import OneOffFilter
 from compose.parallel import parallel_kill
 import yaml
 from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
-
 compose = local['docker-compose']
+
+__version__ = '2.0.2'
 
 
 DEFAULT_CONF = {
@@ -51,7 +52,7 @@ def raise_error(message):
 
 class Voodoo(cli.Application):
     PROGNAME = "voodoo"
-    VERSION = "1.0"
+    VERSION = __version__
 
     dryrun = cli.Flag(["dry-run"], help="Dry run mode")
 

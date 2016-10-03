@@ -18,7 +18,7 @@ def find_version(*file_paths):
 
 setup(
     name='voodoo-cli',
-    version=find_version("voodoo", "__init__.py"),
+    version=find_version("voodoo", "main.py"),
     author='Akretion',
     author_email='contact@akretion.com',
     url='https://github.com/akretion/voodoo-cli/',
