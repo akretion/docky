@@ -236,18 +236,6 @@ class VoodooNew(VoodooSub):
             self._run(git["checkout", version])
 
 
-@Voodoo.subcommand("inspect")
-class VoodooInspect(VoodooSub):
-    """Simple Inspection of network will return ip and hostname"""
-
-    def main(self):
-        project = get_project('.', config_path=[self.config_path])
-        network = project.networks.networks['default'].inspect()
-        logger.info("Network name : %s", network['Name'])
-        for uid, container in network['Containers'].items():
-            logger.info("%s : %s", container['Name'], container['IPv4Address'])
-
-
 class VoodooForward(VoodooSub):
     _cmd = None
 
