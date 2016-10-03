@@ -19,6 +19,13 @@ class Hook(object):
         super(Hook, self).__init__()
 
 
+class GetMainService(Hook):
+    _service = None
+
+    def run(self):
+        pass
+
+
 class Deploy(Hook):
     _service = None
 

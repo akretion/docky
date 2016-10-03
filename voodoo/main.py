@@ -11,7 +11,7 @@ from compose.cli.command import get_project
 from compose.project import OneOffFilter
 from compose.parallel import parallel_kill
 import yaml
-from .hook import Deploy, InitRunDev, GenerateDevComposeFile
+from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
 
 compose = local['docker-compose']
 
@@ -127,16 +127,12 @@ class VoodooSub(cli.Application):
         raise_error("No docker.compose.yml or prod.docker.compose.yml found")
 
     def _get_main_service(self):
-        dc_fname = self._get_main_compose_file()
-        dc_file = open(dc_fname, 'r')
-        config = yaml.safe_load(dc_file)
-        for name, vals in config['services'].items():
-            if vals.get('labels', {}).get('main_service') == "True":
-                return name
-        raise_error(
-            'No main service found, please define one in %s'
-            'by adding the following label : main_service: "True"'
-            'to your main service')
+        for subcls in GetMainService.__subclasses__():
+            service = subcls(self, logger).run()
+            if service:
+                logger.debug("Project detected : %s", service)
+                return service
+        raise_error("The project type failed to be defined")
 
     def run_hook(self, cls):
         for subcls in cls.__subclasses__():

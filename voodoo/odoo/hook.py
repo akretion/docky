@@ -1,11 +1,20 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ..hook import Deploy, InitRunDev, GenerateDevComposeFile
+from ..hook import Deploy, InitRunDev, GenerateDevComposeFile, GetMainService
 from plumbum import local
 from plumbum.cmd import git
 
 import os
+
+
+class OdooGetMainService(GetMainService):
+    _service = 'odoo'
+
+    def run(self):
+        if os.path.exists('buildout.cfg'):
+            return 'odoo'
+        return None
 
 
 class OdooDeploy(Deploy):

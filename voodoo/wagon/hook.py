@@ -1,10 +1,18 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ..hook import InitRunDev, GenerateDevComposeFile
+from ..hook import InitRunDev, GenerateDevComposeFile, GetMainService
 from plumbum.cli.terminal import choose
 import os
 import docker
+
+
+class WagonGetMainService(GetMainService):
+    _service = 'wagon'
+
+    def run(self):
+        if os.path.exists('Gemfile') and 'wagon' in  open('Gemfile').read():
+            return 'wagon'
 
 
 class WagonGenerateDevComposeFile(GenerateDevComposeFile):
