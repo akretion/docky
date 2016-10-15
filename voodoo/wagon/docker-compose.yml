@@ -1,6 +1,6 @@
 services:
   wagon:
-    build: .
+    image: akretion/voodoo-ruby:latest
     labels:
       main_service: "True"
     ports:

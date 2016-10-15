@@ -40,7 +40,7 @@ class WagonInitRunDev(InitRunDev):
 
         # Init gems/bundle directory : share it or generate a new one
         if not os.path.exists('bundle'):
-            if self.parent.shared_gems:
+            if self.voodoo.parent.shared_gems:
                 os.symlink(bundle_path, 'bundle')
             else:
                 os.makedirs(os.path.join('bundle', 'bin'))
