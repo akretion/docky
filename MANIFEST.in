@@ -1,2 +1,2 @@
 include voodoo/odoo/docker-compose.yml
-include voodoo/wagon/docker-compose.yml
+include voodoo/ruby/docker-compose.yml
