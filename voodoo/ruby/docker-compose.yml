@@ -1,5 +1,5 @@
 services:
-  wagon:
+  ruby:
     image: akretion/voodoo-ruby:latest
     labels:
       main_service: "True"

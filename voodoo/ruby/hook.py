@@ -8,15 +8,15 @@ import docker
 
 
 class WagonGetMainService(GetMainService):
-    _service = 'wagon'
+    _service = 'ruby'
 
     def run(self):
-        if os.path.exists('Gemfile') and 'wagon' in  open('Gemfile').read():
-            return 'wagon'
+        if os.path.exists('Gemfile'):
+            return 'ruby'
 
 
 class WagonGenerateDevComposeFile(GenerateDevComposeFile):
-    _service = 'wagon'
+    _service = 'ruby'
 
     def _update_config_file(self):
         super(WagonGenerateDevComposeFile, self)._update_config_file()
@@ -29,7 +29,7 @@ class WagonGenerateDevComposeFile(GenerateDevComposeFile):
 
 
 class WagonInitRunDev(InitRunDev):
-    _service = 'wagon'
+    _service = 'ruby'
 
     def run(self):
         # Create shared bundle directory if not exist

@@ -3,4 +3,4 @@
 from .main import Voodoo
 from . import hook
 from .odoo import hook
-from .wagon import hook
+from .ruby import hook
