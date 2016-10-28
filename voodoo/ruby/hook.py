@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ..hook import InitRunDev, GenerateDevComposeFile, GetMainService
+from ..hook import Deploy, InitRunDev, GenerateDevComposeFile, GetMainService
 from plumbum.cli.terminal import choose
 import os
 import docker
@@ -13,6 +13,9 @@ class WagonGetMainService(GetMainService):
     def run(self):
         if os.path.exists('Gemfile'):
             return 'ruby'
+
+class OdooDeploy(Deploy):
+        _service = 'ruby'
 
 
 class WagonGenerateDevComposeFile(GenerateDevComposeFile):
