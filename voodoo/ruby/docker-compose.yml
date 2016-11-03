@@ -1,8 +1,6 @@
 services:
   ruby:
     image: akretion/voodoo-ruby:latest
-    labels:
-      main_service: "True"
     ports:
     - 3333:3333
     volumes:
