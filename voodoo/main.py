@@ -232,7 +232,7 @@ class VoodooForward(VoodooSub):
     _cmd = None
 
     def main(self, *args):
-        return self._run(self.compose[self._cmd])
+        return self._run(self.compose[self._cmd.split(' ')])
 
 
 @Voodoo.subcommand("build")
@@ -262,7 +262,7 @@ class VoodooPs(VoodooForward):
 @Voodoo.subcommand("logs")
 class VoodooLogs(VoodooForward):
     """View output from containers"""
-    _cmd = "logs"
+    _cmd = "logs -f"
 
 
 @Voodoo.subcommand("pull")
