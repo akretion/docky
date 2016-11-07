@@ -1,0 +1,14 @@
+services:
+  locomotive:
+    image: akretion/voodoo-ruby:latest
+    ports:
+    - 3000:3000
+    volumes:
+    - .:/workspace
+    links:
+     - db
+  db:
+     image: mongo:3
+     volumes:
+       - .db:/data/db
+version: '2'

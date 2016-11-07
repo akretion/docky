@@ -1,28 +1,17 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ..hook import Deploy, InitRunDev, GenerateDevComposeFile, GetMainService
+from ..hook import InitRunDev, GenerateDevComposeFile
 from plumbum.cli.terminal import choose
 import os
 import docker
 
 
-class WagonGetMainService(GetMainService):
-    _service = 'ruby'
-
-    def run(self):
-        if os.path.exists('Gemfile'):
-            return 'ruby'
-
-class OdooDeploy(Deploy):
-        _service = 'ruby'
-
-
-class WagonGenerateDevComposeFile(GenerateDevComposeFile):
+class RubyGenerateDevComposeFile(GenerateDevComposeFile):
     _service = 'ruby'
 
     def _update_config_file(self):
-        super(WagonGenerateDevComposeFile, self)._update_config_file()
+        super(RubyGenerateDevComposeFile, self)._update_config_file()
         networks = [net['Name'] for net in docker.Client().networks()]
         network = choose(
             "Select the network where your odoo is running",
@@ -31,7 +20,7 @@ class WagonGenerateDevComposeFile(GenerateDevComposeFile):
             'default': {'external': {'name': str(network)}}}
 
 
-class WagonInitRunDev(InitRunDev):
+class RubyInitRunDev(InitRunDev):
     _service = 'ruby'
 
     def run(self):

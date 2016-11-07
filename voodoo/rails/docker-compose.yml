@@ -1,0 +1,8 @@
+services:
+  rails:
+    image: akretion/voodoo-ruby:latest
+    ports:
+    - 3000:3000
+    volumes:
+    - .:/workspace
+version: '2'

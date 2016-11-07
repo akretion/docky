@@ -1,0 +1,8 @@
+services:
+  wagon:
+    image: akretion/voodoo-ruby:latest
+    ports:
+    - 3333:3333
+    volumes:
+    - .:/workspace
+version: '2'

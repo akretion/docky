@@ -25,7 +25,7 @@ DEFAULT_CONF = {
     "env": "dev",
 }
 
-DOCKER_COMPOSE_PATH = '%s.docker-compose.yml'
+DOCKER_COMPOSE_PATH = 'docker-compose.yml'
 
 import logging
 
@@ -121,12 +121,6 @@ class VoodooSub(cli.Application):
     def _run(self, *args, **kwargs):
         self.parent._run(*args, **kwargs)
 
-    def _get_main_compose_file(self):
-        for fname in ['docker-compose.yml', 'prod.docker-compose.yml']:
-            if os.path.isfile(fname):
-                return fname
-        raise_error("No docker.compose.yml or prod.docker.compose.yml found")
-
     def _get_main_service(self):
         for subcls in GetMainService.__subclasses__():
             service = subcls(self, logger).run()
@@ -136,7 +130,12 @@ class VoodooSub(cli.Application):
         raise_error("The project type failed to be defined")
 
     def run_hook(self, cls):
-        for subcls in cls.__subclasses__():
+        def itersubclass(cls):
+            list_cls = [cls]
+            for subcls in cls.__subclasses__():
+                list_cls += itersubclass(subcls)
+            return list_cls
+        for subcls in itersubclass(cls):
             if subcls._service == self.main_service:
                 return subcls(self, logger).run()
 
@@ -144,10 +143,20 @@ class VoodooSub(cli.Application):
         super(VoodooSub, self).__init__(*args, **kwargs)
         if args and args[0] == 'voodoo new':
             return
-        self.config_path = DOCKER_COMPOSE_PATH % self.parent.env
+        config_path = '.'.join([self.parent.env, DOCKER_COMPOSE_PATH])
+        if self.parent.env == 'dev':
+            self.config_path = config_path
+        elif local.path(config_path).is_file():
+            self.config_path = config_path
+        elif local.path(DOCKER_COMPOSE_PATH).is_file():
+            self.config_path = DOCKER_COMPOSE_PATH
+        else:
+            raise_error(
+                "There is not %s.%s or %s file, please add one",
+                self.parent.env, DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_PATH)
         self.main_service = self._get_main_service()
         if self.parent.env == 'dev':
-            if not os.path.isfile(self.config_path):
+            if not local.path(self.config_path).isfile():
                 generate = ask(
                     "There is not dev.docker-compose.yml file.\n"
                     "Do you want to generate one automatically",
