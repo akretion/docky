@@ -152,8 +152,8 @@ class VoodooSub(cli.Application):
             self.config_path = DOCKER_COMPOSE_PATH
         else:
             raise_error(
-                "There is not %s.%s or %s file, please add one",
-                self.parent.env, DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_PATH)
+                "There is not %s.%s or %s file, please add one"
+                % (self.parent.env, DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_PATH))
         self.main_service = self._get_main_service()
         if self.parent.env == 'dev':
             if not local.path(self.config_path).isfile():
