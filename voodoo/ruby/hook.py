@@ -3,7 +3,7 @@
 
 from ..hook import InitRunDev, GenerateDevComposeFile
 from plumbum.cli.terminal import choose
-import os
+from plumbum import local
 import docker
 
 
@@ -19,20 +19,14 @@ class RubyGenerateDevComposeFile(GenerateDevComposeFile):
         self.config['networks'] = {
             'default': {'external': {'name': str(network)}}}
 
+    def get_default_volume(self):
+        path = local.path('~/.voodoo/shared/bundle')._path
+        return [':'.join([path, '/usr/local/bundle'])]
+
 
 class RubyInitRunDev(InitRunDev):
     _service = 'ruby'
 
     def run(self):
         # Create shared bundle directory if not exist
-        home = os.path.expanduser("~")
-        bundle_path = os.path.join(home, '.voodoo', 'shared', 'bundle')
-        if not os.path.exists(bundle_path):
-            os.makedirs(bundle_path)
-
-        # Init gems/bundle directory : share it or generate a new one
-        if not os.path.exists('bundle'):
-            if self.voodoo.parent.shared_gems:
-                os.symlink(bundle_path, 'bundle')
-            else:
-                os.makedirs(os.path.join('bundle', 'bin'))
+        local.path('~/.voodoo/shared/bundle').mkdir()

@@ -36,6 +36,10 @@ class GenerateDevComposeFile(GenerateDevComposeFile):
     _service = 'odoo'
     _map_user_for_service = ['db']
 
+    def get_default_volume(self):
+        path = local.path('~/.voodoo/shared')._path
+        return [':'.join([path, path])]
+
 
 class OdooInitRunDev(InitRunDev):
     _service = 'odoo'

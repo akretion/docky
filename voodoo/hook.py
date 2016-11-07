@@ -109,14 +109,16 @@ class GenerateDevComposeFile(Hook):
                 for key in ['USERMAP_UID', 'USERMAP_GID']:
                     service['environment'].append("%s=%s" % (key,uid))
 
-    def _add_shared_home(self):
-        # share .voodoo folder in voodoo
-        home = os.path.expanduser("~")
-        shared = os.path.join(home, '.voodoo', 'shared')
+    def get_default_volume(self):
+        return []
+
+    def _add_default_volume(self):
         service = self.config['services'][self._service]
-        if not 'volumes' in service:
-            service['volumes'] = []
-        service['volumes'].append('%s:%s' % (shared, shared))
+        default_volume = self.get_default_volume()
+        if default_volume:
+            if not 'volumes' in service:
+                service['volumes'] = []
+            service['volumes'] += default_volume
 
     def _ask_optional_service(self):
         """Container can be set as optional by adding the key
@@ -137,8 +139,8 @@ class GenerateDevComposeFile(Hook):
 
     def _update_config_file(self):
         self._ask_optional_service()
-        self._add_shared_home()
         self._add_map_uid()
+        self._add_default_volume()
 
     def run(self):
         with open('dev.docker-compose.yml', 'w') as dc_tmp_file:
