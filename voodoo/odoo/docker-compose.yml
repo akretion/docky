@@ -1,4 +1,12 @@
 services:
+  pgadmin:
+    description: Pgadmin v4 is postgresql Web GUI
+    optional: True
+    image: fenglc/pgadmin4
+    ports:
+      - 5050:5050
+    links:
+      - db
   db:
     environment:
     - POSTGRES_USER=odoo
@@ -20,6 +28,7 @@ services:
     - PYTHONDONTWRITEBYTECODE=True
     links:
     - db
+    - pgadmin
     ports:
     - 8069:8069
     - 8072:8072
