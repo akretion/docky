@@ -28,7 +28,6 @@ services:
     - PYTHONDONTWRITEBYTECODE=True
     links:
     - db
-    - pgadmin
     ports:
     - 8069:8069
     - 8072:8072
