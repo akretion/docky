@@ -163,9 +163,15 @@ More information about buildout files are available [here](http://pythonhosted.o
 For now there is two option for you default config
 
 __shared_eggs__ [True or False]: If true the ~/.voodoo/shared/eggs will be mounted as eggs folder in your docker
-This mean that the eggs will be shared between you voodoo project saving some download and space
+This mean that the eggs will be shared between your voodoo projects saving some download and space.
+
+If you don't want share eggs for a specific project, just create your `./eggs` folder after created your project (voodoo new).
 
 odoo [url]: The odoo repo by default the  OCA repo: 'https://github.com/oca/ocb.git'
+
+If you want start your project quickly and avoid to duplicate odoo source code, you can create manually a symbolic link after  created project in `./parts/odoo` from existing odoo projects.
+
+  Sharing source can be confusing, don't use for dev of projects which are in production.
 
 Note : to improve the performance when downloading odoo, an odoo project is downloaded in ~/.voodoo/shared/odoo. Then when you start a new project the new odoo part is created from this local repository.
 
