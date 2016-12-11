@@ -14,7 +14,7 @@ import yaml
 from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
 compose = local['docker-compose']
 
-__version__ = '2.1.1'
+__version__ = '2.1.2'
 
 
 DEFAULT_CONF = {
@@ -227,11 +227,11 @@ class VoodooNew(VoodooSub):
     """Create a new project"""
 
     def main(self, name):
-        versions = ['9.0', '8.0', '7.0']
+        versions = ['10.0', '9.0', '8.0', '7.0']
         version = choose(
-            "Select your odoo template?",
+            "Select your Odoo project template",
             versions,
-            default = "9.0")
+            default = "10.0")
         self._run(git["clone", self.parent.template, name])
         with local.cwd(name):
             self._run(git["checkout", version])
