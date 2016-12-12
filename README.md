@@ -77,7 +77,7 @@ Please do not forget to install the latest version if you choose to install it m
 * Give non root access to Docker if not done already:
 ```
   sudo gpasswd -a ${USER} docker
-  sudo service docker restart # use docker.io instead of docker in Ubuntu 14.04
+  sudo service docker restart
 ```
 
 **you may have to LOGOUT and LOG BACK IN AGAIN for the group change to take effect!**
