@@ -21,8 +21,8 @@ setup(
     version=find_version("voodoo", "main.py"),
     author='Akretion',
     author_email='contact@akretion.com',
-    url='https://github.com/akretion/voodoo-cli/',
-    description='Environement builder for Odoo',
+    url='https://github.com/akretion/voodoo/',
+    description='Environment builder for Odoo',
     license="AGPLv3+",
     long_description=open('README.md').read(),
     install_requires=[
