@@ -185,7 +185,11 @@ class VoodooDeploy(VoodooSub):
 class VoodooRun(VoodooSub):
     """Start services and enter in your dev container"""
 
-    def main(self, *args):
+    def main(self, *optionnal_command_line):
+        if not optionnal_command_line:
+            cmd = ['bash']
+        else:
+            cmd = list(optionnal_command_line)
         if self.env == 'dev':
             self.run_hook(InitRunDev)
         # Remove useless dead container before running a new one
@@ -193,7 +197,7 @@ class VoodooRun(VoodooSub):
         self._exec('docker-compose', [
             '-f', self.config_path,
             'run', '--service-ports',
-            self.main_service, 'bash'])
+            self.main_service] + cmd)
 
 
 @Voodoo.subcommand("open")
