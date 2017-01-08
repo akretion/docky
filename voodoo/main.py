@@ -228,6 +228,49 @@ class VoodooKill(VoodooSub):
         parallel_kill(containers, {'signal': 'SIGKILL'})
 
 
+@Voodoo.subcommand("migrate")
+class VoodooMigrate(VoodooSub):
+    """Deploy your application"""
+    _version = ["6.1", "7.0", "8.0", "9.0"]
+
+    from_version = cli.SwitchAttr(
+        ["f", "from-version"],
+        cli.Set(*_version[:-1]),
+        mandatory=True)
+    to_version = cli.SwitchAttr(
+        ["t", "to-version"],
+        cli.Set(*_version[1:]),
+        mandatory=True)
+    db_file = cli.SwitchAttr(["db-file"])
+
+    def main(self):
+        if self.main_service != 'odoo':
+            raise_error("This command is used only for migrating odoo project")
+        if self.to_version <= self.from_version:
+            raise_error(
+                "The current version must be inferior to destination version")
+        versions = [version for version in self._version
+                    if self.from_version < version <= self.to_version]
+        logs = ["\n\nDeploy Log Resume:\n"]
+        if self.db_file:
+            start = datetime.now()
+            self.compose["run", "dropdb", "db"]
+            self.compose["run", "createdb", "db"]
+            self.compose["run", "pg_restore", "-Ov",
+                         "-d", "db", "backup.dump", "-j", "8"]
+            end = datetime.now()
+            logs.append("Load the database in %s" % (end-start))
+        for version in versions:
+            self._run(git["checkout", version])
+            self.compose["run", "ak", "build"]
+            self.compose["run", "ak", "upgrade"]
+            self.compose["run", "pg_dump", "-Fc", "db",
+                         ">", "migrated_%s.dump" % version]
+            logs.append("Migrate to version %s in %s" % (version, end-start))
+        for log in logs:
+            logger.info(log)
+
+
 @Voodoo.subcommand("new")
 class VoodooNew(VoodooSub):
     """Create a new project"""
