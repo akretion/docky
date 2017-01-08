@@ -14,7 +14,7 @@ import yaml
 from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
 compose = local['docker-compose']
 
-__version__ = '2.2.0'
+__version__ = '2.3.0'
 
 
 DEFAULT_CONF = {
