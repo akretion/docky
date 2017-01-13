@@ -14,7 +14,7 @@ import yaml
 from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
 compose = local['docker-compose']
 
-__version__ = '2.1.1'
+__version__ = '2.3.0'
 
 
 DEFAULT_CONF = {
@@ -55,6 +55,7 @@ class Voodoo(cli.Application):
     VERSION = __version__
 
     dryrun = cli.Flag(["dry-run"], help="Dry run mode")
+    force_env = cli.SwitchAttr(["e", "env"], help="Environment flag")
 
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""
@@ -143,8 +144,9 @@ class VoodooSub(cli.Application):
         super(VoodooSub, self).__init__(*args, **kwargs)
         if args and args[0] == 'voodoo new':
             return
-        config_path = '.'.join([self.parent.env, DOCKER_COMPOSE_PATH])
-        if self.parent.env == 'dev':
+        self.env = self.parent.force_env or self.parent.env
+        config_path = '.'.join([self.env, DOCKER_COMPOSE_PATH])
+        if self.env == 'dev':
             self.config_path = config_path
         elif local.path(config_path).is_file():
             self.config_path = config_path
@@ -153,9 +155,9 @@ class VoodooSub(cli.Application):
         else:
             raise_error(
                 "There is not %s.%s or %s file, please add one"
-                % (self.parent.env, DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_PATH))
+                % (self.env, DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_PATH))
         self.main_service = self._get_main_service()
-        if self.parent.env == 'dev':
+        if self.env == 'dev':
             if not local.path(self.config_path).isfile():
                 generate = ask(
                     "There is not dev.docker-compose.yml file.\n"
@@ -173,7 +175,7 @@ class VoodooDeploy(VoodooSub):
     """Deploy your application"""
 
     def main(self):
-        if self.parent.env == 'dev':
+        if self.env == 'dev':
             raise_error("Deploy can not be used in dev mode, "
                         "please configure .voodoo/config.yml")
         self.run_hook(Deploy)
@@ -183,15 +185,19 @@ class VoodooDeploy(VoodooSub):
 class VoodooRun(VoodooSub):
     """Start services and enter in your dev container"""
 
-    def main(self, *args):
-        if self.parent.env == 'dev':
+    def main(self, *optionnal_command_line):
+        if not optionnal_command_line:
+            cmd = ['bash']
+        else:
+            cmd = list(optionnal_command_line)
+        if self.env == 'dev':
             self.run_hook(InitRunDev)
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '-f'])
         self._exec('docker-compose', [
             '-f', self.config_path,
             'run', '--service-ports',
-            self.main_service, 'bash'])
+            self.main_service] + cmd)
 
 
 @Voodoo.subcommand("open")
@@ -227,11 +233,11 @@ class VoodooNew(VoodooSub):
     """Create a new project"""
 
     def main(self, name):
-        versions = ['9.0', '8.0', '7.0']
+        versions = ['10.0', '9.0', '8.0', '7.0']
         version = choose(
-            "Select your odoo template?",
+            "Select your Odoo project template",
             versions,
-            default = "9.0")
+            default = "10.0")
         self._run(git["clone", self.parent.template, name])
         with local.cwd(name):
             self._run(git["checkout", version])
