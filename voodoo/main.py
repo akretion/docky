@@ -320,7 +320,7 @@ class VoodooPs(VoodooForward):
 @Voodoo.subcommand("logs")
 class VoodooLogs(VoodooForward):
     """View output from containers"""
-    _cmd = "logs -f"
+    _cmd = "logs -f --tails='100'"
 
 
 @Voodoo.subcommand("pull")
