@@ -1,4 +1,16 @@
 services:
+  metabase:
+    description: metabase is Web tools for BI with dashboard
+    optional: True
+    image: metabase/metabase
+    environment:
+    - MB_DB_FILE=/file/metabase.db
+    links:
+    - db
+    ports:
+    - 3000:3000
+    volumes:
+    - .:/file
   pgadmin:
     description: Pgadmin v4 is postgresql Web GUI
     optional: True
