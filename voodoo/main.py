@@ -196,7 +196,7 @@ class VoodooRun(VoodooSub):
         self._run(self.compose['rm', '-f'])
         self._exec('docker-compose', [
             '-f', self.config_path,
-            'run', '--service-ports',
+            'run', '--rm', '--service-ports',
             self.main_service] + cmd)
 
 

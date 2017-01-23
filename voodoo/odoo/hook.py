@@ -29,7 +29,7 @@ class OdooDeploy(Deploy):
         return super(OdooDeploy, self)._build()
 
     def _update_application(self):
-        self._run(self._compose['run', 'odoo', 'ak', 'upgrade'])
+        self._run(self._compose['run', '--rm', 'odoo', 'ak', 'upgrade'])
 
 
 class GenerateDevComposeFile(GenerateDevComposeFile):
