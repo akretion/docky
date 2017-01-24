@@ -14,7 +14,7 @@ import yaml
 from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
 compose = local['docker-compose']
 
-__version__ = '2.3.1'
+__version__ = '2.3.2'
 
 
 DEFAULT_CONF = {
@@ -277,7 +277,7 @@ class VoodooPs(VoodooForward):
 @Voodoo.subcommand("logs")
 class VoodooLogs(VoodooForward):
     """View output from containers"""
-    _cmd = "logs -f --tails='100'"
+    _cmd = "logs -f --tail=100"
 
 
 @Voodoo.subcommand("pull")
