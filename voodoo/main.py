@@ -22,6 +22,8 @@ DEFAULT_CONF = {
     "shared_gems": True,
     "odoo": "https://github.com/oca/ocb.git",
     "template": "https://github.com/akretion/voodoo-template.git",
+    "maintainer_quality_tools":
+        "https://github.com/OCA/maintainer-quality-tools",
     "env": "dev",
 }
 
