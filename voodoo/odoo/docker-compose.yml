@@ -1,22 +1,23 @@
+networks:
+  default:
+    external:
+      name: vd
 services:
   metabase:
     description: metabase is Web tools for BI with dashboard
     optional: True
     image: metabase/metabase
+    network_mode: "bridge"
     environment:
     - MB_DB_FILE=/file/metabase.db
     links:
     - db
-    ports:
-    - 3000:3000
     volumes:
     - .:/file
   pgadmin:
     description: Pgadmin v4 is postgresql Web GUI
     optional: True
     image: fenglc/pgadmin4
-    ports:
-      - 5050:5050
     links:
       - db
   db:
@@ -31,18 +32,12 @@ services:
     description: Mailcatcher is a fake mail server
     optional: True
     image: akretion/lightweight-mailcatcher
-    ports:
-    - 1280:1080
-    - 1225:1025
   odoo:
     image: akretion/voodoo:latest
     environment:
     - PYTHONDONTWRITEBYTECODE=True
     links:
     - db
-    ports:
-    - 8069:8069
-    - 8072:8072
     volumes:
     - .:/workspace
     - .db/socket/:/var/run/postgresql/

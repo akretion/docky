@@ -11,6 +11,7 @@ from compose.cli.command import get_project
 from compose.project import OneOffFilter
 from compose.parallel import parallel_kill
 import yaml
+import docker
 from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
 compose = local['docker-compose']
 
@@ -31,6 +32,7 @@ DOCKER_COMPOSE_PATH = 'docker-compose.yml'
 
 import logging
 
+client = docker.from_env()
 
 logger = logging.getLogger('voodoo')
 formatter = logging.Formatter("%(message)s")
@@ -187,6 +189,35 @@ class VoodooDeploy(VoodooSub):
 class VoodooRun(VoodooSub):
     """Start services and enter in your dev container"""
 
+    def _set_local_dev_network(self):
+        existing_network = False
+        for network in client.networks.list():
+            if network.name == "vd":
+                existing_network = True
+        if not existing_network:
+            ipam_pool = docker.types.IPAMPool(subnet="172.42.0.0/16")
+            ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
+            logger.info("Create '.vd' network")
+            client.networks.create(
+                'vd',
+                driver="bridge",
+                ipam=ipam_config)
+        for container in client.containers.list():
+            if container.name == 'resolvable':
+                return
+        # There is not resolver so we have to start it
+        logger.info("Start resolver")
+        client.containers.run(
+            "mgood/resolvable",
+            hostname="resolvable",
+            name="resolvable",
+            network_mode='vd',
+            volumes=[
+                "/var/run/docker.sock:/tmp/docker.sock",
+                "/etc/resolv.conf:/tmp/resolv.conf",
+                ],
+            detach=True)
+
     def main(self, *optionnal_command_line):
         if not optionnal_command_line:
             cmd = ['bash']
@@ -194,12 +225,16 @@ class VoodooRun(VoodooSub):
             cmd = list(optionnal_command_line)
         if self.env == 'dev':
             self.run_hook(InitRunDev)
+            self._set_local_dev_network()
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '-f'])
-        self._exec('docker-compose', [
-            '-f', self.config_path,
-            'run', '--rm', '--service-ports',
-            self.main_service] + cmd)
+        params = ['-f', self.config_path, 'run', '--rm', '--service-ports']
+        config = yaml.safe_load(open(self.config_path, 'r'))
+        main_service_config = config['services'][self.main_service]
+        if main_service_config.get('container_name'):
+            params += ['--name', main_service_config['container_name']]
+        params.append(self.main_service)
+        self._exec('docker-compose', params + cmd)
 
 
 @Voodoo.subcommand("open")

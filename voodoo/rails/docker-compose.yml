@@ -1,8 +1,14 @@
+networks:
+  default:
+    external:
+      name: vd
 services:
   rails:
     image: akretion/voodoo-ruby:latest
-    ports:
-    - 3000:3000
     volumes:
-    - .:/workspace
+      - .:/workspace
+  mailcatcher:
+    description: Mailcatcher is a fake mail server
+    optional: True
+    image: akretion/lightweight-mailcatcher
 version: '2'

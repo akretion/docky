@@ -6,6 +6,7 @@ import pkg_resources
 import yaml
 from datetime import datetime
 from plumbum.cli.terminal import ask
+from plumbum import local
 
 
 class Hook(object):
@@ -133,14 +134,24 @@ class GenerateDevComposeFile(Hook):
                     # remove useless dockercompose key
                     del self.config['services'][name]['description']
                     del self.config['services'][name]['optional']
-                    self.config['services']['odoo']['links'].append(name)
+                    if not 'links' in self.config['services'][self._service]:
+                        self.config['services'][self._service]['links'] = []
+                    self.config['services'][self._service]['links'].append(name)
                 else:
                     del self.config['services'][name]
+
+    def _add_container_name(self):
+        project_name = local.cwd.name
+        for name, config in self.config['services'].items():
+            config['container_name'] = project_name
+            if name != self._service:
+                config['container_name'] += '_' + name
 
     def _update_config_file(self):
         self._ask_optional_service()
         self._add_map_uid()
         self._add_default_volume()
+        self._add_container_name()
 
     def run(self):
         with open('dev.docker-compose.yml', 'w') as dc_tmp_file:

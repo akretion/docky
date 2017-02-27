@@ -1,8 +1,10 @@
+networks:
+  default:
+    external:
+      name: vd
 services:
   locomotive:
     image: akretion/voodoo-ruby:latest
-    ports:
-    - 3000:3000
     volumes:
     - .:/workspace
     links:
