@@ -26,7 +26,7 @@ setup(
     license="AGPLv3+",
     long_description=open('README.md').read(),
     install_requires=[
-        r.strip() for r in open('requirement.txt').read().splitlines() ],
+        r.strip() for r in open('requirements.txt').read().splitlines() ],
     entry_points="""
     [console_scripts]
     voodoo=voodoo.main:main

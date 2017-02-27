@@ -1,0 +1,11 @@
+wheel
+pytest
+pytest-runner
+coverage
+pytest-cov
+flake8
+pytest-flake8
+pylint
+pytest-pylint
+pydocstyle
+coveralls
