@@ -265,7 +265,7 @@ class VoodooMigrate(VoodooSub):
             self._run(git["checkout", version])
             self._run_ak("build")
             self._run_ak("upgrade")
-            self._run_ak("dump", "--force", "migrated_%s.dump" % version)
+            self._run_ak("db", "dump", "--force", "migrated_%s.dump" % version)
             end = datetime.now()
             self._log("Migrate to version %s in %s" % (version, end-start))
         for log in self._logs:
