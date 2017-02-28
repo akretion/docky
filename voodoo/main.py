@@ -257,7 +257,7 @@ class VoodooMigrate(VoodooSub):
         if self.main_service != 'odoo':
             raise_error("This command is used only for migrating odoo project")
         versions = self.apply_branch.split(',')
-        logs = ["\n\nMigration Log Resume:\n"]
+        logs = ["\n\nMigration Log Summary:\n"]
         if self.db_file:
             self._run_ak("db", "load", "--force", self.db_file)
         for version in versions:
