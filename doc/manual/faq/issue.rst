@@ -26,6 +26,17 @@ to kill your all process use
 
     voodoo kill
 
+
+You fail to access to my_project.vd ?
+------------------------------------------
+
+Maybe the configuration of /etc/resolv.conf have been refresh (change network connection)
+
+If it the case:
+  * if you are curious you can check by ourself if the following line is in the file /etc/resolv.conf
+  * just exist from voodoo and launch voodoo run and everything will be back
+
+
 What do to if you have this stack trace?
 --------------------------------------------
 
