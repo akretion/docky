@@ -16,7 +16,7 @@ from datetime import datetime
 
 compose = local['docker-compose']
 
-__version__ = '2.3.0'
+__version__ = '2.4.0'
 
 
 DEFAULT_CONF = {
@@ -24,6 +24,8 @@ DEFAULT_CONF = {
     "shared_gems": True,
     "odoo": "https://github.com/oca/ocb.git",
     "template": "https://github.com/akretion/voodoo-template.git",
+    "maintainer_quality_tools":
+        "https://github.com/OCA/maintainer-quality-tools",
     "env": "dev",
 }
 
@@ -55,9 +57,16 @@ def raise_error(message):
 class Voodoo(cli.Application):
     PROGNAME = "voodoo"
     VERSION = __version__
+    SUBCOMMAND_HELPMSG = None
 
-    dryrun = cli.Flag(["dry-run"], help="Dry run mode")
-    force_env = cli.SwitchAttr(["e", "env"], help="Environment flag")
+    dryrun = cli.Flag(
+        ["dry-run"],
+        help="Dry run mode",
+        group = "Meta-switches")
+    force_env = cli.SwitchAttr(
+        ["e", "env"],
+        help="Environment flag",
+        group = "Meta-switches")
 
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""
@@ -110,7 +119,7 @@ class Voodoo(cli.Application):
             config_file.write(yaml.dump(new_config, default_flow_style=False))
             logger.info("Update default config file at %s", config_path)
 
-    @cli.switch("--verbose", help="Verbose mode")
+    @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
     def set_log_level(self):
         logger.setLevel(logging.DEBUG)
         logger.debug('Verbose mode activated')
@@ -142,10 +151,7 @@ class VoodooSub(cli.Application):
             if subcls._service == self.main_service:
                 return subcls(self, logger).run()
 
-    def __init__(self, *args, **kwargs):
-        super(VoodooSub, self).__init__(*args, **kwargs)
-        if args and args[0] == 'voodoo new':
-            return
+    def _init_env(self, *args, **kwargs):
         self.env = self.parent.force_env or self.parent.env
         config_path = '.'.join([self.env, DOCKER_COMPOSE_PATH])
         if self.env == 'dev':
@@ -171,12 +177,17 @@ class VoodooSub(cli.Application):
                     raise_error("No dev.docker-compose.yml file, abort!")
         self.compose = compose['-f', self.config_path]
 
+    def main(self, *args, **kwargs):
+        self._init_env()
+        self._main(*args, **kwargs)
+
+VoodooSub.unbind_switches("--help-all", "-v", "--version")
 
 @Voodoo.subcommand("deploy")
 class VoodooDeploy(VoodooSub):
     """Deploy your application"""
 
-    def main(self):
+    def _main(self):
         if self.env == 'dev':
             raise_error("Deploy can not be used in dev mode, "
                         "please configure .voodoo/config.yml")
@@ -187,7 +198,7 @@ class VoodooDeploy(VoodooSub):
 class VoodooRun(VoodooSub):
     """Start services and enter in your dev container"""
 
-    def main(self, *optionnal_command_line):
+    def _main(self, *optionnal_command_line):
         if not optionnal_command_line:
             cmd = ['bash']
         else:
@@ -198,7 +209,7 @@ class VoodooRun(VoodooSub):
         self._run(self.compose['rm', '-f'])
         self._exec('docker-compose', [
             '-f', self.config_path,
-            'run', '--service-ports',
+            'run', '--rm', '--service-ports',
             self.main_service] + cmd)
 
 
@@ -206,7 +217,7 @@ class VoodooRun(VoodooSub):
 class VoodooOpen(VoodooSub):
     """Open a new session inside your dev container"""
 
-    def main(self, *args):
+    def _main(self, *args):
         project = get_project('.', [self.config_path])
         container = project.containers(
             service_names=[self.main_service], one_off=OneOffFilter.include)
@@ -222,7 +233,7 @@ class VoodooOpen(VoodooSub):
 class VoodooKill(VoodooSub):
     """Kill all running container of the project"""
 
-    def main(self, *args):
+    def _main(self, *args):
         # docker compose do not kill the container odoo as is was run
         # manually, so we implement our own kill
         project = get_project('.', config_path=[self.config_path])
@@ -309,7 +320,7 @@ class VoodooNew(VoodooSub):
 class VoodooForward(VoodooSub):
     _cmd = None
 
-    def main(self, *args):
+    def _main(self, *args):
         return self._run(self.compose[self._cmd.split(' ')])
 
 
@@ -340,7 +351,7 @@ class VoodooPs(VoodooForward):
 @Voodoo.subcommand("logs")
 class VoodooLogs(VoodooForward):
     """View output from containers"""
-    _cmd = "logs -f --tails='100'"
+    _cmd = "logs -f --tail=100"
 
 
 @Voodoo.subcommand("pull")

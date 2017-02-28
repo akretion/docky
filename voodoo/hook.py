@@ -15,7 +15,6 @@ class Hook(object):
         self.voodoo = voodoo
         self._run = voodoo._run
         self._compose = getattr(voodoo, 'compose', None)
-        self.env = voodoo.parent.env
         super(Hook, self).__init__()
 
 

@@ -29,7 +29,7 @@ class OdooDeploy(Deploy):
         return super(OdooDeploy, self)._build()
 
     def _update_application(self):
-        self._run(self._compose['run', 'odoo', 'ak', 'upgrade'])
+        self._run(self._compose['run', '--rm', 'odoo', 'ak', 'upgrade'])
 
 
 class GenerateDevComposeFile(GenerateDevComposeFile):
@@ -39,6 +39,12 @@ class GenerateDevComposeFile(GenerateDevComposeFile):
     def get_default_volume(self):
         path = local.path('~/.voodoo/shared')._path
         return [':'.join([path, path])]
+
+    def _update_config_file(self):
+        super(GenerateDevComposeFile, self)._update_config_file()
+        path = local.path('~/.voodoo/shared/maintainer_quality_tools')._path
+        self.config['services']['odoo']['environment'].append(
+            "MAINTAINER_QUALITY_TOOLS=%s" % path)
 
 
 class OdooInitRunDev(InitRunDev):
@@ -75,12 +81,29 @@ class OdooInitRunDev(InitRunDev):
         self._run(self._compose[
             'run', 'odoo', 'cp', '-r', '/opt/voodoo/eggs', dest])
 
+    def _get_maintainer_quality_tools_path(self):
+        path = local.path(
+            "%s/maintainer_quality_tools"
+            % self.voodoo.parent.shared_folder)
+        if not path.is_dir():
+            print (
+                "First run of Voodoo; there is no Maintainer Quality Tools "
+                "repo in %s! \nWill now download it from Github, "
+                "this can take a while...\n"
+                % (path._path))
+            self._run(git["clone",
+                          self.voodoo.parent.maintainer_quality_tools,
+                          path._path])
+
     def run(self):
         # create db directory data and socket if missing
         for directory in ['socket', 'data']:
             path = os.path.join('.db', directory)
             if not os.path.exists(path):
                 os.makedirs(path)
+
+        # Create maintainer quality tools
+        self._get_maintainer_quality_tools_path()
 
         # Create odoo directory from cache if do not exist
         odoo_path = os.path.join('parts', 'odoo')
