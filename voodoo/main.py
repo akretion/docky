@@ -226,7 +226,8 @@ class VoodooRun(VoodooSub):
             filters={'name':'resolvable'})
         if container:
             container = container[0]
-            if container.status != 'running':
+            cf = open('/etc/resolv.conf').read()
+            if container.status != 'running' or not 'resolvable' in cf:
                 logger.info("Restart resolver")
                 container.restart()
         else:
