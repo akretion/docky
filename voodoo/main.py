@@ -232,7 +232,26 @@ class VoodooKill(VoodooSub):
 
 @Voodoo.subcommand("migrate")
 class VoodooMigrate(VoodooSub):
-    """Deploy your application"""
+    """Migrate your odoo project
+
+    First you need to checkout the voodoo-upgrade template
+    available here : https://github.com/akretion/voodoo-upgrade
+    (It's a template a voodoo but based on open-upgrade'
+
+    Then go inside the repository clonned and launch the migration
+
+    * For migrating from 6.1 to 8.0 run:
+        voodoo migrate -b 7.0,8.0
+    * For migrating from 6.1 to 9.0 run:
+        voodoo migrate -b 7.0,8.0,9.0
+
+    Loading database
+
+    if you want to load the initial database just copy paste it in the working
+    directory and run
+
+    voodoo migrate -b 7.0,8.0 db-file=tomigrate.dump
+    """
 
     db_file = cli.SwitchAttr(["db-file"])
     apply_branch = cli.SwitchAttr(
