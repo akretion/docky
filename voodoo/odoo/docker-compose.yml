@@ -16,9 +16,9 @@ services:
     optional: True
     image: fenglc/pgadmin4
     ports:
-      - 5050:5050
+    - 5050:5050
     links:
-      - db
+    - db
   db:
     environment:
     - POSTGRES_USER=odoo
