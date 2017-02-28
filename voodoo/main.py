@@ -221,8 +221,11 @@ class VoodooRun(VoodooSub):
                 'vd',
                 driver="bridge",
                 ipam=ipam_config)
-        container = client.containers.get('resolvable')
+        container = client.containers.list(
+            all=True,
+            filters={'name':'resolvable'})
         if container:
+            container = container[0]
             if container.status != 'running':
                 logger.info("Restart resolver")
                 container.restart()
