@@ -24,7 +24,7 @@ setup(
     url='https://github.com/akretion/voodoo/',
     description='Environment builder for Odoo',
     license="AGPLv3+",
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     install_requires=[
         r.strip() for r in open('requirements.txt').read().splitlines() ],
     entry_points="""
