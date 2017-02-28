@@ -13,6 +13,8 @@ from compose.parallel import parallel_kill
 import yaml
 import docker
 from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
+from datetime import datetime
+
 compose = local['docker-compose']
 
 __version__ = '2.4.0'
@@ -57,9 +59,16 @@ def raise_error(message):
 class Voodoo(cli.Application):
     PROGNAME = "voodoo"
     VERSION = __version__
+    SUBCOMMAND_HELPMSG = None
 
-    dryrun = cli.Flag(["dry-run"], help="Dry run mode")
-    force_env = cli.SwitchAttr(["e", "env"], help="Environment flag")
+    dryrun = cli.Flag(
+        ["dry-run"],
+        help="Dry run mode",
+        group = "Meta-switches")
+    force_env = cli.SwitchAttr(
+        ["e", "env"],
+        help="Environment flag",
+        group = "Meta-switches")
 
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""
@@ -112,7 +121,7 @@ class Voodoo(cli.Application):
             config_file.write(yaml.dump(new_config, default_flow_style=False))
             logger.info("Update default config file at %s", config_path)
 
-    @cli.switch("--verbose", help="Verbose mode")
+    @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
     def set_log_level(self):
         logger.setLevel(logging.DEBUG)
         logger.debug('Verbose mode activated')
@@ -144,10 +153,7 @@ class VoodooSub(cli.Application):
             if subcls._service == self.main_service:
                 return subcls(self, logger).run()
 
-    def __init__(self, *args, **kwargs):
-        super(VoodooSub, self).__init__(*args, **kwargs)
-        if args and args[0] == 'voodoo new':
-            return
+    def _init_env(self, *args, **kwargs):
         self.env = self.parent.force_env or self.parent.env
         config_path = '.'.join([self.env, DOCKER_COMPOSE_PATH])
         if self.env == 'dev':
@@ -173,12 +179,17 @@ class VoodooSub(cli.Application):
                     raise_error("No dev.docker-compose.yml file, abort!")
         self.compose = compose['-f', self.config_path]
 
+    def main(self, *args, **kwargs):
+        self._init_env()
+        self._main(*args, **kwargs)
+
+VoodooSub.unbind_switches("--help-all", "-v", "--version")
 
 @Voodoo.subcommand("deploy")
 class VoodooDeploy(VoodooSub):
     """Deploy your application"""
 
-    def main(self):
+    def _main(self):
         if self.env == 'dev':
             raise_error("Deploy can not be used in dev mode, "
                         "please configure .voodoo/config.yml")
@@ -218,7 +229,7 @@ class VoodooRun(VoodooSub):
                 ],
             detach=True)
 
-    def main(self, *optionnal_command_line):
+    def _main(self, *optionnal_command_line):
         if not optionnal_command_line:
             cmd = ['bash']
         else:
@@ -241,7 +252,7 @@ class VoodooRun(VoodooSub):
 class VoodooOpen(VoodooSub):
     """Open a new session inside your dev container"""
 
-    def main(self, *args):
+    def _main(self, *args):
         project = get_project('.', [self.config_path])
         container = project.containers(
             service_names=[self.main_service], one_off=OneOffFilter.include)
@@ -257,12 +268,73 @@ class VoodooOpen(VoodooSub):
 class VoodooKill(VoodooSub):
     """Kill all running container of the project"""
 
-    def main(self, *args):
+    def _main(self, *args):
         # docker compose do not kill the container odoo as is was run
         # manually, so we implement our own kill
         project = get_project('.', config_path=[self.config_path])
         containers = project.containers(one_off=OneOffFilter.include)
         parallel_kill(containers, {'signal': 'SIGKILL'})
+
+
+@Voodoo.subcommand("migrate")
+class VoodooMigrate(VoodooSub):
+    """Migrate your odoo project
+
+    First you need to checkout the voodoo-upgrade template
+    available here : https://github.com/akretion/voodoo-upgrade
+    (It's a template a voodoo but based on open-upgrade'
+
+    Then go inside the repository clonned and launch the migration
+
+    * For migrating from 6.1 to 8.0 run:
+        voodoo migrate -b 7.0,8.0
+    * For migrating from 6.1 to 9.0 run:
+        voodoo migrate -b 7.0,8.0,9.0
+
+    Loading database
+
+    if you want to load the initial database just copy paste it in the working
+    directory and run
+
+    voodoo migrate -b 7.0,8.0 db-file=tomigrate.dump
+    """
+
+    db_file = cli.SwitchAttr(["db-file"])
+    apply_branch = cli.SwitchAttr(
+        ["b", "branch"],
+        help="Branch to apply split by comma ex: 7.0,8.0",
+        mandatory=True)
+    _logs = []
+
+    def log(self, message):
+        print message
+        self._logs.append(message)
+
+    def _run_ak(self, *params):
+        start = datetime.now()
+        cmd = "ak " + " ".join(params)
+        self.log("Launch %s" % cmd)
+        self.compose("run", "odoo", "ak", *params)
+        end = datetime.now()
+        self.log("Run %s in %s" % (cmd, end-start))
+
+    def main(self):
+        if self.main_service != 'odoo':
+            raise_error("This command is used only for migrating odoo project")
+        versions = self.apply_branch.split(',')
+        logs = ["\n\nMigration Log Summary:\n"]
+        if self.db_file:
+            self._run_ak("db", "load", "--force", self.db_file)
+        for version in versions:
+            start = datetime.now()
+            self._run(git["checkout", version])
+            self._run_ak("build")
+            self._run_ak("upgrade")
+            self._run_ak("db", "dump", "--force", "migrated_%s.dump" % version)
+            end = datetime.now()
+            self._log("Migrate to version %s in %s" % (version, end-start))
+        for log in self._logs:
+            logger.info(log)
 
 
 @Voodoo.subcommand("new")
@@ -283,7 +355,7 @@ class VoodooNew(VoodooSub):
 class VoodooForward(VoodooSub):
     _cmd = None
 
-    def main(self, *args):
+    def _main(self, *args):
         return self._run(self.compose[self._cmd.split(' ')])
 
 

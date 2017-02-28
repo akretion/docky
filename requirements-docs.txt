@@ -1,0 +1,4 @@
+sphinx
+ghp-import
+requests >= 2.6.1, != 2.11.0, < 2.12
+sphinx_bootstrap_theme
