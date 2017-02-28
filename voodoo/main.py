@@ -12,6 +12,8 @@ from compose.project import OneOffFilter
 from compose.parallel import parallel_kill
 import yaml
 from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
+from datetime import datetime
+
 compose = local['docker-compose']
 
 __version__ = '2.4.0'
@@ -237,6 +239,67 @@ class VoodooKill(VoodooSub):
         project = get_project('.', config_path=[self.config_path])
         containers = project.containers(one_off=OneOffFilter.include)
         parallel_kill(containers, {'signal': 'SIGKILL'})
+
+
+@Voodoo.subcommand("migrate")
+class VoodooMigrate(VoodooSub):
+    """Migrate your odoo project
+
+    First you need to checkout the voodoo-upgrade template
+    available here : https://github.com/akretion/voodoo-upgrade
+    (It's a template a voodoo but based on open-upgrade'
+
+    Then go inside the repository clonned and launch the migration
+
+    * For migrating from 6.1 to 8.0 run:
+        voodoo migrate -b 7.0,8.0
+    * For migrating from 6.1 to 9.0 run:
+        voodoo migrate -b 7.0,8.0,9.0
+
+    Loading database
+
+    if you want to load the initial database just copy paste it in the working
+    directory and run
+
+    voodoo migrate -b 7.0,8.0 db-file=tomigrate.dump
+    """
+
+    db_file = cli.SwitchAttr(["db-file"])
+    apply_branch = cli.SwitchAttr(
+        ["b", "branch"],
+        help="Branch to apply split by comma ex: 7.0,8.0",
+        mandatory=True)
+    _logs = []
+
+    def log(self, message):
+        print message
+        self._logs.append(message)
+
+    def _run_ak(self, *params):
+        start = datetime.now()
+        cmd = "ak " + " ".join(params)
+        self.log("Launch %s" % cmd)
+        self.compose("run", "odoo", "ak", *params)
+        end = datetime.now()
+        self.log("Run %s in %s" % (cmd, end-start))
+
+    def main(self):
+        if self.main_service != 'odoo':
+            raise_error("This command is used only for migrating odoo project")
+        versions = self.apply_branch.split(',')
+        logs = ["\n\nMigration Log Summary:\n"]
+        if self.db_file:
+            self._run_ak("db", "load", "--force", self.db_file)
+        for version in versions:
+            start = datetime.now()
+            self._run(git["checkout", version])
+            self._run_ak("build")
+            self._run_ak("upgrade")
+            self._run_ak("db", "dump", "--force", "migrated_%s.dump" % version)
+            end = datetime.now()
+            self._log("Migrate to version %s in %s" % (version, end-start))
+        for log in self._logs:
+            logger.info(log)
 
 
 @Voodoo.subcommand("new")
