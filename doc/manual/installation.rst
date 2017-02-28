@@ -42,6 +42,12 @@ Configuration:
 
 The configuration file is in your home : '~/.voodoo/config.yml'
 
+verbose [True, False]:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verbose mode is activated by default in order to help you to learn what voodoo do
+
+
 env [dev, prod, preprod]:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

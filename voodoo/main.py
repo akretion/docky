@@ -21,6 +21,7 @@ __version__ = '2.5.1'
 
 
 DEFAULT_CONF = {
+    "verbose": True,
     "shared_eggs": True,
     "shared_gems": True,
     "odoo": "https://github.com/oca/ocb.git",
@@ -72,7 +73,7 @@ class Voodoo(cli.Application):
 
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""
-        logger.debug(cmd)
+        logger.debug(str(cmd).replace('/usr/local/bin/', ''))
         if (self.dryrun):
             logger.info(cmd)
             return True
@@ -81,7 +82,7 @@ class Voodoo(cli.Application):
     def _exec(self, cmd, args=[]):
         """Run a command in the same process and log it
         this will replace the current process by the cmd"""
-        logger.debug([cmd, args])
+        logger.debug(cmd + ' '.join(args))
         if (self.dryrun):
             logger.info("os.execvpe (%s, %s, env)", cmd, [cmd] + args)
             return True
@@ -120,6 +121,10 @@ class Voodoo(cli.Application):
             config_file = open(config_path, 'w')
             config_file.write(yaml.dump(new_config, default_flow_style=False))
             logger.info("Update default config file at %s", config_path)
+        if self.verbose:
+            self.set_log_level()
+            logger.debug(
+                'You can change the default value in ~/.voodoo/config.yml')
 
     @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
     def set_log_level(self):
