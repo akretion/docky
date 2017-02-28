@@ -12,6 +12,8 @@ from compose.project import OneOffFilter
 from compose.parallel import parallel_kill
 import yaml
 from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
+from datetime import datetime
+
 compose = local['docker-compose']
 
 __version__ = '2.3.0'
@@ -231,43 +233,42 @@ class VoodooKill(VoodooSub):
 @Voodoo.subcommand("migrate")
 class VoodooMigrate(VoodooSub):
     """Deploy your application"""
-    _version = ["6.1", "7.0", "8.0", "9.0"]
 
-    from_version = cli.SwitchAttr(
-        ["f", "from-version"],
-        cli.Set(*_version[:-1]),
-        mandatory=True)
-    to_version = cli.SwitchAttr(
-        ["t", "to-version"],
-        cli.Set(*_version[1:]),
-        mandatory=True)
     db_file = cli.SwitchAttr(["db-file"])
+    apply_branch = cli.SwitchAttr(
+        ["b", "branch"],
+        help="Branch to apply split by comma ex: 7.0,8.0",
+        mandatory=True)
+    _logs = []
+
+    def log(self, message):
+        print message
+        self._logs.append(message)
+
+    def _run_ak(self, *params):
+        start = datetime.now()
+        cmd = "ak " + " ".join(params)
+        self.log("Launch %s" % cmd)
+        self.compose("run", "odoo", "ak", *params)
+        end = datetime.now()
+        self.log("Run %s in %s" % (cmd, end-start))
 
     def main(self):
         if self.main_service != 'odoo':
             raise_error("This command is used only for migrating odoo project")
-        if self.to_version <= self.from_version:
-            raise_error(
-                "The current version must be inferior to destination version")
-        versions = [version for version in self._version
-                    if self.from_version < version <= self.to_version]
-        logs = ["\n\nDeploy Log Resume:\n"]
+        versions = self.apply_branch.split(',')
+        logs = ["\n\nMigration Log Summary:\n"]
         if self.db_file:
-            start = datetime.now()
-            self.compose["run", "dropdb", "db"]
-            self.compose["run", "createdb", "db"]
-            self.compose["run", "pg_restore", "-Ov",
-                         "-d", "db", "backup.dump", "-j", "8"]
-            end = datetime.now()
-            logs.append("Load the database in %s" % (end-start))
+            self._run_ak("db", "load", "--force", self.db_file)
         for version in versions:
+            start = datetime.now()
             self._run(git["checkout", version])
-            self.compose["run", "ak", "build"]
-            self.compose["run", "ak", "upgrade"]
-            self.compose["run", "pg_dump", "-Fc", "db",
-                         ">", "migrated_%s.dump" % version]
-            logs.append("Migrate to version %s in %s" % (version, end-start))
-        for log in logs:
+            self._run_ak("build")
+            self._run_ak("upgrade")
+            self._run_ak("db", "dump", "--force", "migrated_%s.dump" % version)
+            end = datetime.now()
+            self._log("Migrate to version %s in %s" % (version, end-start))
+        for log in self._logs:
             logger.info(log)
 
 
