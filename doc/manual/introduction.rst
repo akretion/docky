@@ -18,6 +18,13 @@ In your **host** run **voodoo** commands to bootstrap the project and launch doc
 Then in your **guest** (container), run **ak** commands to update odoo dependencies (odoo modules), trigger update scripts and restart odoo server.
 
 
+Automatic DNS resolution
+--------------------------
+
+Voodoo includ an automatic dns resolution by integrating `resolvable from gliderlabs <https://github.com/gliderlabs/resolvable>`_
+
+When you run a project in a directory called "my_project" a dns entry will be automatically created and be accessible from the host with my_project.vd
+
 
 Getting Started
 ------------------
@@ -52,7 +59,7 @@ Then launch ak run to start odoo
 
    ak run
 
-Go to http://localhost:8069 Odoo is here !
+Go to http://my_project.vd:8069 Odoo is here !
 
 
 Another usage

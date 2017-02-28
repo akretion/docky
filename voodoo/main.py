@@ -68,7 +68,7 @@ class Voodoo(cli.Application):
     force_env = cli.SwitchAttr(
         ["e", "env"],
         help="Environment flag",
-        group = "Meta-switches")
+        group = "Switches")
 
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""
@@ -198,7 +198,15 @@ class VoodooDeploy(VoodooSub):
 
 @Voodoo.subcommand("run")
 class VoodooRun(VoodooSub):
-    """Start services and enter in your dev container"""
+    """Start services and enter in your dev container
+
+    After running the command you will be inside the container and
+    you will have access to the ak cmd (see ak documenation)
+    main command are 'ak run' and 'ak build'
+
+    Note: the container is accessible with the following url :
+    http://my_project.vd:8069
+    """
 
     def _set_local_dev_network(self):
         existing_network = False
@@ -213,21 +221,23 @@ class VoodooRun(VoodooSub):
                 'vd',
                 driver="bridge",
                 ipam=ipam_config)
-        for container in client.containers.list():
-            if container.name == 'resolvable':
-                return
-        # There is not resolver so we have to start it
-        logger.info("Start resolver")
-        client.containers.run(
-            "mgood/resolvable",
-            hostname="resolvable",
-            name="resolvable",
-            network_mode='vd',
-            volumes=[
-                "/var/run/docker.sock:/tmp/docker.sock",
-                "/etc/resolv.conf:/tmp/resolv.conf",
-                ],
-            detach=True)
+        container = client.containers.get('resolvable')
+        if container:
+            if container.status != 'running':
+                logger.info("Restart resolver")
+                container.restart()
+        else:
+            logger.info("Start resolver")
+            client.containers.run(
+                "mgood/resolvable",
+                hostname="resolvable",
+                name="resolvable",
+                network_mode='vd',
+                volumes=[
+                    "/var/run/docker.sock:/tmp/docker.sock",
+                    "/etc/resolv.conf:/tmp/resolv.conf",
+                    ],
+                detach=True)
 
     def _main(self, *optionnal_command_line):
         if not optionnal_command_line:
@@ -244,6 +254,9 @@ class VoodooRun(VoodooSub):
         main_service_config = config['services'][self.main_service]
         if main_service_config.get('container_name'):
             params += ['--name', main_service_config['container_name']]
+            logger.info(
+                "Your container is accessible on http://%s.vd:8069"
+                % main_service_config['container_name'])
         params.append(self.main_service)
         self._exec('docker-compose', params + cmd)
 
@@ -290,13 +303,9 @@ class VoodooMigrate(VoodooSub):
         voodoo migrate -b 7.0,8.0
     * For migrating from 6.1 to 9.0 run:
         voodoo migrate -b 7.0,8.0,9.0
+    * For migrating and loading a database run:
+        voodoo migrate -b 7.0,8.0 db-file=tomigrate.dump
 
-    Loading database
-
-    if you want to load the initial database just copy paste it in the working
-    directory and run
-
-    voodoo migrate -b 7.0,8.0 db-file=tomigrate.dump
     """
 
     db_file = cli.SwitchAttr(["db-file"])
