@@ -34,6 +34,31 @@ def run_cmd(cmd, quiet=False):
 
     return result.stdout.strip()
 
+REPLACE_DOC = [
+    ("Subcommands:",
+    "============== ==========\nSubcommands:\n============== =========="),
+    ("VALUE:str", "VALUE"),
+    ("\nvoodoo build", "============== ==========\nvoodoo build")
+    ]
+
+def generate_cmd_doc():
+    data = run_cmd('voodoo --help-all')
+    run_cmd('rm -rf doc/auto')
+    run_cmd('mkdir doc/auto')
+    cmd = open("doc/auto/cmd.rst", "w")
+    cmd.write("Command Line\n=========================\n\n")
+    data = data.decode()
+    for replace in REPLACE_DOC:
+        data = data.replace(*replace)
+    for doc in data.split("\nvoodoo "):
+        header, doc = doc.split("\n", 1)
+        name = header.rsplit(' ', 1)[0]
+        filename = name.replace(' ', '.')
+        header = "\n".join([name, len(name) * "-"])
+        cmd.write(header + "\n")
+        cmd.write(doc + "\n\n")
+    cmd.close()
+
 
 def build_docstring_rst():
     run_cmd('sphinx-apidoc -o {} {}'.format(API_DOCUMENT_FOLDER, SOURCE))
@@ -104,7 +129,8 @@ def commit_to_github():
 
 def main():
     clean_old_build()
-    build_docstring_rst()
+    generate_cmd_doc()
+    #build_docstring_rst()
     build_html()
     duplicate_old_html()
     update_html()
