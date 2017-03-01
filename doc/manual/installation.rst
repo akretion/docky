@@ -35,7 +35,7 @@ Install Voodoo:
 
 .. code-block:: shell
 
-    sudo pip install git+https://github.com/akretion/voodoo.git --upgrade
+    sudo pip install voodoo-cli
 
 Configuration:
 --------------
