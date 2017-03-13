@@ -3,6 +3,26 @@ networks:
     external:
       name: vd
 services:
+  py3ofusion:
+    description: py3ofusion py3orender oooserver necessaire pour exploiter des rapports libre office
+    optional: True
+    image: xcgd/py3o.fusion
+    ports:
+        - "8765:8765"
+    links:
+        - "py3orenderserver"
+  py3orenderserver:
+    description: py3ofusion py3orender oooserver necessaire pour exploiter des rapports libre office
+    optional: True
+    image: xcgd/py3oserver-docker
+    links:
+        - "oooserver"
+    volumes_from:
+        - "oooserver"
+  oooserver:
+    description: py3ofusion py3orender oooserver necessaire pour exploiter des rapports libre office
+    optional: True
+    image: xcgd/libreoffice
   metabase:
     description: metabase is Web tools for BI with dashboard
     optional: True
