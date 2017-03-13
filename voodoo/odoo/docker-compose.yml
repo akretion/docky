@@ -4,7 +4,7 @@ networks:
       name: vd
 services:
   py3ofusion:
-    description: py3ofusion py3orender oooserver necessaire pour exploiter des rapports libre office
+    description: py3ofusion py3orender oooserver necessary to operate libre-office reports
     optional: True
     image: xcgd/py3o.fusion
     ports:
@@ -12,7 +12,7 @@ services:
     links:
         - "py3orenderserver"
   py3orenderserver:
-    description: py3ofusion py3orender oooserver necessaire pour exploiter des rapports libre office
+    description: py3ofusion py3orender oooserver necessary to operate libre-office reports
     optional: True
     image: xcgd/py3oserver-docker
     links:
@@ -20,7 +20,7 @@ services:
     volumes_from:
         - "oooserver"
   oooserver:
-    description: py3ofusion py3orender oooserver necessaire pour exploiter des rapports libre office
+    description: py3ofusion py3orender oooserver necessary to operate libre-office reports
     optional: True
     image: xcgd/libreoffice
   metabase:
