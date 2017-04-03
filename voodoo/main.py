@@ -294,7 +294,8 @@ class VoodooKill(VoodooSub):
     def _main(self, *args):
         # docker compose do not kill the container odoo as is was run
         # manually, so we implement our own kill
-        project = get_project('.', config_path=[self.config_path])
+        project = get_project('.', config_path=[
+            self.config_path.decode('utf-8')])
         containers = project.containers(one_off=OneOffFilter.include)
         parallel_kill(containers, {'signal': 'SIGKILL'})
 

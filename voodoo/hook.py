@@ -7,6 +7,7 @@ import yaml
 from datetime import datetime
 from plumbum.cli.terminal import ask
 from plumbum import local
+from unidecode import unidecode
 
 
 class Hook(object):
@@ -140,7 +141,8 @@ class GenerateDevComposeFile(Hook):
                     del self.config['services'][name]
 
     def _add_container_name(self):
-        project_name = local.cwd.name
+        project_name = unidecode(local.cwd.name.decode('utf-8'))\
+            .replace(' ', '').lower()
         for name, config in self.config['services'].items():
             expose = config.pop('expose', False)
             if expose:
