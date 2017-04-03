@@ -20,6 +20,11 @@ services:
     image: fenglc/pgadmin4
     links:
       - db
+  adminer:
+    optional: RDBMS Web GUI (including Postgresql) with usability and performance
+    image: adminer
+    links:
+      - db
   db:
     environment:
     - POSTGRES_USER=odoo
