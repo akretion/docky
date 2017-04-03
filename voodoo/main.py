@@ -17,7 +17,7 @@ from datetime import datetime
 
 compose = local['docker-compose']
 
-__version__ = '2.6.0'
+__version__ = '2.6.1'
 
 
 DEFAULT_CONF = {
@@ -253,8 +253,8 @@ class VoodooRun(VoodooSub):
         else:
             cmd = list(optionnal_command_line)
         if self.env == 'dev':
-            self.run_hook(InitRunDev)
             self._set_local_dev_network()
+            self.run_hook(InitRunDev)
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '-f'])
         config = yaml.safe_load(open(self.config_path, 'r'))
