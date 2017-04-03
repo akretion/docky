@@ -142,9 +142,16 @@ class GenerateDevComposeFile(Hook):
     def _add_container_name(self):
         project_name = local.cwd.name
         for name, config in self.config['services'].items():
-            config['container_name'] = project_name
-            if name != self._service:
-                config['container_name'] += '_' + name
+            expose = config.pop('expose', False)
+            if expose:
+                if name != self._service:
+                    dns = "%s.%s.vd" %(name, project_name)
+                else:
+                    dns = "%s.vd" % project_name
+                if not 'environment' in config:
+                    config['environment'] = []
+                config['environment'].append("VIRTUAL_HOST=%s" % dns)
+                config['environment'].append("VIRTUAL_PORT=%s" % expose)
 
     def _update_config_file(self):
         self._ask_optional_service()

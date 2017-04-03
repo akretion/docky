@@ -210,7 +210,7 @@ class VoodooRun(VoodooSub):
     main command are 'ak run' and 'ak build'
 
     Note: the container is accessible with the following url :
-    http://my_project.vd:8069
+    http://my_project.vd and http://my_plugin.my_project.vd
     """
 
     def _set_local_dev_network(self):
@@ -228,23 +228,22 @@ class VoodooRun(VoodooSub):
                 ipam=ipam_config)
         container = client.containers.list(
             all=True,
-            filters={'name':'resolvable'})
+            filters={'name':'voodoo-proxy'})
         if container:
             container = container[0]
-            cf = open('/etc/resolv.conf').read()
-            if container.status != 'running' or not 'resolvable' in cf:
-                logger.info("Restart resolver")
+            if container.status != 'running':
+                logger.info("Restart voodoo proxy")
                 container.restart()
         else:
-            logger.info("Start resolver")
+            logger.info("Start Voodoo proxy")
             client.containers.run(
-                "mgood/resolvable",
-                hostname="resolvable",
-                name="resolvable",
+                "akretion/voodoo-proxy",
+                hostname="voodoo-proxy",
+                name="voodoo-proxy",
                 network_mode='vd',
                 volumes=[
-                    "/var/run/docker.sock:/tmp/docker.sock",
-                    "/etc/resolv.conf:/tmp/resolv.conf",
+                    "/var/run/docker.sock:/tmp/docker.sock:ro",
+                    "/etc/hosts:/app/hosts",
                     ],
                 detach=True)
 
@@ -258,16 +257,18 @@ class VoodooRun(VoodooSub):
             self._set_local_dev_network()
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '-f'])
-        params = ['-f', self.config_path, 'run', '--rm', '--service-ports']
         config = yaml.safe_load(open(self.config_path, 'r'))
-        main_service_config = config['services'][self.main_service]
-        if main_service_config.get('container_name'):
-            params += ['--name', main_service_config['container_name']]
-            logger.info(
-                "Your container is accessible on http://%s.vd:8069"
-                % main_service_config['container_name'])
-        params.append(self.main_service)
-        self._exec('docker-compose', params + cmd)
+        for name, service in config['services'].items():
+            for env in service.get('environment', []):
+                if 'VIRTUAL_HOST=' in env:
+                    dns = env.replace('VIRTUAL_HOST=', '')
+                    logger.info(
+                        "The service %s is accessible on http://%s"
+                        % (name, dns))
+        self._exec('docker-compose', [
+            '-f', self.config_path,
+            'run', '--rm', '--service-ports',
+            self.main_service] + cmd)
 
 
 @Voodoo.subcommand("open")

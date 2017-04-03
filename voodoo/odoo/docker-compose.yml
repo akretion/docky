@@ -6,6 +6,7 @@ services:
   metabase:
     description: metabase is Web tools for BI with dashboard
     optional: True
+    expose: 3000
     image: metabase/metabase
     network_mode: "bridge"
     environment:
@@ -17,23 +18,26 @@ services:
   pgadmin:
     description: Pgadmin v4 is postgresql Web GUI
     optional: True
+    expose: 5050
     image: fenglc/pgadmin4
     links:
       - db
   db:
+    image: akretion/voodoo-postgresql
     environment:
     - POSTGRES_USER=odoo
     - POSTGRES_DB=db
-    image: akretion/voodoo-postgresql
     volumes:
     - .db/data/:/var/lib/postgresql/data
     - .db/socket/:/var/run/postgresql/
   mailcatcher:
     description: Mailcatcher is a fake mail server
     optional: True
+    expose: 1080
     image: akretion/lightweight-mailcatcher
   odoo:
     image: akretion/voodoo:latest
+    expose: 8069
     environment:
     - PYTHONDONTWRITEBYTECODE=True
     links:
