@@ -7,6 +7,7 @@ import yaml
 from datetime import datetime
 from plumbum.cli.terminal import ask
 from plumbum import local
+from unidecode import unidecode
 
 
 class Hook(object):
@@ -124,14 +125,16 @@ class GenerateDevComposeFile(Hook):
         """Container can be set as optional by adding the key
         "optional" and "description". This method will ask the user to
         use or not this optional container"""
+        answer = {}
         for name, config in self.config['services'].items():
             if config.get('optional'):
-                install = ask(
-                    "%s. Do you want to install it"
-                    % config['description'], default=False)
-                if install:
+                option = config['optional']
+                if not option in answer:
+                    answer[option] = ask(
+                        "%s. Do you want to install it"
+                        % option, default=False)
+                if answer[option]:
                     # remove useless dockercompose key
-                    del self.config['services'][name]['description']
                     del self.config['services'][name]['optional']
                     if not 'links' in self.config['services'][self._service]:
                         self.config['services'][self._service]['links'] = []
@@ -140,11 +143,19 @@ class GenerateDevComposeFile(Hook):
                     del self.config['services'][name]
 
     def _add_container_name(self):
-        project_name = local.cwd.name
+        project_name = unidecode(local.cwd.name.decode('utf-8'))\
+            .replace(' ', '').lower()
         for name, config in self.config['services'].items():
-            config['container_name'] = project_name
-            if name != self._service:
-                config['container_name'] += '_' + name
+            expose = config.pop('expose', False)
+            if expose:
+                if name != self._service:
+                    dns = "%s.%s.vd" %(name, project_name)
+                else:
+                    dns = "%s.vd" % project_name
+                if not 'environment' in config:
+                    config['environment'] = []
+                config['environment'].append("VIRTUAL_HOST=%s" % dns)
+                config['environment'].append("VIRTUAL_PORT=%s" % expose)
 
     def _update_config_file(self):
         self._ask_optional_service()

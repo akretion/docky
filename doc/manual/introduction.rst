@@ -21,10 +21,12 @@ Then in your **guest** (container), run **ak** commands to update odoo dependenc
 Automatic DNS resolution
 --------------------------
 
-Voodoo includ an automatic dns resolution by integrating `resolvable from gliderlabs <https://github.com/gliderlabs/resolvable>`_
+Voodoo includ an automatic dns resolution by updating your /etc/hosts file and also includ an automatic nginx proxy.
+When you run a project in a directory called "my_project" a dns entry will be automatically created and be accessible from the host with my_project.vd. As nginx proxy is automatically updated you do not need to specify any port to access to your application.
 
-When you run a project in a directory called "my_project" a dns entry will be automatically created and be accessible from the host with my_project.vd
+If you add some plugin (like mailcatcher, pgadmin4 ...). They will be accessible to "my_plugin.my_project.vd"
 
+When you start a app with voodoo run voodoo will automatically show the dns available
 
 Getting Started
 ------------------
@@ -59,7 +61,7 @@ Then launch ak run to start odoo
 
    ak run
 
-Go to http://my_project.vd:8069 Odoo is here !
+Go to http://my_project.vd Odoo is here !
 
 
 Another usage
