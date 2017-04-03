@@ -125,14 +125,16 @@ class GenerateDevComposeFile(Hook):
         """Container can be set as optional by adding the key
         "optional" and "description". This method will ask the user to
         use or not this optional container"""
+        answer = {}
         for name, config in self.config['services'].items():
             if config.get('optional'):
-                install = ask(
-                    "%s. Do you want to install it"
-                    % config['description'], default=False)
-                if install:
+                option = config['optional']
+                if not option in answer:
+                    answer[option] = ask(
+                        "%s. Do you want to install it"
+                        % option, default=False)
+                if answer[option]:
                     # remove useless dockercompose key
-                    del self.config['services'][name]['description']
                     del self.config['services'][name]['optional']
                     if not 'links' in self.config['services'][self._service]:
                         self.config['services'][self._service]['links'] = []

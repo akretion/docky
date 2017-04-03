@@ -4,8 +4,7 @@ networks:
       name: vd
 services:
   metabase:
-    description: metabase is Web tools for BI with dashboard
-    optional: True
+    optional: metabase is Web tools for BI with dashboard
     expose: 3000
     image: metabase/metabase
     network_mode: "bridge"
@@ -16,8 +15,7 @@ services:
     volumes:
     - .:/file
   pgadmin:
-    description: Pgadmin v4 is postgresql Web GUI
-    optional: True
+    optional: Pgadmin v4 is postgresql Web GUI
     expose: 5050
     image: fenglc/pgadmin4
     links:
@@ -31,8 +29,7 @@ services:
     - .db/data/:/var/lib/postgresql/data
     - .db/socket/:/var/run/postgresql/
   mailcatcher:
-    description: Mailcatcher is a fake mail server
-    optional: True
+    optional: Mailcatcher is a fake mail server
     expose: 1080
     image: akretion/lightweight-mailcatcher
   odoo:
