@@ -38,7 +38,7 @@ services:
     links:
       - db
   adminer:
-    optional: RDBMS Web GUI (including Postgresql) with usability and performance
+    optional: Adminer, RDBMS Web GUI (including Postgresql) with usability and perf
     image: adminer
     expose: 8080
     links:
