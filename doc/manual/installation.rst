@@ -6,7 +6,7 @@ Prerequisite
 
 * You need a 64 bits architecture.
 * You will need to install the Python development headers (python-dev)
-
+* You will need to install the Python package manager PIP
 
 Install or upgrade your Docker:
 ----------------------------------
