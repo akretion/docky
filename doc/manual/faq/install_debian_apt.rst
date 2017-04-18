@@ -7,6 +7,7 @@ Here is an example of custom DockerFile to install the package "my_debian_packag
 Be careful to not forget to switch the user before and after installing the package.
 
 .. code-block:: shell
+
     FROM akretion/voodoo:latest
     USER root
     RUN DEBIAN_FRONTEND=noninteractive && \
@@ -18,16 +19,19 @@ Be careful to not forget to switch the user before and after installing the pack
 Then you need to replace the following information in your dev.docker-compose.yml and docker-compose.yml
 
 .. code-block:: shell
+
     image: akretion/voodoo:latest
 
 By
 
 .. code-block:: shell
+
     build: .
 
 Then
 
 .. code-block:: shell
+
     voodoo build
 
 to build a custom image
