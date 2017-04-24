@@ -4,6 +4,7 @@ networks:
       name: vd
 services:
   locomotive:
+    expose: 3000
     image: akretion/voodoo-ruby:latest
     volumes:
     - .:/workspace
