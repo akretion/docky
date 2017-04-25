@@ -14,4 +14,14 @@ services:
      image: mongo:3
      volumes:
        - .db:/data/db
+  mailcatcher:
+    expose: 1080
+    optional: Mailcatcher is a fake mail server
+    image: akretion/lightweight-mailcatcher
+  varnish:
+    expose: 80
+    optional: Varnish is a caching HTTP reverse proxy.
+    image: akretion/varnish
+    volumes:
+    - ./varnish/:/etc/varnish/
 version: '2'
