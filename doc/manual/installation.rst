@@ -36,6 +36,14 @@ Install Voodoo:
 .. code-block:: shell
 
     sudo pip install voodoo-cli
+    
+Update Voodoo:
+------------------
+
+.. code-block:: shell
+
+    sudo pip install voodoo-cli --upgrade
+    docker pull akretion/voodoo
 
 Configuration:
 --------------
