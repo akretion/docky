@@ -1,4 +1,4 @@
-docker-compose
+docker-compose>=1.13
 plumbum
 rainbow_logging_handler
 unidecode
