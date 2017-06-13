@@ -315,7 +315,7 @@ class VoodooMigrate(VoodooSub):
     * For migrating from 6.1 to 9.0 run:
         voodoo migrate -b 7.0,8.0,9.0
     * For migrating and loading a database run:
-        voodoo migrate -b 7.0,8.0 db-file=tomigrate.dump
+        voodoo migrate -b 7.0,8.0 --db-file=tomigrate.dump
 
     """
 
@@ -338,17 +338,19 @@ class VoodooMigrate(VoodooSub):
         end = datetime.now()
         self.log("Run %s in %s" % (cmd, end-start))
 
-    def main(self):
+    def _main(self):
         if self.main_service != 'odoo':
             raise_error("This command is used only for migrating odoo project")
         versions = self.apply_branch.split(',')
         logs = ["\n\nMigration Log Summary:\n"]
-        if self.db_file:
-            self._run_ak("db", "load", "--force", self.db_file)
+        first = True
         for version in versions:
             start = datetime.now()
             self._run(git["checkout", version])
             self._run_ak("build")
+            if self.db_file and first:
+                self._run_ak("db", "load", "--force", self.db_file)
+                first = False
             self._run_ak("upgrade")
             self._run_ak("db", "dump", "--force", "migrated_%s.dump" % version)
             end = datetime.now()
