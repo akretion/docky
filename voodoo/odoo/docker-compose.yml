@@ -35,6 +35,11 @@ services:
     optional: Pgadmin v4 is postgresql Web GUI
     expose: 5050
     image: fenglc/pgadmin4
+    environment:
+    - DEFAULT_USER=admin
+    - DEFAULT_PASSWORD=admin
+    volumes:
+    - .pgadmin:/var/lib/pgadmin4
     links:
       - db
   adminer:
