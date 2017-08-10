@@ -21,7 +21,7 @@ class OdooDeploy(Deploy):
     _service = 'odoo'
 
     def _build(self):
-        buildout_file = "%s.buildout.cfg" % self.env
+        buildout_file = "%s.buildout.cfg" % self.voodoo.env
         if not os.path.isfile(buildout_file):
             print (
                 "The %s is missing, please add one before deploying"
