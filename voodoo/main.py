@@ -339,8 +339,8 @@ class VoodooMigrate(VoodooSub):
         self.log("Run %s in %s" % (cmd, end-start))
 
     def _main(self):
-        if self.main_service != 'odoo':
-            raise_error("This command is used only for migrating odoo project")
+        #if self.main_service != 'odoo':
+        #    raise_error("This command is used only for migrating odoo project")
         versions = self.apply_branch.split(',')
         logs = ["\n\nMigration Log Summary:\n"]
         first = True
