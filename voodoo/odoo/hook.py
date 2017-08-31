@@ -37,12 +37,12 @@ class GenerateDevComposeFile(GenerateDevComposeFile):
     _map_user_for_service = ['db']
 
     def get_default_volume(self):
-        path = local.path('~/.voodoo/shared')._path
+        path = 'home/${USER}/.voodoo/shared'
         return [':'.join([path, path])]
 
     def _update_config_file(self):
         super(GenerateDevComposeFile, self)._update_config_file()
-        path = local.path('~/.voodoo/shared/maintainer_quality_tools')._path
+        path = 'home/${USER}/.voodoo/shared/maintainer_quality_tools'
         self.config['services']['odoo']['environment'].append(
             "MAINTAINER_QUALITY_TOOLS=%s" % path)
 
