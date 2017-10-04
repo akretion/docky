@@ -156,6 +156,10 @@ class GenerateDevComposeFile(Hook):
                     config['environment'] = []
                 config['environment'].append("VIRTUAL_HOST=%s" % dns)
                 config['environment'].append("VIRTUAL_PORT=%s" % expose)
+                config['networks'] = {}
+                config['networks']['default'] = {}
+                config['networks']['default']['aliases'] = []
+                config['networks']['default']['aliases'].append(dns)
 
     def _update_config_file(self):
         self._ask_optional_service()
