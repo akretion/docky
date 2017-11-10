@@ -389,8 +389,8 @@ class VoodooBuild(VoodooForward):
 
 @Voodoo.subcommand("up")
 class VoodooUp(VoodooForward):
-    """Start all services"""
-    _cmd = "up"
+    """Start all services in detached mode"""
+    _cmd = "up -d"
 
 
 @Voodoo.subcommand("down")
