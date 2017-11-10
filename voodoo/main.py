@@ -390,7 +390,7 @@ class VoodooBuild(VoodooForward):
 @Voodoo.subcommand("up")
 class VoodooUp(VoodooForward):
     """Start all services"""
-    _cmd = "up"
+    _cmd = "up -d"
 
 
 @Voodoo.subcommand("down")
