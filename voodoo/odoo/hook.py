@@ -66,7 +66,7 @@ class OdooInitRunDev(InitRunDev):
                 % (odoo_cache_path, odoo_cache_path))
             self._run(git["clone", self.voodoo.parent.odoo, odoo_cache_path])
         else:
-            print "Updating Odoo cache..."
+            print("Updating Odoo cache...")
             with local.cwd(odoo_cache_path):
                 self._run(git["pull"])
         return odoo_cache_path

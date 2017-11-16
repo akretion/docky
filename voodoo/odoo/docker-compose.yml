@@ -19,7 +19,7 @@ services:
     - DB_ENV_USER=magento
     - DB_ENV_PASS=magento
     expose: 80
-    image: testvoodoo_magento
+    image: akretion/docker-magento    
     ports:
       - 80:80
     links:
