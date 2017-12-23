@@ -33,6 +33,14 @@ DEFAULT_CONF = {
 
 DOCKER_COMPOSE_PATH = 'docker-compose.yml'
 
+VOODOO_NETWORK_NAME = 'vd'
+VOODOO_NETWORK_SUBNET = '172.42.0.0/16'
+VOODOO_NETWORK_GATEWAY = '172.42.0.1'
+VOODOO_NETWORK_OPTIONS = {
+    'com.docker.network.bridge.name': VOODOO_NETWORK_NAME,
+    'com.docker.network.bridge.host_binding_ipv4': '127.0.0.1',
+}
+
 import logging
 
 client = docker.from_env()
@@ -213,22 +221,33 @@ class VoodooRun(VoodooSub):
     http://my_project.vd and http://my_plugin.my_project.vd
     """
 
+
     def _set_local_dev_network(self):
-        existing_network = False
-        for network in client.networks.list():
-            if network.name == "vd":
-                existing_network = True
-        if not existing_network:
-            ipam_pool = docker.types.IPAMPool(subnet="172.42.0.0/16")
-            ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
-            logger.info("Create '.vd' network")
+
+        net = VOODOO_NETWORK_NAME
+
+        if not client.networks.list(net):
+            ipam_pool = docker.types.IPAMPool(
+                subnet=VOODOO_NETWORK_SUBNET,
+                iprange=VOODOO_NETWORK_SUBNET,
+                gateway=VOODOO_NETWORK_GATEWAY,
+            )
+            ipam_config = docker.types.IPAMConfig(
+                pool_configs=[ipam_pool])
+
+            logger.info("Create '.%s' network" % net)
+
             client.networks.create(
-                'vd',
+                net,
                 driver="bridge",
-                ipam=ipam_config)
+                ipam=ipam_config,
+                options=VOODOO_NETWORK_OPTIONS,
+            )
+
         container = client.containers.list(
             all=True,
             filters={'name':'voodoo-proxy'})
+
         if container:
             container = container[0]
             if container.status != 'running':
@@ -240,7 +259,7 @@ class VoodooRun(VoodooSub):
                 "akretion/voodoo-proxy",
                 hostname="voodoo-proxy",
                 name="voodoo-proxy",
-                network_mode='vd',
+                network_mode=net,
                 volumes=[
                     "/var/run/docker.sock:/tmp/docker.sock:ro",
                     "/etc/hosts:/app/hosts",
