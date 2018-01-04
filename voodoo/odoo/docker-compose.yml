@@ -3,6 +3,36 @@ networks:
     external:
       name: vd
 services:
+  mariadb:
+    optional: Add magento server (with connector) ?
+    image: paintedfox/mariadb
+    environment:
+      - USER=magento
+      - PASS=magento
+    ports:
+      - 3306:3306
+    volumes:
+      - .mariadb/data/:/data
+  magento:
+    optional: Add magento server (with connector) ?
+    environment:
+    - DB_ENV_USER=magento
+    - DB_ENV_PASS=magento
+    expose: 80
+    image: akretion/docker-magento    
+    ports:
+      - 80:80
+    links:
+      - mariadb:db
+      - memcached:cache
+    volumes:
+      - .magento/firstrun:/firstrun
+      - .magento/www:/var/www
+  memcached:
+    optional: Add magento server (with connector) ?
+    image: sylvainlasnier/memcached
+    ports:
+      - 11211:11211
   py3ofusion:
     optional: Add py3o reports server
     image: xcgd/py3o.fusion

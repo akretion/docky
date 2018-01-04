@@ -346,7 +346,7 @@ class VoodooMigrate(VoodooSub):
     _logs = []
 
     def log(self, message):
-        print message
+        print(message)
         self._logs.append(message)
 
     def _run_ak(self, *params):
