@@ -61,6 +61,15 @@ services:
     - db
     volumes:
     - .:/file
+  firefox:
+    optional: Selenium Standalone with Firefox installed and runs a VNC server
+    hostname: firefox
+    image: "selenium/standalone-firefox-debug"
+    ports:
+    - "4444:4444"
+    - "5900:5900"
+    volumes:
+    - /dev/shm:/dev/shm
   pgadmin:
     optional: Pgadmin v4 is postgresql Web GUI
     expose: 5050
