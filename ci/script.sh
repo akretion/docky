@@ -1,2 +1,2 @@
 #python setup.py test
-#pydocstyle voodoo
+#pydocstyle docky

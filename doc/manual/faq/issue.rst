@@ -1,7 +1,7 @@
 Issue help
 ============
 
-What should I do if I have this message after ```voodoo run```
+What should I do if I have this message after ```docky run```
 ------------------------------------------------------------------
 
 .. image:: https://cloud.githubusercontent.com/assets/1853434/6959305/b73aaec4-d917-11e4-9f45-00d1332901a2.png
@@ -13,18 +13,18 @@ Something wrong have occured with your docker server please run
     sudo service docker.io restart
 
 
-What process manage my voodoo container ?
+What process manage my docky container ?
 --------------------------------------------
 
 .. code-block:: shell
 
-    voodoo ps
+    docky ps
 
 to kill your all process use
 
 .. code-block:: shell
 
-    voodoo kill
+    docky kill
 
 
 You fail to access to my_project.vd ?
@@ -34,7 +34,7 @@ Maybe the configuration of /etc/resolv.conf have been refresh (change network co
 
 If it the case:
   * if you are curious you can check by ourself if the following line is in the file /etc/resolv.conf
-  * just exist from voodoo and launch voodoo run and everything will be back
+  * just exist from docky and launch docky run and everything will be back
 
 
 What do to if you have this stack trace?
@@ -42,9 +42,9 @@ What do to if you have this stack trace?
 
 .. code-block:: shell
 
-    Renato:  renato@renato-ultrabook:~$ voodoo new project
+    Renato:  renato@renato-ultrabook:~$ docky new project
     Traceback (most recent call last):
-     File "/usr/local/bin/voodoo", line 5, in <module>
+     File "/usr/local/bin/docky", line 5, in <module>
        from pkg_resources import load_entry_point
      File "/usr/local/lib/python2.7/dist-packages/pkg_resources/__init__.py", line 3074, in <module>
        @_call_aside

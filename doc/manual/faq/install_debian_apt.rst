@@ -8,7 +8,7 @@ Be careful to not forget to switch the user before and after installing the pack
 
 .. code-block:: shell
 
-    FROM akretion/voodoo:latest
+    FROM akretion/docky:latest
     USER root
     RUN DEBIAN_FRONTEND=noninteractive && \
         apt-get update && \
@@ -20,7 +20,7 @@ Then you need to replace the following information in your dev.docker-compose.ym
 
 .. code-block:: shell
 
-    image: akretion/voodoo:latest
+    image: akretion/docky:latest
 
 By
 
@@ -32,6 +32,6 @@ Then
 
 .. code-block:: shell
 
-    voodoo build
+    docky build
 
 to build a custom image

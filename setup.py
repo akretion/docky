@@ -17,11 +17,11 @@ def find_version(*file_paths):
     raise RuntimeError("Unable to find version string.")
 
 setup(
-    name='voodoo-cli',
-    version=find_version("voodoo", "main.py"),
+    name='docky',
+    version=find_version("docky", "main.py"),
     author='Akretion',
     author_email='contact@akretion.com',
-    url='https://github.com/akretion/voodoo/',
+    url='https://github.com/akretion/docky/',
     description='Environment builder for Odoo',
     license="AGPLv3+",
     long_description=open('README.rst').read(),
@@ -29,9 +29,9 @@ setup(
         r.strip() for r in open('requirements.txt').read().splitlines() ],
     entry_points="""
     [console_scripts]
-    voodoo=voodoo.main:main
+    docky=docky.main:main
     """,
     include_package_data=True,
-    packages = find_packages() + ['voodoo'],
+    packages = find_packages() + ['docky'],
     zip_safe=False,
 )

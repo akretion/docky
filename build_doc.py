@@ -12,7 +12,7 @@ logging.basicConfig(format='{levelname}:{message}',
 
 DOCUMENT_FOLDER = 'doc'
 API_DOCUMENT_FOLDER = '{}/{}'.format(DOCUMENT_FOLDER, 'api')
-SOURCE = 'voodoo'
+SOURCE = 'docky'
 MASTER_BRANCH = 'master'
 HTML_DIR = 'html'
 
@@ -38,11 +38,11 @@ REPLACE_DOC = [
     ("Subcommands:",
     "============== ==========\nSubcommands:\n============== =========="),
     ("VALUE:str", "VALUE"),
-    ("\nvoodoo build", "============== ==========\nvoodoo build")
+    ("\ndocky build", "============== ==========\ndocky build")
     ]
 
 def generate_cmd_doc():
-    data = run_cmd('voodoo --help-all')
+    data = run_cmd('docky --help-all')
     run_cmd('rm -rf doc/auto')
     run_cmd('mkdir doc/auto')
     cmd = open("doc/auto/cmd.rst", "w")
@@ -50,7 +50,7 @@ def generate_cmd_doc():
     data = data.decode()
     for replace in REPLACE_DOC:
         data = data.replace(*replace)
-    for doc in data.split("\nvoodoo "):
+    for doc in data.split("\ndocky "):
         header, doc = doc.split("\n", 1)
         name = header.rsplit(' ', 1)[0]
         filename = name.replace(' ', '.')

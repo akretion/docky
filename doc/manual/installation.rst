@@ -35,25 +35,25 @@ Install Voodoo:
 
 .. code-block:: shell
 
-    sudo pip install voodoo-cli
+    sudo pip install docky-cli
     
 Update Voodoo:
 ------------------
 
 .. code-block:: shell
 
-    sudo pip install voodoo-cli --upgrade
-    docker pull akretion/voodoo
+    sudo pip install docky-cli --upgrade
+    docker pull akretion/docky
 
 Configuration:
 --------------
 
-The configuration file is in your home : '~/.voodoo/config.yml'
+The configuration file is in your home : '~/.docky/config.yml'
 
 verbose [True, False]:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Verbose mode is activated by default in order to help you to learn what voodoo do
+Verbose mode is activated by default in order to help you to learn what docky do
 
 
 env [dev, prod, preprod]:
@@ -69,16 +69,16 @@ URL for the maintainer-quality-tools of OCA used for testing the code
 shared_eggs [True or False]:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If true the ~/.voodoo/shared/eggs will be mounted as eggs folder in your docker
-This mean that the eggs will be shared between your voodoo projects saving some download and space.
+If true the ~/.docky/shared/eggs will be mounted as eggs folder in your docker
+This mean that the eggs will be shared between your docky projects saving some download and space.
 
-If you don't want share eggs for a specific project, just create your `./eggs` folder after created your project (voodoo new).
+If you don't want share eggs for a specific project, just create your `./eggs` folder after created your project (docky new).
 
 shared_gems [True or False]:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If true the ~/.voodoo/shared/gems will be mounted as gems folder in your docker
-This mean that the gems will be shared between your voodoo projects saving some download and space.
+If true the ~/.docky/shared/gems will be mounted as gems folder in your docker
+This mean that the gems will be shared between your docky projects saving some download and space.
 
 odoo [url]:
 ~~~~~~~~~~~~
@@ -87,4 +87,4 @@ The odoo repo by default the  OCA repo: 'https://github.com/oca/ocb.git'
 
 If you want start your project quickly and avoid to duplicate odoo source code, you can create manually a symbolic link after  created project in `./parts/odoo` from existing odoo projects. Sharing source can be confusing, don't use for dev of projects which are in production.
 
-Note : to improve the performance when downloading odoo, an odoo project is downloaded in ~/.voodoo/shared/odoo. Then when you start a new project the new odoo part is created from this local repository.
+Note : to improve the performance when downloading odoo, an odoo project is downloaded in ~/.docky/shared/odoo. Then when you start a new project the new odoo part is created from this local repository.

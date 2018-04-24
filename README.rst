@@ -1,27 +1,20 @@
 Introduction
 =================
 
-Odoo dockerized.
-
-> For beginners: get an odoo instance without effort
-
-> For developers: reproductible odoo environments
+docky : Make docker and docker compose simply !
 
 
 How it works
 ---------------
 
-Voodoo leverage Docker-compose and `Anybox's buildout <http://pythonhosted.org/anybox.recipe.openerp/>`_ for odoo.
+docky is based on top of docker-compose and ...
 
-In your **host** run **voodoo** commands to bootstrap the project and launch docker.
+TODO list feature
 
-Then in your **guest** (container), run **ak** commands to update odoo dependencies (odoo modules), trigger update scripts and restart odoo server.
+Automatic DNS resolution with proxy
+------------------------------------
 
-
-Automatic DNS resolution
---------------------------
-
-Voodoo includ an automatic dns resolution by integrating `resolvable from gliderlabs <https://github.com/gliderlabs/resolvable>`_
+Based on jwilder/nginx-proxy docky will expose to you an automatic resolvable dns for your project
 
 When you run a project in a directory called "my_project" a dns entry will be automatically created and be accessible from the host with my_project.vd
 
@@ -29,4 +22,4 @@ When you run a project in a directory called "my_project" a dns entry will be au
 Getting Started
 ---------------------
 
-READ the documentation: `Voodoo documentation <http://akretion.github.io/voodoo/master/index.html>`_
+READ the documentation: `Docky documentation <http://akretion.github.io/docky/master/index.html>`_

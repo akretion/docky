@@ -13,7 +13,7 @@ How it works
 
 Voodoo leverage Docker-compose and `Anybox's buildout <http://pythonhosted.org/anybox.recipe.openerp/>`_ for odoo.
 
-In your **host** run **voodoo** commands to bootstrap the project and launch docker.
+In your **host** run **docky** commands to bootstrap the project and launch docker.
 
 Then in your **guest** (container), run **ak** commands to update odoo dependencies (odoo modules), trigger update scripts and restart odoo server.
 
@@ -26,7 +26,7 @@ When you run a project in a directory called "my_project" a dns entry will be au
 
 If you add some plugin (like mailcatcher, pgadmin4 ...). They will be accessible to "my_plugin.my_project.vd"
 
-When you start a app with voodoo run voodoo will automatically show the dns available
+When you start a app with docky run docky will automatically show the dns available
 
 Getting Started
 ------------------
@@ -35,14 +35,14 @@ Create a new project
 
 .. code-block:: shell
 
-    voodoo new my_project
+    docky new my_project
 
-Enter in the project directory then run voodoo
+Enter in the project directory then run docky
 
 .. code-block:: shell
 
    cd my_project
-   voodoo run
+   docky run
 
 It will run a new docker image with odoo and postgres inside.
 
@@ -69,7 +69,7 @@ Another usage
 
 Use as a simple Odoo project repository managed by Anybox recipe (without using Docker)
 
-You can clone a voodoo branch to start your project as simple convenience repo for your project. With the buildout.cfg file you can pin exactly your shared branches dependencies. You also keep the project specific modules under revision control in the modules folder.
+You can clone a docky branch to start your project as simple convenience repo for your project. With the buildout.cfg file you can pin exactly your shared branches dependencies. You also keep the project specific modules under revision control in the modules folder.
 
 For further details, please simply refer to `Anybox recipe documentation <http://docs.anybox.fr/anybox.recipe.openerp/trunk>`_
 
