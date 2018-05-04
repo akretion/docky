@@ -65,7 +65,7 @@ def raise_error(message):
     sys.exit(0)
 
 
-class Voodoo(cli.Application):
+class Docky(cli.Application):
     PROGNAME = "voodoo"
     VERSION = __version__
     SUBCOMMAND_HELPMSG = None
@@ -100,7 +100,7 @@ class Voodoo(cli.Application):
         return os.path.expanduser("~")
 
     def __init__(self, executable):
-        super(Voodoo, self).__init__(executable)
+        super(Docky, self).__init__(executable)
         self.home = self._get_home()
         self.shared_folder = os.path.join(self.home, '.voodoo', 'shared')
         config_path = os.path.join(self.home, '.voodoo', 'config.yml')
@@ -122,7 +122,7 @@ class Voodoo(cli.Application):
 
         # Update config file if needed
         if new_config != config:
-            logger.info("The Voodoo Configuration have been updated, "
+            logger.info("The Docky Configuration have been updated, "
                         "please take a look to the new config file")
             if not os.path.exists(self.shared_folder):
                 os.makedirs(self.shared_folder)
@@ -140,7 +140,7 @@ class Voodoo(cli.Application):
         logger.debug('Verbose mode activated')
 
 
-class VoodooSub(cli.Application):
+class DockySub(cli.Application):
 
     def _exec(self, *args, **kwargs):
         self.parent._exec(*args, **kwargs)
@@ -196,10 +196,10 @@ class VoodooSub(cli.Application):
         self._init_env()
         self._main(*args, **kwargs)
 
-VoodooSub.unbind_switches("--help-all", "-v", "--version")
+DockySub.unbind_switches("--help-all", "-v", "--version")
 
-@Voodoo.subcommand("deploy")
-class VoodooDeploy(VoodooSub):
+@Docky.subcommand("deploy")
+class DockyDeploy(DockySub):
     """Deploy your application"""
 
     def _main(self):
@@ -209,8 +209,8 @@ class VoodooDeploy(VoodooSub):
         self.run_hook(Deploy)
 
 
-@Voodoo.subcommand("run")
-class VoodooRun(VoodooSub):
+@Docky.subcommand("run")
+class DockyRun(DockySub):
     """Start services and enter in your dev container
 
     After running the command you will be inside the container and
@@ -254,7 +254,7 @@ class VoodooRun(VoodooSub):
                 logger.info("Restart voodoo proxy")
                 container.restart()
         else:
-            logger.info("Start Voodoo proxy")
+            logger.info("Start Docky proxy")
             client.containers.run(
                 "akretion/voodoo-proxy",
                 hostname="voodoo-proxy",
@@ -290,8 +290,8 @@ class VoodooRun(VoodooSub):
             self.main_service] + cmd)
 
 
-@Voodoo.subcommand("open")
-class VoodooOpen(VoodooSub):
+@Docky.subcommand("open")
+class DockyOpen(DockySub):
     """Open a new session inside your dev container"""
 
     def _main(self, *args):
@@ -306,8 +306,8 @@ class VoodooOpen(VoodooSub):
                         "in the project %s" % project.name)
 
 
-@Voodoo.subcommand("kill")
-class VoodooKill(VoodooSub):
+@Docky.subcommand("kill")
+class DockyKill(DockySub):
     """Kill all running container of the project"""
 
     def _main(self, *args):
@@ -319,8 +319,8 @@ class VoodooKill(VoodooSub):
         parallel_kill(containers, {'signal': 'SIGKILL'})
 
 
-@Voodoo.subcommand("migrate")
-class VoodooMigrate(VoodooSub):
+@Docky.subcommand("migrate")
+class DockyMigrate(DockySub):
     """Migrate your odoo project
 
     First you need to checkout the voodoo-upgrade template
@@ -378,8 +378,8 @@ class VoodooMigrate(VoodooSub):
             logger.info(log)
 
 
-@Voodoo.subcommand("new")
-class VoodooNew(VoodooSub):
+@Docky.subcommand("new")
+class DockyNew(DockySub):
     """Create a new project"""
 
     def main(self, name):
@@ -393,48 +393,48 @@ class VoodooNew(VoodooSub):
             self._run(git["checkout", version])
 
 
-class VoodooForward(VoodooSub):
+class DockyForward(DockySub):
     _cmd = None
 
     def _main(self, *args):
         return self._run(self.compose[self._cmd.split(' ')])
 
 
-@Voodoo.subcommand("build")
-class VoodooBuild(VoodooForward):
+@Docky.subcommand("build")
+class DockyBuild(DockyForward):
     """Build or rebuild services"""
     _cmd = "build"
 
 
-@Voodoo.subcommand("up")
-class VoodooUp(VoodooForward):
+@Docky.subcommand("up")
+class DockyUp(DockyForward):
     """Start all services in detached mode"""
     _cmd = "up -d"
 
 
-@Voodoo.subcommand("down")
-class VoodooDown(VoodooForward):
+@Docky.subcommand("down")
+class DockyDown(DockyForward):
     """Stop all services"""
     _cmd = "down"
 
 
-@Voodoo.subcommand("ps")
-class VoodooPs(VoodooForward):
+@Docky.subcommand("ps")
+class DockyPs(DockyForward):
     """List containers"""
     _cmd = "ps"
 
 
-@Voodoo.subcommand("logs")
-class VoodooLogs(VoodooForward):
+@Docky.subcommand("logs")
+class DockyLogs(DockyForward):
     """View output from containers"""
     _cmd = "logs -f --tail=100"
 
 
-@Voodoo.subcommand("pull")
-class VoodooPull(VoodooForward):
+@Docky.subcommand("pull")
+class DockyPull(DockyForward):
     """Pulls service images"""
     _cmd = "pull"
 
 
 def main():
-    Voodoo.run()
+    Docky.run()

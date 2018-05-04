@@ -11,7 +11,7 @@ Odoo dockerized.
 How it works
 ---------------
 
-Voodoo leverage Docker-compose and `Anybox's buildout <http://pythonhosted.org/anybox.recipe.openerp/>`_ for odoo.
+Docky leverage Docker-compose and `Anybox's buildout <http://pythonhosted.org/anybox.recipe.openerp/>`_ for odoo.
 
 In your **host** run **docky** commands to bootstrap the project and launch docker.
 
@@ -21,7 +21,7 @@ Then in your **guest** (container), run **ak** commands to update odoo dependenc
 Automatic DNS resolution
 --------------------------
 
-Voodoo includ an automatic dns resolution by updating your /etc/hosts file and also includ an automatic nginx proxy.
+Docky includ an automatic dns resolution by updating your /etc/hosts file and also includ an automatic nginx proxy.
 When you run a project in a directory called "my_project" a dns entry will be automatically created and be accessible from the host with my_project.vd. As nginx proxy is automatically updated you do not need to specify any port to access to your application.
 
 If you add some plugin (like mailcatcher, pgadmin4 ...). They will be accessible to "my_plugin.my_project.vd"

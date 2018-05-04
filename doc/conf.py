@@ -12,7 +12,7 @@ html_static_path = ["_static"]
 # theme further.
 html_theme_options = {
     # Navigation bar title. (Default: ``project`` value)
-    'navbar_title': "Voodoo",
+    'navbar_title': "Docky",
 
     # Tab name for entire site. (Default: "Site")
     'navbar_site_name': "Doc",

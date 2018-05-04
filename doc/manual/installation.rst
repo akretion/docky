@@ -30,14 +30,14 @@ Please go to docker documentation installation page : `Install Docker
    docker images # make sure you don't need sudo anymore here
 
 
-Install Voodoo:
+Install Docky:
 ------------------
 
 .. code-block:: shell
 
     sudo pip install docky-cli
-    
-Update Voodoo:
+
+Update Docky:
 ------------------
 
 .. code-block:: shell

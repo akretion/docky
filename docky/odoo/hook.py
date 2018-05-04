@@ -57,7 +57,7 @@ class OdooInitRunDev(InitRunDev):
         odoo_cache_path = os.path.join(cache_path, 'odoo')
         if not os.path.exists(odoo_cache_path):
             print (
-                "First run of Voodoo; there is no Odoo repo in %s! \n"
+                "First run of Docky; there is no Odoo repo in %s! \n"
                 "Will now download Odoo from Github, "
                 "this can take a while...\n"
                 "If you already have a local Odoo repo (from OCA) "
@@ -87,7 +87,7 @@ class OdooInitRunDev(InitRunDev):
             % self.voodoo.parent.shared_folder)
         if not path.is_dir():
             print (
-                "First run of Voodoo; there is no Maintainer Quality Tools "
+                "First run of Docky; there is no Maintainer Quality Tools "
                 "repo in %s! \nWill now download it from Github, "
                 "this can take a while...\n"
                 % (path._path))
