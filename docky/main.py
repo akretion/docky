@@ -66,6 +66,14 @@ def raise_error(message):
     sys.exit(0)
 
 
+def get_containers(config_path, service=None):
+    project = get_project('.', [config_path])
+    kwargs = {'one_off': OneOffFilter.include}
+    if service:
+        kwargs['service_names'] = [service]
+    return project.containers(**kwargs)
+
+
 class Docky(cli.Application):
     PROGNAME = "voodoo"
     VERSION = __version__
@@ -271,7 +279,13 @@ class DockyRun(DockySub):
                     ],
                 detach=True)
 
+    def _check_running(self):
+        if get_containers(self.config_path, self.main_service):
+            raise_error("This container is already running, kill it or "
+                        "use open to go inside")
+
     def _main(self, *optionnal_command_line):
+        self._check_running()
         if not optionnal_command_line:
             cmd = ['bash']
         else:
@@ -300,15 +314,13 @@ class DockyOpen(DockySub):
     """Open a new session inside your dev container"""
 
     def _main(self, *args):
-        project = get_project('.', [self.config_path])
-        container = project.containers(
-            service_names=[self.main_service], one_off=OneOffFilter.include)
+        container = get_containers(self.config_path, self.main_service)
         if container:
             self._exec('docker',
                        ["exec", "-ti", container[0].name, "bash"])
         else:
-            raise_error("No container found for the service odoo "
-                        "in the project %s" % project.name)
+            raise_error(
+                "No container found for the service %s" % self.main_service)
 
 
 @Docky.subcommand("kill")
@@ -318,9 +330,7 @@ class DockyKill(DockySub):
     def _main(self, *args):
         # docker compose do not kill the container odoo as is was run
         # manually, so we implement our own kill
-        project = get_project('.', config_path=[
-            self.config_path.decode('utf-8')])
-        containers = project.containers(one_off=OneOffFilter.include)
+        containers = get_containers(self.config_path)
         parallel_kill(containers, {'signal': 'SIGKILL'})
 
 
