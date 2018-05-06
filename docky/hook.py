@@ -7,7 +7,7 @@ import yaml
 from datetime import datetime
 from plumbum.cli.terminal import ask
 from plumbum import local
-from unidecode import unidecode
+from slugify import slugify
 
 
 class Hook(object):
@@ -18,65 +18,6 @@ class Hook(object):
         self._run = voodoo._run
         self._compose = getattr(voodoo, 'compose', None)
         super(Hook, self).__init__()
-
-
-class GetMainService(Hook):
-    _service = None
-
-    def run(self):
-        pass
-
-
-class Deploy(Hook):
-    _service = None
-
-    def __init__(self, *args, **kwargs):
-        super(Deploy, self).__init__(*args, **kwargs)
-        self._called_log = []
-
-    def _build(self):
-        self._run(self._compose['build'])
-
-    def _stop_container(self):
-        self._run(self._compose['down'])
-
-    def _start_maintenance(self):
-        pass
-
-    def _update_application(self):
-        pass
-
-    def _stop_maintenance(self):
-        pass
-
-    def _start_container(self):
-        self._run(self._compose['up', '-d'])
-
-    def _call_and_log(self, func, message):
-        start = datetime.now()
-        self.logger.info(message)
-        getattr(self, func)()
-        end = datetime.now()
-        funcname = func.replace('_', ' ').strip().capitalize()
-        message = '%s done in %s' % (funcname, end - start)
-        self.logger.info(message)
-        self._called_log.append(message)
-
-    def _resume_log(self):
-        self.logger.info("\n\nDeploy Log Resume:\n")
-        for msg in self._called_log:
-            self.logger.info(msg)
-
-    def _deploy(self):
-        self._call_and_log('_build', 'Start Building the application:')
-        self._call_and_log('_stop_container', 'Stop the application:')
-        self._call_and_log('_update_application', 'Update the application:')
-        self._call_and_log('_stop_maintenance', 'Stop the maintenance page:')
-        self._call_and_log('_start_container', 'Start the application:')
-
-    def run(self):
-        self._call_and_log('_deploy', 'Deploying the Application')
-        self._resume_log()
 
 
 class InitRunDev(Hook):
@@ -126,7 +67,7 @@ class GenerateDevComposeFile(Hook):
         "optional" and "description". This method will ask the user to
         use or not this optional container"""
         answer = {}
-        for name, config in self.config['services'].items():
+        for name, config in self.config['services'].copy().items():
             if config.get('optional'):
                 option = config['optional']
                 if not option in answer:
@@ -143,8 +84,7 @@ class GenerateDevComposeFile(Hook):
                     del self.config['services'][name]
 
     def _add_container_name(self):
-        project_name = unidecode(local.cwd.name.decode('utf-8'))\
-            .replace(' ', '').lower()
+        project_name = slugify(local.cwd.name)
         for name, config in self.config['services'].items():
             expose = config.pop('expose', False)
             if expose:
@@ -168,6 +108,6 @@ class GenerateDevComposeFile(Hook):
         self._add_container_name()
 
     def run(self):
+        self._update_config_file()
         with open('dev.docker-compose.yml', 'w') as dc_tmp_file:
-            self._update_config_file()
             dc_tmp_file.write(yaml.dump(self.config, default_flow_style=False))

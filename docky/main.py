@@ -12,7 +12,7 @@ from compose.project import OneOffFilter
 from compose.parallel import parallel_kill
 import yaml
 import docker
-from .hook import Deploy, GetMainService, InitRunDev, GenerateDevComposeFile
+from .hook import InitRunDev, GenerateDevComposeFile
 from datetime import datetime
 
 compose = local['docker-compose']
@@ -32,6 +32,7 @@ DEFAULT_CONF = {
 }
 
 DOCKER_COMPOSE_PATH = 'docker-compose.yml'
+DOCKY_PATH = 'docky.yml'
 
 VOODOO_NETWORK_NAME = 'vd'
 VOODOO_NETWORK_SUBNET = '172.42.0.0/16'
@@ -134,6 +135,14 @@ class Docky(cli.Application):
             logger.debug(
                 'You can change the default value in ~/.voodoo/config.yml')
 
+        docky_conf = os.path.join('docky.yml')
+        # Reading local configuration
+        if os.path.isfile(DOCKY_PATH):
+            self.config = yaml.safe_load(open(DOCKY_PATH, 'r'))
+        else:
+            raise_error('%s file is missing' % DOCKY_PATH)
+
+
     @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
     def set_log_level(self):
         logger.setLevel(logging.DEBUG)
@@ -148,23 +157,21 @@ class DockySub(cli.Application):
     def _run(self, *args, **kwargs):
         self.parent._run(*args, **kwargs)
 
-    def _get_main_service(self):
-        for subcls in GetMainService.__subclasses__():
-            service = subcls(self, logger).run()
-            if service:
-                logger.debug("Project detected : %s", service)
-                return service
-        raise_error("The project type failed to be defined")
-
     def run_hook(self, cls):
-        def itersubclass(cls):
-            list_cls = [cls]
+        def getsubclass(cls, service):
             for subcls in cls.__subclasses__():
-                list_cls += itersubclass(subcls)
-            return list_cls
-        for subcls in itersubclass(cls):
-            if subcls._service == self.main_service:
-                return subcls(self, logger).run()
+                print("subcls", subcls._service)
+                if subcls._service == service:
+                    return subcls
+                else:
+                    service_cls = getsubclass(subcls, service)
+                    if service_cls:
+                        return service_cls
+            return None
+        service_cls = getsubclass(cls, self.main_service)
+        if not service_cls:
+            service_cls = cls
+        return service_cls(self, logger).run()
 
     def _init_env(self, *args, **kwargs):
         self.env = self.parent.force_env or self.parent.env
@@ -179,7 +186,7 @@ class DockySub(cli.Application):
             raise_error(
                 "There is not %s.%s or %s file, please add one"
                 % (self.env, DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_PATH))
-        self.main_service = self._get_main_service()
+        self.main_service = self.parent.config['service']
         if self.env == 'dev':
             if not local.path(self.config_path).isfile():
                 generate = ask(
@@ -198,15 +205,13 @@ class DockySub(cli.Application):
 
 DockySub.unbind_switches("--help-all", "-v", "--version")
 
+
 @Docky.subcommand("deploy")
 class DockyDeploy(DockySub):
     """Deploy your application"""
 
     def _main(self):
-        if self.env == 'dev':
-            raise_error("Deploy can not be used in dev mode, "
-                        "please configure .voodoo/config.yml")
-        self.run_hook(Deploy)
+        raise_error("Not implemented")
 
 
 @Docky.subcommand("run")
