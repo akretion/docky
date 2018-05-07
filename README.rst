@@ -4,19 +4,26 @@ Introduction
 docky : Make docker and docker compose simply !
 
 
+History
+----------
+This project was initialy created for building odoo environments without effort based on docker-compose and docker
+
+Step by step we make it generic and now we use it for our rails, ruby developpment
+
 How it works
 ---------------
 
-docky is based on top of docker-compose and ...
+Docky is depend on docker-compose and use exactly the same file (so you can move from docker-compose to docky and vice-versa without any effort)
 
-TODO list feature
+Docky just make docker-compose simplier and integrate a default docker-compose file generator
 
-Automatic DNS resolution with proxy
-------------------------------------
 
-Based on jwilder/nginx-proxy docky will expose to you an automatic resolvable dns for your project
+Automatic Proxy
+---------------
 
-When you run a project in a directory called "my_project" a dns entry will be automatically created and be accessible from the host with my_project.vd
+When doing dev is quickly a mess to manage the port of your container, docky integrate a proxy (a basic docker image : https://github.com/akretion/docky-proxy/)
+
+That will generate for you a local domain .dy that will make your container accesible, for example with a project call my customer: you have a domain my-customer.dy
 
 
 Getting Started
