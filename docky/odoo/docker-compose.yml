@@ -19,7 +19,7 @@ services:
     - DB_ENV_USER=magento
     - DB_ENV_PASS=magento
     expose: 80
-    image: akretion/docker-magento    
+    image: akretion/docker-magento
     ports:
       - 80:80
     links:
@@ -54,7 +54,6 @@ services:
     optional: metabase is Web tools for BI with dashboard
     expose: 3000
     image: metabase/metabase
-    network_mode: "bridge"
     environment:
     - MB_DB_FILE=/file/metabase.db
     links:
@@ -83,7 +82,7 @@ services:
     links:
       - db
   db:
-    image: akretion/voodoo-postgresql
+    image: quay.io/akretion/postgresql:10
     environment:
     - POSTGRES_USER=odoo
     - POSTGRES_DB=db
