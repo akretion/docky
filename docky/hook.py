@@ -12,11 +12,11 @@ from slugify import slugify
 
 class Hook(object):
 
-    def __init__(self, voodoo, logger):
+    def __init__(self, docky, logger):
         self.logger = logger
-        self.voodoo = voodoo
-        self._run = voodoo._run
-        self._compose = getattr(voodoo, 'compose', None)
+        self.docky = docky
+        self._run = docky._run
+        self._compose = getattr(docky, 'compose', None)
         super(Hook, self).__init__()
 
 

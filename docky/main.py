@@ -25,7 +25,7 @@ DEFAULT_CONF = {
     "shared_eggs": True,
     "shared_gems": True,
     "odoo": "https://github.com/oca/ocb.git",
-    "template": "https://github.com/akretion/voodoo-template.git",
+    "template": "https://github.com/akretion/docky-template.git",
     "maintainer_quality_tools":
         "https://github.com/OCA/maintainer-quality-tools",
     "env": "dev",
@@ -34,11 +34,11 @@ DEFAULT_CONF = {
 DOCKER_COMPOSE_PATH = 'docker-compose.yml'
 DOCKY_PATH = 'docky.yml'
 
-VOODOO_NETWORK_NAME = 'vd'
-VOODOO_NETWORK_SUBNET = '172.42.0.0/16'
-VOODOO_NETWORK_GATEWAY = '172.42.0.1'
-VOODOO_NETWORK_OPTIONS = {
-    'com.docker.network.bridge.name': VOODOO_NETWORK_NAME,
+DOCKY_NETWORK_NAME = 'vd'
+DOCKY_NETWORK_SUBNET = '172.42.0.0/16'
+DOCKY_NETWORK_GATEWAY = '172.42.0.1'
+DOCKY_NETWORK_OPTIONS = {
+    'com.docker.network.bridge.name': DOCKY_NETWORK_NAME,
     'com.docker.network.bridge.host_binding_ipv4': '127.0.0.1',
 }
 
@@ -46,7 +46,7 @@ import logging
 
 client = docker.from_env()
 
-logger = logging.getLogger('voodoo')
+logger = logging.getLogger('docky')
 formatter = logging.Formatter("%(message)s")
 logger.setLevel(logging.INFO)
 
@@ -75,7 +75,7 @@ def get_containers(config_path, service=None):
 
 
 class Docky(cli.Application):
-    PROGNAME = "voodoo"
+    PROGNAME = "docky"
     VERSION = __version__
     SUBCOMMAND_HELPMSG = None
 
@@ -111,8 +111,8 @@ class Docky(cli.Application):
     def __init__(self, executable):
         super(Docky, self).__init__(executable)
         self.home = self._get_home()
-        self.shared_folder = os.path.join(self.home, '.voodoo', 'shared')
-        config_path = os.path.join(self.home, '.voodoo', 'config.yml')
+        self.shared_folder = os.path.join(self.home, '.docky', 'shared')
+        config_path = os.path.join(self.home, '.docky', 'config.yml')
 
         # Read existing configuration
         if os.path.isfile(config_path):
@@ -141,7 +141,7 @@ class Docky(cli.Application):
         if self.verbose:
             self.set_log_level()
             logger.debug(
-                'You can change the default value in ~/.voodoo/config.yml')
+                'You can change the default value in ~/.docky/config.yml')
 
         docky_conf = os.path.join('docky.yml')
         # Reading local configuration
@@ -237,13 +237,13 @@ class DockyRun(DockySub):
 
     def _set_local_dev_network(self):
 
-        net = VOODOO_NETWORK_NAME
+        net = DOCKY_NETWORK_NAME
 
         if not client.networks.list(net):
             ipam_pool = docker.types.IPAMPool(
-                subnet=VOODOO_NETWORK_SUBNET,
-                iprange=VOODOO_NETWORK_SUBNET,
-                gateway=VOODOO_NETWORK_GATEWAY,
+                subnet=DOCKY_NETWORK_SUBNET,
+                iprange=DOCKY_NETWORK_SUBNET,
+                gateway=DOCKY_NETWORK_GATEWAY,
             )
             ipam_config = docker.types.IPAMConfig(
                 pool_configs=[ipam_pool])
@@ -254,24 +254,24 @@ class DockyRun(DockySub):
                 net,
                 driver="bridge",
                 ipam=ipam_config,
-                options=VOODOO_NETWORK_OPTIONS,
+                options=DOCKY_NETWORK_OPTIONS,
             )
 
         container = client.containers.list(
             all=True,
-            filters={'name':'voodoo-proxy'})
+            filters={'name':'docky-proxy'})
 
         if container:
             container = container[0]
             if container.status != 'running':
-                logger.info("Restart voodoo proxy")
+                logger.info("Restart docky proxy")
                 container.restart()
         else:
             logger.info("Start Docky proxy")
             client.containers.run(
-                "akretion/voodoo-proxy",
-                hostname="voodoo-proxy",
-                name="voodoo-proxy",
+                "akretion/docky-proxy",
+                hostname="docky-proxy",
+                name="docky-proxy",
                 network_mode=net,
                 volumes=[
                     "/var/run/docker.sock:/tmp/docker.sock:ro",
@@ -338,18 +338,18 @@ class DockyKill(DockySub):
 class DockyMigrate(DockySub):
     """Migrate your odoo project
 
-    First you need to checkout the voodoo-upgrade template
-    available here : https://github.com/akretion/voodoo-upgrade
-    (It's a template a voodoo but based on open-upgrade'
+    First you need to checkout the docky-upgrade template
+    available here : https://github.com/akretion/docky-upgrade
+    (It's a template a docky but based on open-upgrade'
 
     Then go inside the repository clonned and launch the migration
 
     * For migrating from 6.1 to 8.0 run:
-        voodoo migrate -b 7.0,8.0
+        docky migrate -b 7.0,8.0
     * For migrating from 6.1 to 9.0 run:
-        voodoo migrate -b 7.0,8.0,9.0
+        docky migrate -b 7.0,8.0,9.0
     * For migrating and loading a database run:
-        voodoo migrate -b 7.0,8.0 --db-file=tomigrate.dump
+        docky migrate -b 7.0,8.0 --db-file=tomigrate.dump
 
     """
 

@@ -11,7 +11,7 @@ class RubyGenerateDevComposeFile(GenerateDevComposeFile):
     _service = 'ruby'
 
     def get_default_volume(self):
-        path = local.path('~/.voodoo/shared/bundle')._path
+        path = local.path('~/.docky/shared/bundle')._path
         return [':'.join([path, '/usr/local/bundle'])]
 
 
@@ -20,4 +20,4 @@ class RubyInitRunDev(InitRunDev):
 
     def run(self):
         # Create shared bundle directory if not exist
-        local.path('~/.voodoo/shared/bundle').mkdir()
+        local.path('~/.docky/shared/bundle').mkdir()

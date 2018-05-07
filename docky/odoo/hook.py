@@ -13,12 +13,12 @@ class GenerateDevComposeFile(GenerateDevComposeFile):
     _map_user_for_service = ['db']
 
     def get_default_volume(self):
-        path = '/home/${USER}/.voodoo/shared'
+        path = '/home/${USER}/.docky/shared'
         return [':'.join([path, path])]
 
     def _update_config_file(self):
         super(GenerateDevComposeFile, self)._update_config_file()
-        path = '/home/${USER}/.voodoo/shared/maintainer_quality_tools'
+        path = '/home/${USER}/.docky/shared/maintainer_quality_tools'
         self.config['services']['odoo']['environment'].append(
             "MAINTAINER_QUALITY_TOOLS=%s" % path)
 
@@ -30,7 +30,7 @@ class OdooInitRunDev(InitRunDev):
     def _get_maintainer_quality_tools_path(self):
         path = local.path(
             "%s/maintainer_quality_tools"
-            % self.voodoo.parent.shared_folder)
+            % self.docky.parent.shared_folder)
         if not path.is_dir():
             print (
                 "First run of Docky; there is no Maintainer Quality Tools "
@@ -38,7 +38,7 @@ class OdooInitRunDev(InitRunDev):
                 "this can take a while...\n"
                 % (path._path))
             self._run(git["clone",
-                          self.voodoo.parent.maintainer_quality_tools,
+                          self.docky.parent.maintainer_quality_tools,
                           path._path])
 
     def run(self):
