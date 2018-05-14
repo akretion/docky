@@ -1,18 +1,18 @@
 language: python
 services:
-  - docker
+- docker
 sudo: true
 python:
-  - 3.5
-  - 3.6
+- 3.5
+- 3.6
 install:
-  - bash ci/install.sh
+- bash ci/install.sh
 script:
-  - bash ci/script.sh
+- bash ci/script.sh
 after_success:
-  - bash ci/after_success.sh
+- bash ci/after_success.sh
 before_deploy:
-  - bash ci/before_deploy.sh
+- bash ci/before_deploy.sh
 deploy:
   provider: pypi
   user: akretion
@@ -20,6 +20,6 @@ deploy:
   on:
     tags: true
   password:
-    secure: BReJB0dEdGdTPnKHE6WVvZ9AuJCmq3Tc89DWTrAS1rOcrNU+oJ+rfjVG//Kc1isZjvq+kiBfj6IUO9OP1Y1krDSjAzRGQJa/ex0Yjh302PuoUvPASoyGWBXm2w6ZvzhZhBmGW4dSTeNg9UyUQHQQl0W00hOMcH1WI7kgJevntM0=
+    secure: BeopvZRPkyDgLqMGh2F29cuNVQ95YlUd6gTv/NbxKUhVjiZxjRqpIpkG/G7K7EDucNouwyiMUZuZv/phcPEJO84eGY7WA915eDxmDGqF1E6N+QTwW3gA+/e3NqprXbTMPUNUsa3cn7VuBCD0w4AIZlcFig9Heu5xmPlnDxsRAbw=
 notifications:
   email: false
