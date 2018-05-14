@@ -42,6 +42,7 @@ REPLACE_DOC = [
     ]
 
 def generate_cmd_doc():
+    run_cmd('echo "{}" > docky.yml')
     data = run_cmd('docky --help-all')
     run_cmd('rm -rf doc/auto')
     run_cmd('mkdir doc/auto')
