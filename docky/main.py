@@ -42,6 +42,9 @@ DOCKY_NETWORK_OPTIONS = {
     'com.docker.network.bridge.host_binding_ipv4': '127.0.0.1',
 }
 
+DOCKY_PROXY_IMAGE = "quay.io/akretion/docky-proxy:20180507"
+DOCKY_PROXY_NAME = "docky-proxy"
+
 import logging
 
 client = docker.from_env()
@@ -259,7 +262,7 @@ class DockyRun(DockySub):
 
         container = client.containers.list(
             all=True,
-            filters={'name':'docky-proxy'})
+            filters={'name': DOCKY_PROXY_NAME})
 
         if container:
             container = container[0]
@@ -269,9 +272,9 @@ class DockyRun(DockySub):
         else:
             logger.info("Start Docky proxy")
             client.containers.run(
-                "akretion/docky-proxy",
-                hostname="docky-proxy",
-                name="docky-proxy",
+                DOCKY_PROXY_IMAGE,
+                hostname=DOCKY_PROXY_NAME,
+                name=DOCKY_PROXY_NAME,
                 network_mode=net,
                 volumes=[
                     "/var/run/docker.sock:/tmp/docker.sock:ro",
