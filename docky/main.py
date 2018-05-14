@@ -17,7 +17,7 @@ from datetime import datetime
 
 compose = local['docker-compose']
 
-__version__ = '2.6.8'
+__version__ = '3.0.0'
 
 
 DEFAULT_CONF = {
