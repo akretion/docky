@@ -94,7 +94,7 @@ services:
     expose: 1080
     image: akretion/lightweight-mailcatcher
   odoo:
-    image: akretion/voodoo:latest
+    build: .
     expose: 8069
     environment:
     - PYTHONDONTWRITEBYTECODE=True

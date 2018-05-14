@@ -22,7 +22,7 @@ setup(
     author='Akretion',
     author_email='contact@akretion.com',
     url='https://github.com/akretion/docky/',
-    description='Environment builder for Odoo',
+    description='Make developpement with docker simply',
     license="AGPLv3+",
     long_description=open('README.rst').read(),
     install_requires=[
