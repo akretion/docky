@@ -1,5 +1,5 @@
-include voodoo/odoo/docker-compose.yml
-include voodoo/wagon/docker-compose.yml
-include voodoo/rails/docker-compose.yml
-include voodoo/locomotive/docker-compose.yml
+include docky/odoo/docker-compose.yml
+include docky/wagon/docker-compose.yml
+include docky/rails/docker-compose.yml
+include docky/locomotive/docker-compose.yml
 include requirements.txt
