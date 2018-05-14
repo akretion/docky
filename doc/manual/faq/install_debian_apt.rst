@@ -1,7 +1,7 @@
 Install custom debian package
 ================================
 
-If you need some custom debian package in your image you can easily add one using a DockerFile see documentation here : https://docs.docker.com/engine/reference/builder/
+If you need some custom debian package in your image you can easily add one using a Dockerfile see documentation here : https://docs.docker.com/engine/reference/builder/
 
 Here is an example of custom DockerFile to install the package "my_debian_package_to_install".
 Be careful to not forget to switch the user before and after installing the package.
