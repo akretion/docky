@@ -146,12 +146,13 @@ class Docky(cli.Application):
             logger.debug(
                 'You can change the default value in ~/.docky/config.yml')
 
-        docky_conf = os.path.join('docky.yml')
         # Reading local configuration
         if os.path.isfile(DOCKY_PATH):
             self.config = yaml.safe_load(open(DOCKY_PATH, 'r'))
         else:
-            raise_error('%s file is missing' % DOCKY_PATH)
+            raise_error(
+                '%s file is missing. Minimal file is a yaml file with:\n'
+                ' service: your_service\nex:\n service: odoo' % DOCKY_PATH)
 
 
     @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
@@ -186,6 +187,7 @@ class DockySub(cli.Application):
 
     def _init_env(self, *args, **kwargs):
         self.env = self.parent.force_env or self.parent.env
+        self.config = self.parent.config
         config_path = '.'.join([self.env, DOCKER_COMPOSE_PATH])
         if self.env == 'dev':
             self.config_path = config_path
@@ -224,9 +226,22 @@ class DockyDeploy(DockySub):
     def _main(self):
         raise_error("Not implemented")
 
+class DockyExec(object):
+
+    root = cli.Flag(
+        ["root"],
+        help="Run or open as root",
+        group = "Meta-switches")
+
+    def _is_root(self):
+        if not self.config.get('user'):
+            return False
+        else:
+            return self.root
+
 
 @Docky.subcommand("run")
-class DockyRun(DockySub):
+class DockyRun(DockySub, DockyExec):
     """Start services and enter in your dev container
 
     After running the command you will be inside the container and
@@ -289,10 +304,14 @@ class DockyRun(DockySub):
 
     def _main(self, *optionnal_command_line):
         self._check_running()
-        if not optionnal_command_line:
-            cmd = ['bash']
+        if not self._is_root():
+            cmd = ['gosu', self.config['user']]
         else:
-            cmd = list(optionnal_command_line)
+            cmd = []
+        if not optionnal_command_line:
+            cmd.append('bash')
+        else:
+            cmd += list(optionnal_command_line)
         if self.env == 'dev':
             self._set_local_dev_network()
             self.run_hook(InitRunDev)
@@ -313,14 +332,18 @@ class DockyRun(DockySub):
 
 
 @Docky.subcommand("open")
-class DockyOpen(DockySub):
+class DockyOpen(DockySub, DockyExec):
     """Open a new session inside your dev container"""
 
     def _main(self, *args):
         container = get_containers(self.config_path, self.main_service)
         if container:
-            self._exec('docker',
-                       ["exec", "-ti", container[0].name, "bash"])
+            cmd = ["exec", "-ti", container[0].name]
+            if not self._is_root():
+                cmd += ['gosu', self.config['user'], 'bash']
+            else:
+                cmd.append('bash')
+            self._exec('docker', cmd)
         else:
             raise_error(
                 "No container found for the service %s" % self.main_service)
