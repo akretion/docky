@@ -233,11 +233,8 @@ class DockyExec(object):
         help="Run or open as root",
         group = "Meta-switches")
 
-    def _is_root(self):
-        if not self.config.get('user'):
-            return False
-        else:
-            return self.root
+    def _use_specific_user(self):
+        return not self.root and self.config.get('user')
 
 
 @Docky.subcommand("run")
@@ -304,7 +301,7 @@ class DockyRun(DockySub, DockyExec):
 
     def _main(self, *optionnal_command_line):
         self._check_running()
-        if not self._is_root():
+        if self._use_specific_user():
             cmd = ['gosu', self.config['user']]
         else:
             cmd = []
@@ -339,7 +336,7 @@ class DockyOpen(DockySub, DockyExec):
         container = get_containers(self.config_path, self.main_service)
         if container:
             cmd = ["exec", "-ti", container[0].name]
-            if not self._is_root():
+            if self._use_specific_user():
                 cmd += ['gosu', self.config['user'], 'bash']
             else:
                 cmd.append('bash')
