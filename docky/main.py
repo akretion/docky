@@ -69,8 +69,8 @@ def raise_error(message):
     sys.exit(0)
 
 
-def get_containers(config_path, service=None):
-    project = get_project('.', [config_path])
+def get_containers(config_path, project_name=None, service=None):
+    project = get_project('.', [config_path], project_name=project_name)
     kwargs = {'one_off': OneOffFilter.include}
     if service:
         kwargs['service_names'] = [service]
@@ -210,7 +210,9 @@ class DockySub(cli.Application):
                     self.run_hook(GenerateDevComposeFile)
                 else:
                     raise_error("No dev.docker-compose.yml file, abort!")
-        self.compose = compose['-f', self.config_path]
+        self.project_name = "%s_%s" % (local.env.user, local.cwd.name)
+        self.compose = compose[
+            '-f', self.config_path, '--project-name', self.project_name]
 
     def main(self, *args, **kwargs):
         self._init_env()
@@ -295,7 +297,10 @@ class DockyRun(DockySub, DockyExec):
                 detach=True)
 
     def _check_running(self):
-        if get_containers(self.config_path, self.main_service):
+        if get_containers(
+                self.config_path,
+                project_name=self.project_name,
+                service=self.main_service):
             raise_error("This container is already running, kill it or "
                         "use open to go inside")
 
@@ -324,6 +329,7 @@ class DockyRun(DockySub, DockyExec):
                         % (name, dns))
         self._exec('docker-compose', [
             '-f', self.config_path,
+            '--project-name', self.project_name,
             'run', '--rm', '--service-ports',
             self.main_service] + cmd)
 
@@ -333,7 +339,10 @@ class DockyOpen(DockySub, DockyExec):
     """Open a new session inside your dev container"""
 
     def _main(self, *args):
-        container = get_containers(self.config_path, self.main_service)
+        container = get_containers(
+            self.config_path,
+            project_name=self.project_name,
+            service=self.main_service)
         if container:
             cmd = ["exec", "-ti", container[0].name]
             if self._use_specific_user():
@@ -353,7 +362,8 @@ class DockyKill(DockySub):
     def _main(self, *args):
         # docker compose do not kill the container odoo as is was run
         # manually, so we implement our own kill
-        containers = get_containers(self.config_path)
+        containers = get_containers(
+            self.config_path, project_name=self.project_name)
         parallel_kill(containers, {'signal': 'SIGKILL'})
 
 
