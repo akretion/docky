@@ -14,8 +14,8 @@ import yaml
 import docker
 from .hook import InitRunDev, GenerateDevComposeFile
 from datetime import datetime
+from pwd import getpwnam
 
-compose = local['docker-compose']
 
 __version__ = '3.0.6'
 
@@ -153,7 +153,7 @@ class Docky(cli.Application):
             raise_error(
                 '%s file is missing. Minimal file is a yaml file with:\n'
                 ' service: your_service\nex:\n service: odoo' % DOCKY_PATH)
-
+        local.env['UID'] = str(getpwnam(local.env.user).pw_uid)
 
     @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
     def set_log_level(self):
@@ -211,7 +211,8 @@ class DockySub(cli.Application):
                 else:
                     raise_error("No dev.docker-compose.yml file, abort!")
         self.project_name = "%s_%s" % (local.env.user, local.cwd.name)
-        self.compose = compose[
+
+        self.compose = local['docker-compose'][
             '-f', self.config_path, '--project-name', self.project_name]
 
     def main(self, *args, **kwargs):
