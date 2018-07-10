@@ -8,26 +8,16 @@ import yaml
 from plumbum.cli.terminal import ask
 from plumbum import local
 from .generator import GenerateComposeFile
+from .api import logger
 
 
 DEFAULT_CONF = {
     "verbose": True,
-    "shared_eggs": True,
-    "shared_gems": True,
-    "odoo": "https://github.com/oca/ocb.git",
-    "template": "https://github.com/akretion/docky-template.git",
-    "maintainer_quality_tools":
-        "https://github.com/OCA/maintainer-quality-tools",
     "env": "dev",
 }
 
 DOCKY_PATH = 'docky.yml'
 DOCKER_COMPOSE_PATH = 'docker-compose.yml'
-
-
-def setattrs(self, config):
-    for key in config:
-        setattr(self, key, config[key])
 
 
 # TODO refactor code using local object of plumbum instead of os
@@ -45,7 +35,8 @@ class DockyConfig(object):
 
         if current_config != config:
             self._update_config_file(config)
-        setattrs(self, config)
+        self.env = config.get('env')
+        self.verbose = config.get('verbose')
 
     def _get_config(self):
         if os.path.isfile(self.config_path):
@@ -63,8 +54,6 @@ class DockyConfig(object):
     def _update_config_file(self, config):
         logger.info("The Docky Configuration have been updated, "
                     "please take a look to the new config file")
-        if not os.path.exists(self.shared_folder):
-            os.makedirs(self.shared_folder)
         config_file = open(self.config_path, 'w')
         config_file.write(yaml.dump(config, default_flow_style=False))
         logger.info("Update default config file at %s", self.config_path)
