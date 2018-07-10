@@ -3,13 +3,8 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from .main import (
-    Docky,
-    DockySub,
-    raise_error,
-    logger,
-    DOCKY_NETWORK_NAME,
-)
+from .base import Docky, DockySub, raise_error, logger
+
 
 import docker
 
@@ -17,6 +12,7 @@ client = docker.from_env()
 
 DOCKY_PROXY_IMAGE = "quay.io/akretion/docky-proxy:20180507"
 DOCKY_PROXY_NAME = "docky-proxy"
+DOCKY_NETWORK_NAME = 'dy'
 
 
 @Docky.subcommand("proxy")
@@ -41,9 +37,8 @@ class DockyProxySub(DockySub):
         return container[0] if container else None
 
     def _restart(self):
-        if self.container.status != 'running':
-            logger.info("Restart docky proxy")
-            self.container.restart()
+        logger.info("Restart docky proxy")
+        self.container.restart()
 
     def _start(self):
         logger.info("Start Docky proxy")

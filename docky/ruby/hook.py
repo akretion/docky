@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ..hook import InitRunDev, GenerateDevComposeFile
+from ..common.hook import InitRunDev, GenerateDevComposeFile
 from plumbum.cli.terminal import choose
 from plumbum import local
 import docker
