@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 from .main import Docky
+from . import proxy
 from . import hook
 from .odoo import hook
 from .ruby import hook

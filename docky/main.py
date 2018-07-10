@@ -11,7 +11,6 @@ from compose.cli.command import get_project
 from compose.project import OneOffFilter
 from compose.parallel import parallel_kill
 import yaml
-import docker
 from .hook import InitRunDev, GenerateDevComposeFile
 from datetime import datetime
 from pwd import getpwnam
@@ -34,16 +33,13 @@ DEFAULT_CONF = {
 DOCKER_COMPOSE_PATH = 'docker-compose.yml'
 DOCKY_PATH = 'docky.yml'
 
-DOCKY_NETWORK_NAME = 'vd'
-DOCKY_NETWORK_SUBNET = '172.42.0.0/16'
-DOCKY_NETWORK_GATEWAY = '172.42.0.1'
+DOCKY_NETWORK_NAME = 'dy'
+DOCKY_NETWORK_SUBNET = '172.30.0.0/16'
+DOCKY_NETWORK_GATEWAY = '172.30.0.1'
 DOCKY_NETWORK_OPTIONS = {
     'com.docker.network.bridge.name': DOCKY_NETWORK_NAME,
     'com.docker.network.bridge.host_binding_ipv4': '127.0.0.1',
 }
-
-DOCKY_PROXY_IMAGE = "quay.io/akretion/docky-proxy:20180507"
-DOCKY_PROXY_NAME = "docky-proxy"
 
 import logging
 
@@ -201,6 +197,7 @@ class DockySub(cli.Application):
                 % (self.env, DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_PATH))
         self.main_service = self.parent.config['service']
         if self.env == 'dev':
+
             if not local.path(self.config_path).isfile():
                 generate = ask(
                     "There is not dev.docker-compose.yml file.\n"
@@ -252,11 +249,8 @@ class DockyRun(DockySub, DockyExec):
     http://my_project.vd and http://my_plugin.my_project.vd
     """
 
-
     def _set_local_dev_network(self):
-
         net = DOCKY_NETWORK_NAME
-
         if not client.networks.list(net):
             ipam_pool = docker.types.IPAMPool(
                 subnet=DOCKY_NETWORK_SUBNET,
@@ -274,28 +268,6 @@ class DockyRun(DockySub, DockyExec):
                 ipam=ipam_config,
                 options=DOCKY_NETWORK_OPTIONS,
             )
-
-        container = client.containers.list(
-            all=True,
-            filters={'name': DOCKY_PROXY_NAME})
-
-        if container:
-            container = container[0]
-            if container.status != 'running':
-                logger.info("Restart docky proxy")
-                container.restart()
-        else:
-            logger.info("Start Docky proxy")
-            client.containers.run(
-                DOCKY_PROXY_IMAGE,
-                hostname=DOCKY_PROXY_NAME,
-                name=DOCKY_PROXY_NAME,
-                network_mode=net,
-                volumes=[
-                    "/var/run/docker.sock:/tmp/docker.sock:ro",
-                    "/etc/hosts:/app/hosts",
-                    ],
-                detach=True)
 
     def _check_running(self):
         if get_containers(
@@ -425,21 +397,6 @@ class DockyMigrate(DockySub):
             self.log("Migrate to version %s in %s" % (version, end-start))
         for log in self._logs:
             logger.info(log)
-
-
-@Docky.subcommand("new")
-class DockyNew(DockySub):
-    """Create a new project"""
-
-    def main(self, name):
-        versions = ['11.0', '10.0', '9.0', '8.0', '7.0', 'master']
-        version = choose(
-            "Select your Odoo project template",
-            versions,
-            default = "10.0")
-        self._run(git["clone", self.parent.template, name])
-        with local.cwd(name):
-            self._run(git["checkout", version])
 
 
 class DockyForward(DockySub):
