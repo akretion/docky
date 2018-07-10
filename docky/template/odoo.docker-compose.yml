@@ -1,7 +1,7 @@
 networks:
   default:
     external:
-      name: vd
+      name: dy
 services:
   mariadb:
     optional: Add magento server (with connector) ?
@@ -16,8 +16,8 @@ services:
   magento:
     optional: Add magento server (with connector) ?
     environment:
-    - DB_ENV_USER=magento
-    - DB_ENV_PASS=magento
+      - DB_ENV_USER=magento
+      - DB_ENV_PASS=magento
     expose: 80
     image: akretion/docker-magento
     ports:
@@ -37,16 +37,16 @@ services:
     optional: Add py3o reports server
     image: xcgd/py3o.fusion
     ports:
-        - "8765:8765"
+      - "8765:8765"
     links:
-        - "py3orenderserver"
+      - "py3orenderserver"
   py3orenderserver:
     optional: Add py3o reports server
     image: xcgd/py3oserver-docker
     links:
-        - "oooserver"
+      - "oooserver"
     volumes_from:
-        - "oooserver"
+      - "oooserver"
   oooserver:
     optional: Add py3o reports server
     image: xcgd/libreoffice
@@ -55,18 +55,18 @@ services:
     expose: 3000
     image: metabase/metabase
     environment:
-    - MB_DB_FILE=/file/metabase.db
+      - MB_DB_FILE=/file/metabase.db
     links:
-    - db
+      - db
     volumes:
-    - .:/file
+      - .:/file
   firefox:
     optional: Selenium Standalone with Firefox installed and runs a VNC server
     hostname: firefox
     image: "selenium/standalone-firefox-debug"
     ports:
-    - "4444:4444"
-    - "5900:5900"
+      - "4444:4444"
+      - "5900:5900"
     volumes:
     - /dev/shm:/dev/shm
   pgadmin:
@@ -84,23 +84,27 @@ services:
   db:
     image: quay.io/akretion/postgresql:10
     environment:
-    - POSTGRES_USER=odoo
-    - POSTGRES_DB=db
+      - POSTGRES_USER=odoo
+      - POSTGRES_DB=db
     volumes:
-    - .db/data/:/var/lib/postgresql/data
-    - .db/socket/:/var/run/postgresql/
+      - .db/:/var/lib/postgresql/data
   mailcatcher:
     optional: Mailcatcher is a fake mail server
     expose: 1080
     image: akretion/lightweight-mailcatcher
   odoo:
-    build: .
+    build: odoo
     expose: 8069
     environment:
-    - PYTHONDONTWRITEBYTECODE=True
+      - PYTHONDONTWRITEBYTECODE=True
+      - LOCAL_USER_ID=$UID
+      - DB_USER=odoo
+      - DB_PASS=odoo
+      - DB_NAME=db
+      - RUNNING_ENV=dev
+      - MARABUNTA_MODE=demo
     links:
-    - db
+      - db
     volumes:
-    - .:/workspace
-    - .db/socket/:/var/run/postgresql/
-version: '2'
+      - ./odoo:/opt/odoo
+version: '3'

@@ -7,7 +7,7 @@ import os
 import yaml
 from plumbum.cli.terminal import ask
 from plumbum import local
-from .hook import InitRunDev, GenerateDevComposeFile
+from .generator import GenerateComposeFile
 
 
 DEFAULT_CONF = {
@@ -125,7 +125,7 @@ class ProjectEnvironment(object):
             "Do you want to generate one automatically",
             default=True)
         if generate:
-            self.run_hook(GenerateDevComposeFile)
+            GenerateComposeFile(self.service).generate()
         else:
             raise_error("No dev.docker-compose.yml file, abort!")
 

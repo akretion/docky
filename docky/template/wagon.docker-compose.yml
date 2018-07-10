@@ -1,0 +1,12 @@
+networks:
+  default:
+    external:
+      name: dy
+services:
+  wagon:
+    expose: 3333
+    image: quay.io/akretion/docky-ruby:latest
+    volumes:
+      - .:/workspace
+      - $HOME/.docky/shared/bundle:/usr/local/bundle
+version: '3'

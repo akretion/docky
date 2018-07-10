@@ -2,4 +2,4 @@
 
 from . import api
 from . import config
-from . import hook
+from . import generator

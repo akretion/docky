@@ -1,15 +1,15 @@
 networks:
   default:
     external:
-      name: vd
+      name: dy
 services:
   locomotive:
     expose: 3000
-    image: akretion/voodoo-ruby:latest
+    image: quay.io/akretion/docky-ruby:latest
     volumes:
-    - .:/workspace
+      - .:/workspace
     links:
-     - db
+      - db
   db:
      image: mongo:3
      volumes:
@@ -23,5 +23,5 @@ services:
     optional: Varnish is a caching HTTP reverse proxy.
     image: akretion/varnish
     volumes:
-    - ./varnish/:/etc/varnish/
-version: '2'
+      - ./varnish/:/etc/varnish/
+version: '3'
