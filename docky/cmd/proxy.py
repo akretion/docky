@@ -4,7 +4,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from .base import Docky, DockySub, raise_error, logger
-
+from .run_open import DOCKY_NETWORK_NAME
 
 import docker
 
@@ -12,7 +12,6 @@ client = docker.from_env()
 
 DOCKY_PROXY_IMAGE = "quay.io/akretion/docky-proxy:20180507"
 DOCKY_PROXY_NAME = "docky-proxy"
-DOCKY_NETWORK_NAME = 'dy'
 
 
 @Docky.subcommand("proxy")

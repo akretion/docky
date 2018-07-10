@@ -13,7 +13,7 @@ import logging
 import os
 
 from ..common.api import logger, raise_error
-from ..common.config import UserConfig, ProjectEnvironment
+from ..common.config import DockyConfig, ProjectEnvironment
 
 
 class Docky(cli.Application):
@@ -49,11 +49,11 @@ class Docky(cli.Application):
 
     def __init__(self, executable):
         super(Docky, self).__init__(executable)
-        self.user_config = UserConfig()
+        self.config = DockyConfig()
         local.env['UID'] = str(getpwnam(local.env.user).pw_uid)
-        self.env = self.force_env or self.user_config.env
+        self.env = self.force_env or self.config.env
 
-        if self.user_config.verbose:
+        if self.config.verbose:
             self.set_log_level()
             logger.debug(
                 'Start in verbose mode. You can change the default '
@@ -62,7 +62,7 @@ class Docky(cli.Application):
         # TODO maybe remove me with the code of downloading
         # the maintainer tools
         self.shared_folder = os.path.join(
-            self.user_config.home, '.docky', 'shared')
+            self.config.home, '.docky', 'shared')
 
     @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
     def set_log_level(self):

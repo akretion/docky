@@ -31,12 +31,13 @@ def setattrs(self, config):
 
 
 # TODO refactor code using local object of plumbum instead of os
-class UserConfig(object):
+class DockyConfig(object):
 
     def _get_home(self):
         return os.path.expanduser("~")
 
     def __init__(self):
+        super(DockyConfig, self).__init__()
         self.home = self._get_home()
         self.config_path = os.path.join(self.home, '.docky', 'config.yml')
         current_config = self._get_config()
