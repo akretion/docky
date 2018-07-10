@@ -90,8 +90,6 @@ class DockyRun(DockySub, DockyExec):
             cmd += list(optionnal_command_line)
         if self.env == 'dev':
             self._set_local_dev_network()
-            # TODO FIXME
-            #self.run_hook(InitRunDev)
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '-f'])
         self._show_access_url()
