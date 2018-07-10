@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from plumbum import cli, local
-from plumbum.cmd import git, docker, grep, sed
+from plumbum.cmd import git, grep, sed
 from plumbum.commands.modifiers import FG, TF, BG
 from plumbum.cli.terminal import choose, ask
 import os
@@ -15,6 +15,7 @@ from .hook import InitRunDev, GenerateDevComposeFile
 from datetime import datetime
 from pwd import getpwnam
 
+import docker
 
 __version__ = '3.0.7'
 
@@ -397,49 +398,6 @@ class DockyMigrate(DockySub):
             self.log("Migrate to version %s in %s" % (version, end-start))
         for log in self._logs:
             logger.info(log)
-
-
-class DockyForward(DockySub):
-    _cmd = None
-
-    def _main(self, *args):
-        return self._run(self.compose[self._cmd.split(' ')])
-
-
-@Docky.subcommand("build")
-class DockyBuild(DockyForward):
-    """Build or rebuild services"""
-    _cmd = "build"
-
-
-@Docky.subcommand("up")
-class DockyUp(DockyForward):
-    """Start all services in detached mode"""
-    _cmd = "up -d"
-
-
-@Docky.subcommand("down")
-class DockyDown(DockyForward):
-    """Stop all services"""
-    _cmd = "down"
-
-
-@Docky.subcommand("ps")
-class DockyPs(DockyForward):
-    """List containers"""
-    _cmd = "ps"
-
-
-@Docky.subcommand("logs")
-class DockyLogs(DockyForward):
-    """View output from containers"""
-    _cmd = "logs -f --tail=100"
-
-
-@Docky.subcommand("pull")
-class DockyPull(DockyForward):
-    """Pulls service images"""
-    _cmd = "pull"
 
 
 def main():
