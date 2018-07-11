@@ -4,6 +4,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from .base import Docky, DockySub
+from ..common.config import DockerComposeConfig
 
 
 class DockyForward(DockySub):
@@ -23,6 +24,12 @@ class DockyBuild(DockyForward):
 class DockyUp(DockyForward):
     """Start all services in detached mode"""
     _cmd = "up -d"
+
+    def _main(self, *args):
+        compose_config = DockerComposeConfig(self.project)
+        compose_config.show_access_url()
+        compose_config.create_volume()
+        return super(DockyUp, self)._main(*args)
 
 
 @Docky.subcommand("down")

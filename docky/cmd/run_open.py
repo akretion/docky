@@ -6,6 +6,7 @@
 
 from plumbum import cli
 from .base import Docky, DockySub, raise_error, logger
+from ..common.config import DockerComposeConfig
 import docker
 import yaml
 
@@ -68,16 +69,6 @@ class DockyRun(DockySub, DockyExec):
             raise_error("This container is already running, kill it or "
                         "use open to go inside")
 
-    def _show_access_url(self):
-        config = yaml.safe_load(open(self.project.compose_file_path, 'r'))
-        for name, service in config['services'].items():
-            for env in service.get('environment', []):
-                if 'VIRTUAL_HOST=' in env:
-                    dns = env.replace('VIRTUAL_HOST=', '')
-                    logger.info(
-                        "The service %s is accessible on http://%s"
-                        % (name, dns))
-
     def _main(self, *optionnal_command_line):
         self._check_running()
         if self._use_specific_user():
@@ -92,7 +83,9 @@ class DockyRun(DockySub, DockyExec):
             self._set_local_dev_network()
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '-f'])
-        self._show_access_url()
+        compose_config = DockerComposeConfig(self.project)
+        compose_config.show_access_url()
+        compose_config.create_volume()
         self._exec('docker-compose', [
             '-f', self.project.compose_file_path,
             '--project-name', self.project.name,

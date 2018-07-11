@@ -121,3 +121,31 @@ class ProjectEnvironment(object):
 
     def _get_project_name(self):
         return "%s_%s" % (local.env.user, local.cwd.name)
+
+
+class DockerComposeConfig(object):
+
+    def __init__(self, project):
+        self.config = yaml.safe_load(open(project.compose_file_path, 'r'))
+
+    def show_access_url(self):
+        for name, service in self.config['services'].items():
+            for env in service.get('environment', []):
+                if 'VIRTUAL_HOST=' in env:
+                    dns = env.replace('VIRTUAL_HOST=', '')
+                    logger.info(
+                        "The service %s is accessible on http://%s"
+                        % (name, dns))
+
+    def create_volume(self):
+        for name, service in self.config['services'].items():
+            if 'volumes' in service:
+                for volume_path in service['volumes']:
+                    volume = volume_path.split(':')[0]
+                    if volume.startswith('.') or volume.startswith('/'):
+                        path = local.path(volume)
+                        if not path.exists():
+                            logger.info(
+                                "Create missing directory %s for service %s",
+                                volume, name)
+                            local.path(volume).mkdir()
