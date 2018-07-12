@@ -6,14 +6,13 @@
 
 from plumbum import cli, local
 from plumbum.commands.modifiers import FG
-from compose.cli.command import get_project
-from compose.project import OneOffFilter
 from pwd import getpwnam
 import logging
 import os
 
 from ..common.api import logger, raise_error
-from ..common.config import DockyConfig, ProjectEnvironment
+from ..common.config import DockyConfig
+from ..common.project import Project
 
 
 class Docky(cli.Application):
@@ -78,18 +77,10 @@ class DockySub(cli.Application):
     def _run(self, *args, **kwargs):
         self.parent._run(*args, **kwargs)
 
-    def get_containers(self, service=None):
-        project = get_project(
-            '.', [self.project.compose_file_path],
-            project_name=self.project.name)
-        kwargs = {'one_off': OneOffFilter.include}
-        if service:
-            kwargs['service_names'] = [service]
-        return project.containers(**kwargs)
-
     def main(self, *args, **kwargs):
         self.env = self.parent.env
-        self.project = ProjectEnvironment(self.env)
+        self.project = Project(self.env, self.parent.config)
+        self.project.build_network()
         self.compose = local['docker-compose'][
             '-f', self.project.compose_file_path,
             '--project-name', self.project.name]

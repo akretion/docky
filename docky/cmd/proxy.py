@@ -4,13 +4,12 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from .base import Docky, DockySub, raise_error, logger
-from .run_open import DOCKY_NETWORK_NAME
 
 import docker
 
 client = docker.from_env()
 
-DOCKY_PROXY_IMAGE = "quay.io/akretion/docky-proxy:20180507"
+DOCKY_PROXY_DEFAULT_IMAGE = "quay.io/akretion/docky-proxy:20180712"
 DOCKY_PROXY_NAME = "docky-proxy"
 
 
@@ -41,11 +40,13 @@ class DockyProxySub(DockySub):
 
     def _start(self):
         logger.info("Start Docky proxy")
+        proxy = self.project.docky_config.proxy
+        image_name = proxy['custom_image'] or DOCKY_PROXY_DEFAULT_IMAGE
         client.containers.run(
-            DOCKY_PROXY_IMAGE,
-            hostname=DOCKY_PROXY_NAME,
-            name=DOCKY_PROXY_NAME,
-            network_mode=DOCKY_NETWORK_NAME,
+            image_name,
+            hostname=proxy.name,
+            name=proxy.name,
+            network_mode=self.project.docky_config.network['name'],
             volumes=[
                 "/var/run/docker.sock:/tmp/docker.sock:ro",
                 "/etc/hosts:/app/hosts",

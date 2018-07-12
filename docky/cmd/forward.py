@@ -4,7 +4,6 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from .base import Docky, DockySub
-from ..common.config import DockerComposeConfig
 
 
 class DockyForward(DockySub):
@@ -26,9 +25,8 @@ class DockyUp(DockyForward):
     _cmd = "up -d"
 
     def _main(self, *args):
-        compose_config = DockerComposeConfig(self.project)
-        compose_config.show_access_url()
-        compose_config.create_volume()
+        self.project.show_access_url()
+        self.project.create_volume()
         return super(DockyUp, self)._main(*args)
 
 

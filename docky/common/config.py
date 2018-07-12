@@ -6,7 +6,6 @@
 import os
 import yaml
 from plumbum.cli.terminal import ask
-from plumbum import local
 from .generator import GenerateComposeFile
 from .api import logger
 
@@ -14,10 +13,20 @@ from .api import logger
 DEFAULT_CONF = {
     "verbose": True,
     "env": "dev",
+    "network": {
+        "name": "dy",
+        "subnet": "172.30.0.0/16",
+        "gateway": "172.30.0.1",
+        "options": {
+            "com.docker.network.bridge.name": "dy",
+            "com.docker.network.bridge.host_binding_ipv4": "127.0.0.1",
+        },
+    },
+    "proxy": {
+        "custom_image": None,
+        "name": "proxy-docky",
+    }
 }
-
-DOCKY_PATH = 'docky.yml'
-DOCKER_COMPOSE_PATH = 'docker-compose.yml'
 
 
 # TODO refactor code using local object of plumbum instead of os
@@ -35,8 +44,10 @@ class DockyConfig(object):
 
         if current_config != config:
             self._update_config_file(config)
-        self.env = config.get('env')
-        self.verbose = config.get('verbose')
+        self.env = config['env']
+        self.verbose = config['verbose']
+        self.network = config['network']
+        self.proxy = config['proxy']
 
     def _get_config(self):
         if os.path.isfile(self.config_path):
@@ -57,95 +68,3 @@ class DockyConfig(object):
         config_file = open(self.config_path, 'w')
         config_file.write(yaml.dump(config, default_flow_style=False))
         logger.info("Update default config file at %s", self.config_path)
-
-
-class ProjectEnvironment(object):
-
-    def __init__(self, env):
-        self.env = env
-        self._parse_docky_file()
-        self.compose_file_path = self._get_config_path()
-        if self.env == 'dev':
-            if not local.path(self.compose_file_path).isfile():
-                self._generate_dev_docker_compose_file()
-        self.name = self._get_project_name()
-
-    def _parse_docky_file(self):
-        if os.path.isfile(DOCKY_PATH):
-            config = yaml.safe_load(open(DOCKY_PATH, 'r'))
-            self.service = config.get('service')
-            self.user = config.get('user')
-        else:
-            raise_error(
-                '%s file is missing. Minimal file is a yaml file with:\n'
-                ' service: your_service\nex:\n service: odoo' % DOCKY_PATH)
-
-    def run_hook(self, cls):
-        def getsubclass(cls, service):
-            for subcls in cls.__subclasses__():
-                print("subcls", subcls._service)
-                if subcls._service == service:
-                    return subcls
-                else:
-                    service_cls = getsubclass(subcls, service)
-                    if service_cls:
-                        return service_cls
-            return None
-        service_cls = getsubclass(cls, self.main_service)
-        if not service_cls:
-            service_cls = cls
-        return service_cls(self, logger).run()
-
-    def _get_config_path(self):
-        config_path = '.'.join([self.env, DOCKER_COMPOSE_PATH])
-        if self.env == 'dev':
-            return config_path
-        elif local.path(config_path).is_file():
-            return config_path
-        elif local.path(DOCKER_COMPOSE_PATH).is_file():
-            return DOCKER_COMPOSE_PATH
-        else:
-            raise_error(
-                "There is not %s.%s or %s file, please add one"
-                % (self.env, DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_PATH))
-
-    def _generate_dev_docker_compose_file(self):
-        generate = ask(
-            "There is not dev.docker-compose.yml file.\n"
-            "Do you want to generate one automatically",
-            default=True)
-        if generate:
-            GenerateComposeFile(self.service).generate()
-        else:
-            raise_error("No dev.docker-compose.yml file, abort!")
-
-    def _get_project_name(self):
-        return "%s_%s" % (local.env.user, local.cwd.name)
-
-
-class DockerComposeConfig(object):
-
-    def __init__(self, project):
-        self.config = yaml.safe_load(open(project.compose_file_path, 'r'))
-
-    def show_access_url(self):
-        for name, service in self.config['services'].items():
-            for env in service.get('environment', []):
-                if 'VIRTUAL_HOST=' in env:
-                    dns = env.replace('VIRTUAL_HOST=', '')
-                    logger.info(
-                        "The service %s is accessible on http://%s"
-                        % (name, dns))
-
-    def create_volume(self):
-        for name, service in self.config['services'].items():
-            if 'volumes' in service:
-                for volume_path in service['volumes']:
-                    volume = volume_path.split(':')[0]
-                    if volume.startswith('.') or volume.startswith('/'):
-                        path = local.path(volume)
-                        if not path.exists():
-                            logger.info(
-                                "Create missing directory %s for service %s",
-                                volume, name)
-                            local.path(volume).mkdir()
