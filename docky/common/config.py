@@ -25,6 +25,7 @@ DEFAULT_CONF = {
     "proxy": {
         "custom_image": None,
         "name": "proxy-docky",
+        "autostart": True,
     }
 }
 

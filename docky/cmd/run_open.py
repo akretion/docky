@@ -5,20 +5,7 @@
 
 
 from plumbum import cli
-from .base import Docky, DockySub, raise_error, logger
-from ..common.config import DockerComposeConfig
-import docker
-import yaml
-
-client = docker.from_env()
-
-DOCKY_NETWORK_NAME = 'dy'
-DOCKY_NETWORK_SUBNET = '172.30.0.0/16'
-DOCKY_NETWORK_GATEWAY = '172.30.0.1'
-DOCKY_NETWORK_OPTIONS = {
-    'com.docker.network.bridge.name': DOCKY_NETWORK_NAME,
-    'com.docker.network.bridge.host_binding_ipv4': '127.0.0.1',
-}
+from .base import Docky, DockySub, raise_error
 
 
 class DockyExec(object):
@@ -44,33 +31,14 @@ class DockyRun(DockySub, DockyExec):
     http://my_project.vd and http://my_plugin.my_project.vd
     """
 
-    def _set_local_dev_network(self):
-        net = DOCKY_NETWORK_NAME
-        if not client.networks.list(net):
-            ipam_pool = docker.types.IPAMPool(
-                subnet=DOCKY_NETWORK_SUBNET,
-                iprange=DOCKY_NETWORK_SUBNET,
-                gateway=DOCKY_NETWORK_GATEWAY,
-            )
-            ipam_config = docker.types.IPAMConfig(
-                pool_configs=[ipam_pool])
-
-            logger.info("Create '.%s' network" % net)
-
-            client.networks.create(
-                net,
-                driver="bridge",
-                ipam=ipam_config,
-                options=DOCKY_NETWORK_OPTIONS,
-            )
-
     def _check_running(self):
-        if self.get_containers(service=self.project.service):
+        if self.project.get_containers(service=self.project.service):
             raise_error("This container is already running, kill it or "
                         "use open to go inside")
 
     def _main(self, *optionnal_command_line):
         self._check_running()
+        self.proxy.start_if_needed()
         if self._use_specific_user():
             cmd = ['gosu', self.project.user]
         else:
@@ -79,13 +47,10 @@ class DockyRun(DockySub, DockyExec):
             cmd.append('bash')
         else:
             cmd += list(optionnal_command_line)
-        if self.env == 'dev':
-            self._set_local_dev_network()
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '-f'])
-        compose_config = DockerComposeConfig(self.project)
-        compose_config.show_access_url()
-        compose_config.create_volume()
+        self.project.show_access_url()
+        self.project.create_volume()
         self._exec('docker-compose', [
             '-f', self.project.compose_file_path,
             '--project-name', self.project.name,
@@ -98,7 +63,7 @@ class DockyOpen(DockySub, DockyExec):
     """Open a new session inside your dev container"""
 
     def _main(self, *args):
-        container = self.get_containers(service=self.project.service)
+        container = self.project.get_containers(service=self.project.service)
         if container:
             cmd = ["exec", "-ti", container[0].name]
             if self._use_specific_user():

@@ -5,13 +5,6 @@
 
 from .base import Docky, DockySub, raise_error, logger
 
-import docker
-
-client = docker.from_env()
-
-DOCKY_PROXY_DEFAULT_IMAGE = "quay.io/akretion/docky-proxy:20180712"
-DOCKY_PROXY_NAME = "docky-proxy"
-
 
 @Docky.subcommand("proxy")
 class DockyProxy(DockySub):
@@ -22,99 +15,41 @@ class DockyProxy(DockySub):
             raise_error("Please specify an action, start/stop/restart")
 
 
-class DockyProxySub(DockySub):
-
-    def __init__(self, executable):
-        super(DockyProxySub, self).__init__(executable)
-        self.container = self._get_container()
-
-    def _get_container(self):
-        container = client.containers.list(
-            all=True,
-            filters={'name': DOCKY_PROXY_NAME})
-        return container[0] if container else None
-
-    def _restart(self):
-        logger.info("Restart docky proxy")
-        self.container.restart()
-
-    def _start(self):
-        logger.info("Start Docky proxy")
-        proxy = self.project.docky_config.proxy
-        image_name = proxy['custom_image'] or DOCKY_PROXY_DEFAULT_IMAGE
-        client.containers.run(
-            image_name,
-            hostname=proxy.name,
-            name=proxy.name,
-            network_mode=self.project.docky_config.network['name'],
-            volumes=[
-                "/var/run/docker.sock:/tmp/docker.sock:ro",
-                "/etc/hosts:/app/hosts",
-                ],
-                detach=True)
-
-
 @DockyProxy.subcommand("start")
-class DockyProxyStart(DockyProxySub):
+class DockyProxyStart(DockySub):
     """Start your docky proxy"""
 
     def _main(self, *args):
-        if not self.container:
-            self._start()
-        elif self.container.status != 'running':
-            logger.info(
-                "A container already exist but is not running. Restart it")
-            self._restart()
-        else:
-            logger.info("Proxy is already running, skip")
+        self.proxy.start()
 
 
 @DockyProxy.subcommand("stop")
-class DockyProxyStop(DockyProxySub):
+class DockyProxyStop(DockySub):
     """Stop your docky proxy"""
 
     def _main(self, *args):
-        if not self.container:
-            logger.info("Proxy is already stopped, skip")
-        else:
-            logger.info("Stop the Proxy")
-            self.container.stop()
+        self.proxy.stop()
 
 
 @DockyProxy.subcommand("restart")
-class DockyProxyRestart(DockyProxySub):
+class DockyProxyRestart(DockySub):
     """Restart your docky proxy"""
 
     def _main(self, *args):
-        if not self.container:
-            logger.info("Their is no proxy start it")
-            self._start()
-        else:
-            self._restart()
+        self.proxy.restart()
 
 
-@DockyProxy.subcommand("status")
-class DockyProxyStatus(DockyProxySub):
+@DockyProxy.subcommand("ps")
+class DockyProxyPs(DockySub):
     """Get the status of your docky proxy"""
 
     def _main(self, *args):
-        if self.container:
-            status = self.container.status
-        else:
-            status = 'container do not exist'
-        logger.info('Proxy status: %s', status)
+        self.proxy.status()
 
 
 @DockyProxy.subcommand("kill")
-class DockyProxyKill(DockyProxySub):
+class DockyProxyKill(DockySub):
     """Kill your docky proxy"""
 
     def _main(self, *args):
-        if not self.container:
-            logger.info('Container do not exist, skip')
-        else:
-            if self.container.status != 'exited':
-                logger.info('Kill docky proxy')
-                self.container.kill()
-            logger.info('Remove docky container proxy')
-            self.container.remove()
+        self.proxy.kill()

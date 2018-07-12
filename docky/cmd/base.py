@@ -13,6 +13,7 @@ import os
 from ..common.api import logger, raise_error
 from ..common.config import DockyConfig
 from ..common.project import Project
+from ..common.proxy import Proxy
 
 
 class Docky(cli.Application):
@@ -62,6 +63,12 @@ class Docky(cli.Application):
         # the maintainer tools
         self.shared_folder = os.path.join(
             self.config.home, '.docky', 'shared')
+        self.project = Project(self.env, self.config)
+        self.project.build_network()
+        self.proxy = Proxy(self.project)
+        self.compose = local['docker-compose'][
+            '-f', self.project.compose_file_path,
+            '--project-name', self.project.name]
 
     @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
     def set_log_level(self):
@@ -71,6 +78,14 @@ class Docky(cli.Application):
 
 class DockySub(cli.Application):
 
+    def __init__(self, executable):
+        super(DockySub, self).__init__(executable)
+        self.env = self.parent.env
+        self.config = self.parent.config
+        self.project = self.parent.project
+        self.proxy = self.parent.proxy
+        self.compose = self.parent.compose
+
     def _exec(self, *args, **kwargs):
         self.parent._exec(*args, **kwargs)
 
@@ -78,12 +93,6 @@ class DockySub(cli.Application):
         self.parent._run(*args, **kwargs)
 
     def main(self, *args, **kwargs):
-        self.env = self.parent.env
-        self.project = Project(self.env, self.parent.config)
-        self.project.build_network()
-        self.compose = local['docker-compose'][
-            '-f', self.project.compose_file_path,
-            '--project-name', self.project.name]
         self._main(*args, **kwargs)
 
 DockySub.unbind_switches("--help-all", "-v", "--version")
