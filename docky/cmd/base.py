@@ -18,7 +18,7 @@ from ..common.proxy import Proxy
 
 class Docky(cli.Application):
     PROGNAME = "docky"
-    VERSION = '3.0.7'
+    VERSION = '4.0.0'
     SUBCOMMAND_HELPMSG = None
 
     dryrun = cli.Flag(
