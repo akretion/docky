@@ -10,7 +10,7 @@ def read(*parts):
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+    version_match = re.search(r"VERSION = ['\"]([^'\"]*)['\"]",
                               version_file, re.M)
     if version_match:
         return version_match.group(1)
@@ -18,7 +18,7 @@ def find_version(*file_paths):
 
 setup(
     name='docky',
-    version=find_version("docky", "main.py"),
+    version=find_version("docky", "cmd", "base.py"),
     author='Akretion',
     author_email='contact@akretion.com',
     url='https://github.com/akretion/docky/',
