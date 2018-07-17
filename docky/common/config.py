@@ -5,7 +5,6 @@
 
 import os
 import yaml
-from plumbum.cli.terminal import ask
 from .generator import GenerateComposeFile
 from .api import logger
 

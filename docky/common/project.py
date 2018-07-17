@@ -6,11 +6,13 @@
 from compose.cli.command import get_project
 from compose.project import OneOffFilter
 from plumbum import local
+from plumbum.cli.terminal import ask
 import docker
 import yaml
 import os
 
-from .api import logger
+from .api import logger, raise_error
+from .generator import GenerateComposeFile
 
 client = docker.from_env()
 
