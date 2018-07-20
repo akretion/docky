@@ -12,7 +12,7 @@ class DockyProxy(DockySub):
 
     def _main(self, *args):
         if not self.nested_command:
-            raise_error("Please specify an action, start/stop/restart")
+            raise_error("Please specify an action, start/stop/restart/kill/ps")
 
 
 @DockyProxy.subcommand("start")

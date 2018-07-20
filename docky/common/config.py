@@ -15,7 +15,6 @@ DEFAULT_CONF = {
     "network": {
         "name": "dy",
         "subnet": "172.30.0.0/16",
-        "gateway": "172.30.0.1",
         "options": {
             "com.docker.network.bridge.name": "dy",
             "com.docker.network.bridge.host_binding_ipv4": "127.0.0.1",
