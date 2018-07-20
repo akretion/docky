@@ -37,6 +37,9 @@ class DockyConfig(object):
     def __init__(self):
         super(DockyConfig, self).__init__()
         self.home = self._get_home()
+        docky_folder = os.path.join(self.home, '.docky')
+        if not os.path.exists(docky_folder):
+            os.makedirs(docky_folder)
         self.config_path = os.path.join(self.home, '.docky', 'config.yml')
         current_config = self._get_config()
         config = self._get_config_with_default_value(current_config)
