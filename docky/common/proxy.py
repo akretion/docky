@@ -8,7 +8,7 @@ from .api import logger
 
 client = docker.from_env()
 
-DOCKY_PROXY_DEFAULT_IMAGE = "quay.io/akretion/docky-proxy:20180712"
+DOCKY_PROXY_DEFAULT_IMAGE = "quay.io/akretion/docky-proxy:20180723"
 
 
 class Proxy(object):

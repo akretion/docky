@@ -112,20 +112,22 @@ class Project(object):
         if not network:
             logger.info("No network define, skip it")
         gateway = '.'.join(network['subnet'].split('.')[0:3] + ["1"])
-        if not client.networks.list(network['name']):
-            ipam_pool = docker.types.IPAMPool(
-                subnet=network['subnet'],
-                iprange=network['subnet'],
-                gateway=gateway,
-            )
-            ipam_config = docker.types.IPAMConfig(
-                pool_configs=[ipam_pool])
+        for net in client.networks.list(network['name']):
+            if net.name == network['name']:
+                return
+        ipam_pool = docker.types.IPAMPool(
+            subnet=network['subnet'],
+            iprange=network['subnet'],
+            gateway=gateway,
+        )
+        ipam_config = docker.types.IPAMConfig(
+            pool_configs=[ipam_pool])
 
-            logger.info("Create '.%s' network" % network['name'])
+        logger.info("Create '.%s' network" % network['name'])
 
-            client.networks.create(
-                network['name'],
-                driver="bridge",
-                ipam=ipam_config,
-                options=network['options'],
-            )
+        client.networks.create(
+            network['name'],
+            driver="bridge",
+            ipam=ipam_config,
+            options=network['options'],
+        )
