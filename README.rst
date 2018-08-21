@@ -8,7 +8,7 @@ History
 ----------
 This project was initialy created for building odoo environments without effort based on docker-compose and docker
 
-Step by step we make it generic and now we use it for our rails, ruby developpment
+Step by step we make it generic and now we also use it for our rails, ruby developpment
 
 How it works
 ---------------
@@ -23,7 +23,7 @@ Automatic Proxy
 
 When doing dev is quickly a mess to manage the port of your container, docky integrate a proxy (a basic docker image : https://github.com/akretion/docky-proxy/)
 
-That will generate for you a local domain .dy that will make your container accesible, for example with a project call my customer: you have a domain my-customer.dy
+That will generate for you a local domain .dy that will make your container accessible, for example with a project call **my customer**: you have a domain **my-customer.dy**
 
 
 Getting Started

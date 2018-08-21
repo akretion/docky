@@ -11,7 +11,7 @@ Odoo dockerized.
 How it works
 ---------------
 
-Docky leverage Docker-compose and `Anybox's buildout <http://pythonhosted.org/anybox.recipe.openerp/>`_ for odoo.
+Docky leverage Docker-compose for odoo.
 
 In your **host** run **docky** commands to bootstrap the project and launch docker.
 
@@ -21,10 +21,11 @@ Then in your **guest** (container), run **ak** commands to update odoo dependenc
 Automatic DNS resolution
 --------------------------
 
-Docky includ an automatic dns resolution by updating your /etc/hosts file and also includ an automatic nginx proxy.
-When you run a project in a directory called "my_project" a dns entry will be automatically created and be accessible from the host with my_project.vd. As nginx proxy is automatically updated you do not need to specify any port to access to your application.
+Docky include an automatic dns resolution by updating your /etc/hosts file and also includ an automatic nginx proxy.
+When you run a project in a directory called "my_project" a dns entry will be automatically created and be accessible from the host with my_project.dy. 
+As nginx proxy is automatically updated you do not need to specify any port to access to your application.
 
-If you add some plugin (like mailcatcher, pgadmin4 ...). They will be accessible to "my_plugin.my_project.vd"
+If you add some plugin (like mailcatcher, pgadmin4 ...). They will be accessible to "my_plugin.my_project.dy"
 
 When you start a app with docky run docky will automatically show the dns available
 
@@ -55,25 +56,13 @@ First run ak build to build you project with anybox buildout recipe
 
    ak build
 
-Then launch ak run to start odoo
+Then launch odoo cmd line to run odoo
 
 .. code-block:: shell
 
-   ak run
+   odoo
 
-Go to http://my_project.vd Odoo is here !
+Go to http://my_project.dy Odoo is here !
 
-
-Another usage
--------------------
-
-Use as a simple Odoo project repository managed by Anybox recipe (without using Docker)
-
-You can clone a docky branch to start your project as simple convenience repo for your project. With the buildout.cfg file you can pin exactly your shared branches dependencies. You also keep the project specific modules under revision control in the modules folder.
-
-For further details, please simply refer to `Anybox recipe documentation <http://docs.anybox.fr/anybox.recipe.openerp/trunk>`_
-
-
-Note that the Docker workdir is your repo that is shared with Docker, so you won't loose your source changes nor loose time copying files.
-
-Your databases are also persisted in your repo folder in the .db hidden folder. But you can always trash all project databases by simply removing that folder.
+Your databases are also persisted in your repo folder in the .db hidden folder. 
+But you can always trash all project databases by simply removing that folder.
