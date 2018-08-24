@@ -35,14 +35,14 @@ Install Docky:
 
 .. code-block:: shell
 
-    sudo pip install docky-cli
+    sudo pip install docky
 
 Update Docky:
 ------------------
 
 .. code-block:: shell
 
-    sudo pip install docky-cli --upgrade
+    sudo pip install docky --upgrade
     docker pull akretion/docky
 
 Configuration:
@@ -66,25 +66,8 @@ maintainer_quality_tools [url]:
 
 URL for the maintainer-quality-tools of OCA used for testing the code
 
-shared_eggs [True or False]:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If true the ~/.docky/shared/eggs will be mounted as eggs folder in your docker
-This mean that the eggs will be shared between your docky projects saving some download and space.
-
-If you don't want share eggs for a specific project, just create your `./eggs` folder after created your project (docky new).
-
 shared_gems [True or False]:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If true the ~/.docky/shared/gems will be mounted as gems folder in your docker
 This mean that the gems will be shared between your docky projects saving some download and space.
-
-odoo [url]:
-~~~~~~~~~~~~
-
-The odoo repo by default the  OCA repo: 'https://github.com/oca/ocb.git'
-
-If you want start your project quickly and avoid to duplicate odoo source code, you can create manually a symbolic link after  created project in `./parts/odoo` from existing odoo projects. Sharing source can be confusing, don't use for dev of projects which are in production.
-
-Note : to improve the performance when downloading odoo, an odoo project is downloaded in ~/.docky/shared/odoo. Then when you start a new project the new odoo part is created from this local repository.
