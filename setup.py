@@ -25,6 +25,10 @@ setup(
     description='Make developpement with docker simply',
     license="AGPLv3+",
     long_description=open('README.rst').read(),
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "Operating System :: POSIX :: Linux",
+    ],
     install_requires=[
         r.strip() for r in open('requirements.txt').read().splitlines() ],
     entry_points="""
