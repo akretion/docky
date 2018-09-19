@@ -45,11 +45,13 @@ services:
     image: xcgd/py3oserver-docker
     links:
       - "oooserver"
-    volumes_from:
-      - "oooserver"
+    volumes:
+      - .py3o:/tmp
   oooserver:
     optional: Add py3o reports server
     image: xcgd/libreoffice
+    volumes:
+      - .py3o:/tmp
   metabase:
     optional: metabase is Web tools for BI with dashboard
     expose: 3000

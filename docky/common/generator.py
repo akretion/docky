@@ -39,9 +39,9 @@ class GenerateComposeFile(object):
                 if answer[option]:
                     # remove useless docker compose key
                     del self.config['services'][name]['optional']
-                    if not 'links' in self.config['services'][self._service]:
-                        self.config['services'][self._service]['links'] = []
-                    self.config['services'][self._service]['links'].append(name)
+                    if not 'links' in self.config['services'][self.service]:
+                        self.config['services'][self.service]['links'] = []
+                    self.config['services'][self.service]['links'].append(name)
                 else:
                     del self.config['services'][name]
 
