@@ -2,6 +2,8 @@ networks:
   default:
     external:
       name: dy
+volumes:
+  py3o_tmp:
 services:
   mariadb:
     optional: Add magento server (with connector) ?
@@ -36,22 +38,20 @@ services:
   py3ofusion:
     optional: Add py3o reports server
     image: xcgd/py3o.fusion
-    ports:
-      - "8765:8765"
     links:
       - "py3orenderserver"
   py3orenderserver:
     optional: Add py3o reports server
     image: xcgd/py3oserver-docker
     links:
-      - "oooserver"
+      - oooserver
     volumes:
-      - .py3o:/tmp
+      - py3o_tmp:/tmp
   oooserver:
     optional: Add py3o reports server
     image: xcgd/libreoffice
     volumes:
-      - .py3o:/tmp
+      - py3o_tmp:/tmp
   metabase:
     optional: metabase is Web tools for BI with dashboard
     expose: 3000
