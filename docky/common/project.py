@@ -67,7 +67,10 @@ class Project(object):
             raise_error("No dev.docker-compose.yml file, abort!")
 
     def _get_project_name(self):
-        return "%s_%s" % (local.env.user, local.cwd.name)
+        return local.env.get(
+            'COMPOSE_PROJECT_NAME',
+            '%s_%s' % (local.env.user, local.cwd.name)
+        )
 
     def get_containers(self, service=None):
         project = get_project(
