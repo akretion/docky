@@ -60,18 +60,15 @@ class Docky(cli.Application):
                 'value in ~/.docky/config.yml')
 
         # TODO maybe remove me with the code of downloading
-        # the maintainer tools
+        # the maintainer tools
         self.shared_folder = os.path.join(
             self.config.home, '.docky', 'shared')
         self.project = Project(self.env, self.config)
         self.project.build_network()
         self.proxy = Proxy(self.project)
-        project_name = local.env.get(
-            'COMPOSE_PROJECT_NAME', self.project.name
-        )
         self.compose = local['docker-compose'][
             '-f', self.project.compose_file_path,
-            '--project-name', project_name]
+            '--project-name', self.project.name]
 
     @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
     def set_log_level(self):
