@@ -30,3 +30,9 @@ Getting Started
 ---------------------
 
 READ the documentation: `Docky documentation <http://akretion.github.io/docky/master/index.html>`_
+
+
+Troubleshooting
+--------------------
+
+see https://github.com/akretion/docky/wiki
