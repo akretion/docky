@@ -93,6 +93,7 @@ sudo systemctl restart dnsmasq
 ```
 
 If you have some issue on ubutnu 18.04 please take a look here for the configuration
+
 - https://computingforgeeks.com/install-and-configure-dnsmasq-on-ubuntu-18-04-lts/
 - https://superuser.com/questions/1318220/ubuntu-18-04-disable-dnsmasq-base-and-enable-full-dnsmasq
 
@@ -136,7 +137,9 @@ see https://github.com/akretion/docky/wiki
 
 Changelog
 ----------
-version 5.0:
+
+version 5.0.0:
+
 - Resolve mac compatibility by remove proxy code that use a mounted version of etc/hosts
   now you need to install dnsmasq.
   This should also solve windows compatibilty by using the local dns https://stackoverflow.com/questions/138162/wildcards-in-a-windows-hosts-file?answertab=votes#tab-top
