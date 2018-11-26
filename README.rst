@@ -29,10 +29,15 @@ That will generate for you a local domain .dy that will make your container acce
 Getting Started
 ---------------------
 
+
 READ the documentation: `Docky documentation <http://akretion.github.io/docky/master/index.html>`_
 
 
 Troubleshooting
 --------------------
 
+To avoid issue with line wrapping with "docky open" please use a version of docker > to  18.06.0-ce
+see : https://github.com/docker/compose/issues/6151
+
+Other issue :
 see https://github.com/akretion/docky/wiki

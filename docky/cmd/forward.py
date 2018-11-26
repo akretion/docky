@@ -10,7 +10,10 @@ class DockyForward(DockySub):
     _cmd = None
 
     def _main(self, *args):
-        return self._run(self.compose[self._cmd.split(' ')])
+        cmd = self._cmd.split(' ')
+        if args:
+            cmd.append(*args)
+        return self._run(self.compose[cmd])
 
 
 @Docky.subcommand("build")
@@ -53,3 +56,11 @@ class DockyLogs(DockyForward):
 class DockyPull(DockyForward):
     """Pulls service images"""
     _cmd = "pull"
+
+
+@Docky.subcommand("restart")
+class DockyRestart(DockyForward):
+    """Restart service"""
+    _cmd = "restart"
+
+

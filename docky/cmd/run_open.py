@@ -54,7 +54,7 @@ class DockyRun(DockySub, DockyExec):
         self._exec('docker-compose', [
             '-f', self.project.compose_file_path,
             '--project-name', self.project.name,
-            'run', '--rm', '--service-ports',
+            'run', '--rm', '--service-ports', '--use-aliases',
             self.project.service] + cmd)
 
 
@@ -62,15 +62,15 @@ class DockyRun(DockySub, DockyExec):
 class DockyOpen(DockySub, DockyExec):
     """Open a new session inside your dev container"""
 
-    def _main(self, *args):
-        container = self.project.get_containers(service=self.project.service)
-        if container:
-            cmd = ["exec", "-ti", container[0].name]
+    # Patch compose service to be make it working with docker-compose run
+
+    def _main(self, service=None):
+        cmd = ['bash']
+        if not service:
+            service = self.project.service
             if self._use_specific_user():
-                cmd += ['gosu', self.project.user, 'bash']
-            else:
-                cmd.append('bash')
-            self._exec('docker', cmd)
-        else:
-            raise_error(
-                "No container found for the service %s" % self.main_service)
+                cmd = ['gosu', self.project.user, 'bash']
+        self._exec('dcpatched', [
+            '-f', self.project.compose_file_path,
+            '--project-name', self.project.name,
+            'exec', service] + cmd)
