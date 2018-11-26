@@ -41,7 +41,6 @@ class Proxy(object):
             network_mode=self.network['name'],
             volumes=[
                 "/var/run/docker.sock:/tmp/docker.sock:ro",
-                "/etc/hosts:/app/hosts",
                 ],
                 detach=True)
 
