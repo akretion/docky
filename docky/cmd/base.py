@@ -21,10 +21,6 @@ class Docky(cli.Application):
     VERSION = '4.0.4'
     SUBCOMMAND_HELPMSG = None
 
-    dryrun = cli.Flag(
-        ["dry-run"],
-        help="Dry run mode",
-        group = "Meta-switches")
     force_env = cli.SwitchAttr(
         ["e", "env"],
         help="Environment flag",
@@ -33,42 +29,22 @@ class Docky(cli.Application):
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""
         logger.debug(str(cmd).replace('/usr/local/bin/', ''))
-        if (self.dryrun):
-            logger.info(cmd)
-            return True
         return cmd & retcode
 
     def _exec(self, cmd, args=[]):
         """Run a command in the same process and log it
         this will replace the current process by the cmd"""
         logger.debug(cmd + ' '.join(args))
-        if (self.dryrun):
-            logger.info("os.execvpe (%s, %s, env)", cmd, [cmd] + args)
-            return True
         os.execvpe(cmd, [cmd] + args, local.env)
 
     def __init__(self, executable):
         super(Docky, self).__init__(executable)
         self.config = DockyConfig()
-        local.env['UID'] = str(getpwnam(local.env.user).pw_uid)
-        self.env = self.force_env or self.config.env
-
         if self.config.verbose:
             self.set_log_level()
             logger.debug(
                 'Start in verbose mode. You can change the default '
                 'value in ~/.docky/config.yml')
-
-        # TODO maybe remove me with the code of downloading
-        # the maintainer tools
-        self.shared_folder = os.path.join(
-            self.config.home, '.docky', 'shared')
-        self.project = Project(self.env, self.config)
-        self.project.build_network()
-        self.proxy = Proxy(self.project)
-        self.compose = local['docker-compose'][
-            '-f', self.project.compose_file_path,
-            '--project-name', self.project.name]
 
     @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
     def set_log_level(self):
@@ -77,14 +53,7 @@ class Docky(cli.Application):
 
 
 class DockySub(cli.Application):
-
-    def __init__(self, executable):
-        super(DockySub, self).__init__(executable)
-        self.env = self.parent.env
-        self.config = self.parent.config
-        self.project = self.parent.project
-        self.proxy = self.parent.proxy
-        self.compose = self.parent.compose
+    _project_specific = True
 
     def _exec(self, *args, **kwargs):
         self.parent._exec(*args, **kwargs)
@@ -92,7 +61,24 @@ class DockySub(cli.Application):
     def _run(self, *args, **kwargs):
         self.parent._run(*args, **kwargs)
 
+    def _init_project(self):
+        self.project = Project(self.env, self.parent.config)
+        self.project.build_network()
+        self.compose = local['docker-compose'][
+            '-f', self.project.compose_file_path,
+            '--project-name', self.project.name]
+
     def main(self, *args, **kwargs):
+        local.env['UID'] = str(getpwnam(local.env.user).pw_uid)
+        self.env = self.parent.force_env or self.parent.config.env
+        self.proxy = Proxy(self.parent.config)
+        if self._project_specific:
+            self._init_project()
         self._main(*args, **kwargs)
+
+
+class DockySubNoProject(DockySub):
+    _project_specific = False
+
 
 DockySub.unbind_switches("--help-all", "-v", "--version")

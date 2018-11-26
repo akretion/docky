@@ -13,10 +13,10 @@ DOCKY_PROXY_DEFAULT_IMAGE = "quay.io/akretion/docky-proxy:20180723"
 
 class Proxy(object):
 
-    def __init__(self, project):
+    def __init__(self, docky_config):
         super(Proxy, self).__init__()
-        self.network = project.docky_config.network
-        config = project.docky_config.proxy
+        self.network = docky_config.network
+        config = docky_config.proxy
         self.image = config.get('custom_image') or DOCKY_PROXY_DEFAULT_IMAGE
         self.name = config['name']
         self.autostart = config['autostart']
