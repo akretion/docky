@@ -1,4 +1,4 @@
-docker-compose>=1.22.0
+docker-compose>=1.23.1
 plumbum
 rainbow_logging_handler
 python-slugify

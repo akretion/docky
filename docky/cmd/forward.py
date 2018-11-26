@@ -59,7 +59,7 @@ class DockyPull(DockyForward):
 
 
 @Docky.subcommand("restart")
-class DockyDown(DockyForward):
+class DockyRestart(DockyForward):
     """Restart service"""
     _cmd = "restart"
 
