@@ -11,13 +11,10 @@ from plumbum import cli
 class DockyProxy(cli.Application):
     """Start/Restart/Stop your docky proxy"""
 
-    def __init__(self, executable):
-        super(DockyProxy, self).__init__(executable)
+    def main(self, *args, **kwargs):
         self.force_env = self.parent.force_env
         self.env = self.parent.config.env
         self.config = self.parent.config
-
-    def main(self, *args, **kwargs):
         if not self.nested_command:
             raise_error("Please specify an action, start/stop/restart/kill/ps")
 

@@ -1,2 +1,3 @@
-#python setup.py test
-#pydocstyle docky
+#!/bin/bash
+set -e
+echo "Dummy but needed by travis"
