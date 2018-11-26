@@ -10,22 +10,22 @@ from .base import Docky, DockySub, raise_error
 
 @Docky.subcommand("migrate")
 class DockyMigrate(DockySub):
-    """Migrate your odoo project
-
-    First you need to checkout the docky-upgrade template
-    available here : https://github.com/akretion/docky-upgrade
-    (It's a template a docky but based on open-upgrade'
-
-    Then go inside the repository clonned and launch the migration
-
-    * For migrating from 6.1 to 8.0 run:
-        docky migrate -b 7.0,8.0
-    * For migrating from 6.1 to 9.0 run:
-        docky migrate -b 7.0,8.0,9.0
-    * For migrating and loading a database run:
-        docky migrate -b 7.0,8.0 --db-file=tomigrate.dump
-
-    """
+    """TODO Migrate your odoo project"""
+#
+#    First you need to checkout the docky-upgrade template
+#    available here : https://github.com/akretion/docky-upgrade
+#    (It's a template a docky but based on open-upgrade'
+#
+#    Then go inside the repository clonned and launch the migration
+#
+#    * For migrating from 6.1 to 8.0 run:
+#        docky migrate -b 7.0,8.0
+#    * For migrating from 6.1 to 9.0 run:
+#        docky migrate -b 7.0,8.0,9.0
+#    * For migrating and loading a database run:
+#        docky migrate -b 7.0,8.0 --db-file=tomigrate.dump
+#
+#    """
 
     db_file = cli.SwitchAttr(["db-file"])
     apply_branch = cli.SwitchAttr(

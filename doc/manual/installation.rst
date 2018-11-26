@@ -43,7 +43,6 @@ Update Docky:
 .. code-block:: shell
 
     sudo pip install docky --upgrade
-    docker pull akretion/docky
 
 Configuration:
 --------------
@@ -61,13 +60,14 @@ env [dev, prod, preprod]:
 
 Specify which kind of environment is used
 
-maintainer_quality_tools [url]:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+network
+~~~~~~~~~~~
+Docker network configuration for all container run with docky
+See docker configuration
 
-URL for the maintainer-quality-tools of OCA used for testing the code
-
-shared_gems [True or False]:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If true the ~/.docky/shared/gems will be mounted as gems folder in your docker
-This mean that the gems will be shared between your docky projects saving some download and space.
+proxy
+~~~~~~
+Proxy configuration:
+ autostart: automatically start proxy when running the container
+ custom_image: custom image name if needed
+ name: name of the proxy container

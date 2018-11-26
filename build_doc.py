@@ -35,10 +35,14 @@ def run_cmd(cmd, quiet=False):
     return result.stdout.strip()
 
 REPLACE_DOC = [
-    ("Subcommands:",
-    "============== ==========\nSubcommands:\n============== =========="),
+    ("Sub-commands:",
+    "==============         ==========\nSub-commands:\n"
+    "==============         =========="),
     ("VALUE:str", "VALUE"),
-    ("\ndocky build", "============== ==========\ndocky build")
+    ("\ndocky build",
+    "==============         ==========\ndocky build"),
+    ("\ndocky proxy kill",
+    "==============         ==========\ndocky proxy kill"),
     ]
 
 def generate_cmd_doc():
@@ -54,11 +58,14 @@ def generate_cmd_doc():
     for doc in data.split("\ndocky "):
         header, doc = doc.split("\n", 1)
         name = header.rsplit(' ', 1)[0]
-        filename = name.replace(' ', '.')
+        if name != 'docky':
+            name = 'docky ' + name
         header = "\n".join([name, len(name) * "-"])
         cmd.write(header + "\n")
         cmd.write(doc + "\n\n")
     cmd.close()
+    print('Print result of doc/auto/cmd.rst')
+    run_cmd('cat -n doc/auto/cmd.rst')
 
 
 def build_docstring_rst():

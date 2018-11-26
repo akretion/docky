@@ -21,15 +21,7 @@ class DockyExec(object):
 
 @Docky.subcommand("run")
 class DockyRun(DockySub, DockyExec):
-    """Start services and enter in your dev container
-
-    After running the command you will be inside the container and
-    you will have access to the ak cmd (see ak documenation)
-    main command are 'ak run' and 'ak build'
-
-    Note: the container is accessible with the following url :
-    http://my_project.vd and http://my_plugin.my_project.vd
-    """
+    """Start services and enter in your dev container"""
 
     def _check_running(self):
         if self.project.get_containers(service=self.project.service):
