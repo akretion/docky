@@ -3,20 +3,26 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from .base import Docky, DockySub, raise_error, logger
+from .base import Docky, DockySubNoProject, raise_error, logger
+from plumbum import cli
 
 
 @Docky.subcommand("proxy")
-class DockyProxy(DockySub):
+class DockyProxy(cli.Application):
     """Start/Restart/Stop your docky proxy"""
 
-    def _main(self, *args):
+    def __init__(self, executable):
+        super(DockyProxy, self).__init__(executable)
+        self.force_env = self.parent.force_env
+        self.env = self.parent.config.env
+        self.config = self.parent.config
+
+    def main(self, *args, **kwargs):
         if not self.nested_command:
             raise_error("Please specify an action, start/stop/restart/kill/ps")
 
-
 @DockyProxy.subcommand("start")
-class DockyProxyStart(DockySub):
+class DockyProxyStart(DockySubNoProject):
     """Start your docky proxy"""
 
     def _main(self, *args):
@@ -24,7 +30,7 @@ class DockyProxyStart(DockySub):
 
 
 @DockyProxy.subcommand("stop")
-class DockyProxyStop(DockySub):
+class DockyProxyStop(DockySubNoProject):
     """Stop your docky proxy"""
 
     def _main(self, *args):
@@ -32,7 +38,7 @@ class DockyProxyStop(DockySub):
 
 
 @DockyProxy.subcommand("restart")
-class DockyProxyRestart(DockySub):
+class DockyProxyRestart(DockySubNoProject):
     """Restart your docky proxy"""
 
     def _main(self, *args):
@@ -40,7 +46,7 @@ class DockyProxyRestart(DockySub):
 
 
 @DockyProxy.subcommand("ps")
-class DockyProxyPs(DockySub):
+class DockyProxyPs(DockySubNoProject):
     """Get the status of your docky proxy"""
 
     def _main(self, *args):
@@ -48,7 +54,7 @@ class DockyProxyPs(DockySub):
 
 
 @DockyProxy.subcommand("kill")
-class DockyProxyKill(DockySub):
+class DockyProxyKill(DockySubNoProject):
     """Kill your docky proxy"""
 
     def _main(self, *args):
