@@ -67,7 +67,9 @@ Now let's start Odoo
    docky build
 
 It will run a new docker image with odoo and postgres inside.
-Docky build will read and execute the file 'odoo/Dockerfile'
+Docky build will read and execute the file 'odoo/Dockerfile'.
+
+If you doesn't have the file 'dev.docker-compose.yml' before the docky build, it will automatically ask you if you want to create the file.
 
 Then, run it.
 
