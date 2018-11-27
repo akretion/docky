@@ -11,11 +11,13 @@ Odoo dockerized.
 How it works
 ---------------
 
-Firtsly, pull a odoo's template from this url : <git@github.com:antoinecln/docky-odoo-template.git> -b 'the branch you want'. After this you will have a blank odoo project.
+Firtsly, we will pull a blank odoo template from github and create it on our hard drive.
+
+We will build it and run it to have a functional odoo project. 
  
 In odoo/spec.yaml, you will find module's url from github that you want to install when you build your odoo project. 
 
-In odoo/requirements.txt, you will find all dependency you need to run your odoo project.
+In odoo/requirements.txt, you will find all python dependency you need to run your odoo project.
 
 In dev.docker-compose.yml, you will find the global configuration of your odoo project.
 You can change the database name, add path for all addons and more for example. 
@@ -37,7 +39,7 @@ Create a new project
 
 .. code-block:: shell
 
-    git clone 'template's github url' -b 'name of the branch'
+    git clone 'template's github url' -b 'branch's name' 'directory's name'
 
 Enter in the project directory then ak build
 
