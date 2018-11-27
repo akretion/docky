@@ -62,8 +62,6 @@ After this go out of the directory with cd ..
 
 Now let's start Odoo
 
-First run docky build to build you project with anybox buildout recipe.
-
 .. code-block:: shell
 
    docky build
