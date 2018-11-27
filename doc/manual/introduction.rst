@@ -52,7 +52,9 @@ Ak build will use the file requirements.txt and spec.yaml to generate many direc
 
 After this ak build ;
 -> Directory 'external-src' contains all the modules you write in the file 'odoo/spec.yaml'. 
+
 -> Directory 'links' contains ???
+
 -> Directory 'src' contains all modules installed by default in Odoo, all theses modules come from OCB
 More informations here : https://github.com/OCA/OCB. 
 
