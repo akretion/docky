@@ -41,30 +41,53 @@ Create a new project
 
     git clone 'template's github url' -b 'branch's name' 'directory's name'
 
-Enter in the project directory then ak build
+Enter in the project directory, in odoo directory, then ak build
 
 .. code-block:: shell
 
-   cd 'directory's_name'
-   directory's_name$ ak build
+   cd 'directory's_name/odoo'
+   directory's_name/odoo$ ak build
 
-It will run a new docker image with odoo and postgres inside. after this go out of the directory with cd ..
+Ak build will use the file requirements.txt and spec.yaml to generate many directory in the odoo directory : 'external-src', 'links' and 'src'.
+
+After this ak build ;
+-> Directory 'external-src' contains all the modules you write in the file 'odoo/spec.yaml'. 
+-> Directory 'links' contains ???
+-> Directory 'src' contains all modules installed by default in Odoo, all theses modules come from OCB
+More informations here : https://github.com/OCA/OCB. 
+
+After this go out of the directory with cd ..
 
 
 Now let's start Odoo
 
-First run docky build to build you project with anybox buildout recipe, then run it.
+First run docky build to build you project with anybox buildout recipe.
 
 .. code-block:: shell
 
    docky build
+
+It will run a new docker image with odoo and postgres inside.
+Docky build will read and execute the file 'odoo/Dockerfile'
+
+Then, run it.
+
+.. code-block:: shell
+
    docky run
 
-Then launch odoo
+It will create new container for your odoo web service and your database.
+After running docky, you will be in the odoo web service container by default :
+odoo@'containers':/$
+
+Then launch odoo in the container
 
 .. code-block:: shell
 
    odoo
+
+It will read many file like '/etc/odoo.cfg' and 'directory's_name/odoo/dev.docker-compose.yml'
+It will too read all modules in the path '/odoo/src/odoo'.
 
 Go to http://directory's_name.dy Odoo is here !
 
