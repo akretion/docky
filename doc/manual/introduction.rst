@@ -11,12 +11,14 @@ Odoo dockerized.
 How it works
 ---------------
 
-Docky leverage Docker-compose and `Anybox's buildout <http://pythonhosted.org/anybox.recipe.openerp/>`_ for odoo.
+Firtsly, pull a odoo's template from this url : git@github.com:antoinecln/docky-odoo-template.git -b 'the branch you want'. After this u will have a clean odoo project. 
+ 
+In odoo/spec.yaml, you will find module's url from github that you want to install when you build your odoo project. 
 
-In your **host** run **docky** commands to bootstrap the project and launch docker.
+In odoo/requirements.txt, you will find all dependency you need to run your odoo project.
 
-Then in your **guest** (container), run **ak** commands to update odoo dependencies (odoo modules), trigger update scripts and restart odoo server.
-
+In dev.docker-compose.yml, you will find the global configuration of your odoo project.
+You can change the database name, add path for all addons and more for example. 
 
 Automatic DNS resolution
 --------------------------
@@ -35,33 +37,34 @@ Create a new project
 
 .. code-block:: shell
 
-    docky new my_project
+    git clone 'template's github url' -b 'name of the branch'
 
 Enter in the project directory then run docky
 
 .. code-block:: shell
 
-   cd my_project
-   docky run
+   cd 'repository's_name'
+   repository's_name$ ak build
 
 It will run a new docker image with odoo and postgres inside.
 
 
 Now let's start Odoo
 
-First run ak build to build you project with anybox buildout recipe
+First run docky build to build you project with anybox buildout recipe, then run it.
 
 .. code-block:: shell
 
-   ak build
+   docky build
+   docky run
 
-Then launch ak run to start odoo
+Then launch odoo to start odoo
 
 .. code-block:: shell
 
-   ak run
+   odoo
 
-Go to http://my_project.vd Odoo is here !
+Go to http://repository's_name.vd Odoo is here !
 
 
 Another usage
