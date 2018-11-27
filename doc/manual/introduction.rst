@@ -46,7 +46,7 @@ Enter in the project directory then ak build
    cd 'directory's_name'
    directory's_name$ ak build
 
-It will run a new docker image with odoo and postgres inside.
+It will run a new docker image with odoo and postgres inside. after this go out of the directory with cd ..
 
 
 Now let's start Odoo
