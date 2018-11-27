@@ -11,7 +11,7 @@ Odoo dockerized.
 How it works
 ---------------
 
-Firtsly, pull a odoo's template from this url : git@github.com:antoinecln/docky-odoo-template.git -b 'the branch you want'. After this u will have a clean odoo project. 
+Firtsly, pull a odoo's template from this url : <git@github.com:antoinecln/docky-odoo-template.git> -b 'the branch you want'. After this you will have a blank odoo project.
  
 In odoo/spec.yaml, you will find module's url from github that you want to install when you build your odoo project. 
 
@@ -39,12 +39,12 @@ Create a new project
 
     git clone 'template's github url' -b 'name of the branch'
 
-Enter in the project directory then run docky
+Enter in the project directory then ak build
 
 .. code-block:: shell
 
-   cd 'repository's_name'
-   repository's_name$ ak build
+   cd 'directory's_name'
+   directory's_name$ ak build
 
 It will run a new docker image with odoo and postgres inside.
 
@@ -58,13 +58,13 @@ First run docky build to build you project with anybox buildout recipe, then run
    docky build
    docky run
 
-Then launch odoo to start odoo
+Then launch odoo
 
 .. code-block:: shell
 
    odoo
 
-Go to http://repository's_name.vd Odoo is here !
+Go to http://directory's_name.dy Odoo is here !
 
 
 Another usage
