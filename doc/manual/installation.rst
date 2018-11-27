@@ -35,14 +35,14 @@ Install Docky:
 
 .. code-block:: shell
 
-    sudo pip install docky-cli
+    sudo pip3 install docky
 
 Update Docky:
 ------------------
 
 .. code-block:: shell
 
-    sudo pip install docky-cli --upgrade
+    sudo pip install docky --upgrade
     docker pull akretion/docky
 
 Configuration:
