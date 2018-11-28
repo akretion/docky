@@ -44,7 +44,7 @@ Clone a new project
 Enter in the project directory, in odoo directory, then ak build
 
 
-If you doesn't have ak, you can install it with this command : 
+If you doesn't have 'ak https://github.com/akretion/ak'_, you can install it with this command : 
 
 .. code-block:: shell
 
