@@ -15,7 +15,7 @@ Firtsly, we will pull a blank odoo template from github and create it on our har
 
 We will build it and run it to have a functional odoo project. 
  
-In odoo/spec.yaml, you will write module's url from github that you need to install when you build your odoo project. 
+In odoo/spec.yaml, you will write module's url from git repository that you need to install when you build your odoo project. 
 
 In odoo/requirements.txt, you will write all python dependency you need to run your odoo project.
 
