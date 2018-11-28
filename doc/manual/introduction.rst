@@ -15,12 +15,12 @@ Firtsly, we will pull a blank odoo template from github and create it on our har
 
 We will build it and run it to have a functional odoo project. 
  
-In odoo/spec.yaml, you will find module's url from github that you want to install when you build your odoo project. 
+In odoo/spec.yaml, you will write module's url from github that you need to install when you build your odoo project. 
 
-In odoo/requirements.txt, you will find all python dependency you need to run your odoo project.
+In odoo/requirements.txt, you will write all python dependency you need to run your odoo project.
 
 In dev.docker-compose.yml, you will find the global configuration of your odoo project.
-You can change the database name, add path for all addons and more for example. 
+This file is not in the blank template by default but if you run docky build, it will ask you if you want to create it. 
 
 Automatic DNS resolution
 --------------------------
@@ -35,7 +35,7 @@ When you start a app with docky run docky will automatically show the dns availa
 Getting Started
 ------------------
 
-Create a new project
+Clone a new project
 
 .. code-block:: shell
 
@@ -43,12 +43,20 @@ Create a new project
 
 Enter in the project directory, in odoo directory, then ak build
 
+
+If you doesn't have ak, you can install it with this command : 
+
+.. code-block:: shell
+
+    pip3 install git+https://@github.com/akretion/ak
+
 .. code-block:: shell
 
    cd 'directory's_name/odoo'
    directory's_name/odoo$ ak build
 
-Ak build will use the file requirements.txt and spec.yaml to generate many directory in the odoo directory : 'external-src', 'links' and 'src'.
+
+Ak build will use the file requirements.txt and spec.yaml to generate theses directory in the odoo directory : 'external-src', 'links' and 'src'.
 
 After this ak build ;
 
@@ -77,32 +85,24 @@ Then, run it.
 
    docky run
 
-It will create new container for your odoo web service and your database.
+It will create 4 new differents containers for your odoo web service and your database.
 After running docky, you will be in the odoo web service container by default :
 odoo@'containers':/$
 
-Then launch odoo in the container
+It will read the file 'directory's_name/odoo/dev.docker-compose.yml'
+
+Then you can start your odoo
 
 .. code-block:: shell
 
    odoo
 
-It will read many file like '/etc/odoo.cfg' and 'directory's_name/odoo/dev.docker-compose.yml'
-It will too read all modules in the path '/odoo/src/odoo'.
+It will read the file '/etc/odoo.cfg' and all the module in the path '/odoo/src/odoo'
 
 Go to http://directory's_name.dy Odoo is here !
 
 
 Another usage
 -------------------
-
-Use as a simple Odoo project repository managed by Anybox recipe (without using Docker)
-
-You can clone a docky branch to start your project as simple convenience repo for your project. With the buildout.cfg file you can pin exactly your shared branches dependencies. You also keep the project specific modules under revision control in the modules folder.
-
-For further details, please simply refer to `Anybox recipe documentation <http://docs.anybox.fr/anybox.recipe.openerp/trunk>`_
-
-
-Note that the Docker workdir is your repo that is shared with Docker, so you won't loose your source changes nor loose time copying files.
-
+ 
 Your databases are also persisted in your repo folder in the .db hidden folder. But you can always trash all project databases by simply removing that folder.
