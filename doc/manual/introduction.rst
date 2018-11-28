@@ -85,9 +85,12 @@ Then, run it.
 
    docky run
 
-It will create 4 new differents containers for your odoo web service and your database.
+It will create new containers for your odoo web service and your database.
 After running docky, you will be in the odoo web service container by default :
-odoo@'containers':/$
+
+.. code-block:: shell
+
+    odoo@ab86ad9c84f4:/$
 
 It will read the file 'directory's_name/odoo/dev.docker-compose.yml'
 
@@ -95,7 +98,7 @@ Then you can start your odoo
 
 .. code-block:: shell
 
-   odoo
+   odoo@ab86ad9c84f4:/$ odoo
 
 It will read the file '/etc/odoo.cfg' and all the module in the path '/odoo/src/odoo'
 
