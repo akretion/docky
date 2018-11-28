@@ -43,7 +43,6 @@ Update Docky:
 .. code-block:: shell
 
     sudo pip install docky --upgrade
-    docker pull akretion/docky
 
 Configuration:
 --------------

@@ -35,7 +35,7 @@ When you start a app with docky run docky will automatically show the dns availa
 Getting Started
 ------------------
 
-Clone a new project
+Clone a new project from template
 
 .. code-block:: shell
 
