@@ -20,10 +20,9 @@ def get_run_container(self, number=1):
         return container
 
     # search for container running with "run" cmd
-    for container in self.containers(
-            one_off=True,
-            labels=['{0}={1}'.format(LABEL_CONTAINER_NUMBER, number)]):
-        return container
+    for container in self.containers(one_off=True):
+        if container.service == self.name:
+            return container
     raise ValueError("No container found for %s_%s" % (self.name, number))
 
 
