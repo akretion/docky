@@ -108,5 +108,8 @@ services:
     links:
       - db
     volumes:
-      - ./odoo:/opt/odoo
+      - ./odoo:/odoo
+      - ./data/addons:/data/odoo/addons
+      - ./data/filestore:/data/odoo/filestore
+      - ./data/sessions:/data/odoo/sessions
 version: '3'
