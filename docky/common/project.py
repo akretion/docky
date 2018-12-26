@@ -89,24 +89,26 @@ class Project(object):
         return self.loaded_config
 
     def show_access_url(self):
+        def extract_env_vars(service, keys):
+            env_vars = {}
+            for var in service.get('environment', []):
+                for key in keys:
+                    if key in var:
+                        position = var.find('=')
+                        if position:
+                            env_vars[key] = var[position + 1:]
+            return env_vars
+
         for name, service in self.config['services'].items():
+            env_vars = extract_env_vars(
+                service, ['QUERY_PARAMETER', 'VIRTUAL_HOST'])
             # additional key added to service url
-            query_parameter = ''
-            dns = False
-            for env in service.get('environment', []):
-                if 'QUERY_PARAMETER=' in env:
-                    if dns:
-                        logger.warning(
-                            "QUERY_PARAMETER env var must be defined before"
-                            "VIRTUAL_HOST var to be taken account"
-                            % query_parameter)
-                    # use case: http://adminer.p.dy/?pgsql=db&username=odoo
-                    query_parameter = env.replace('QUERY_PARAMETER=', '')
-                if 'VIRTUAL_HOST=' in env:
-                    dns = env.replace('VIRTUAL_HOST=', '')
-                    logger.info(
-                        "The service %s is accessible on http://%s%s"
-                        % (name, dns, query_parameter))
+            query_parameter = env_vars.get('QUERY_PARAMETER', '')
+            dns = env_vars.get('VIRTUAL_HOST', False)
+            if dns:
+                logger.info(
+                    "The service %s is accessible on http://%s%s"
+                    % (name, dns, query_parameter))
 
     def create_volume(self):
         for name, service in self.config['services'].items():
