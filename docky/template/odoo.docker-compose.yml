@@ -93,7 +93,7 @@ services:
   mailcatcher:
     optional: Mailcatcher is a fake mail server
     expose: 1080
-    image: akretion/lightweight-mailcatcher
+    image: tophfr/mailcatcher
   odoo:
     build: odoo
     expose: 8069
