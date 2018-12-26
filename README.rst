@@ -67,6 +67,12 @@ Proxy configuration:
   - name: name of the proxy container
 
 
+service access
+~~~~~~~~~~~~~~
+You may specificy QUERY_PARAMETER env var to access contextually to your service:
+myapp.project.dy?key=val
+
+
 Automatic Proxy
 ---------------
 
@@ -137,6 +143,10 @@ see https://github.com/akretion/docky/wiki
 
 Changelog
 ----------
+
+UNRELEASED
+- Allow to insert query parameters to urls service as ?key=val...
+
 
 version 5.0.0:
 

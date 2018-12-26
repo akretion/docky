@@ -90,12 +90,23 @@ class Project(object):
 
     def show_access_url(self):
         for name, service in self.config['services'].items():
+            # additional key added to service url
+            query_parameter = ''
+            dns = False
             for env in service.get('environment', []):
+                if 'QUERY_PARAMETER=' in env:
+                    if dns:
+                        logger.warning(
+                            "QUERY_PARAMETER env var must be defined before"
+                            "VIRTUAL_HOST var to be taken account"
+                            % query_parameter)
+                    # use case: http://adminer.p.dy/?pgsql=db&username=odoo
+                    query_parameter = env.replace('QUERY_PARAMETER=', '')
                 if 'VIRTUAL_HOST=' in env:
                     dns = env.replace('VIRTUAL_HOST=', '')
                     logger.info(
-                        "The service %s is accessible on http://%s"
-                        % (name, dns))
+                        "The service %s is accessible on http://%s%s"
+                        % (name, dns, query_parameter))
 
     def create_volume(self):
         for name, service in self.config['services'].items():
