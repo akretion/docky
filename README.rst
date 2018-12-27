@@ -92,12 +92,7 @@ Restart it
 sudo systemctl restart dnsmasq
 ```
 
-If you have some issue on ubutnu 18.04 please take a look here for the configuration
-
-- https://computingforgeeks.com/install-and-configure-dnsmasq-on-ubuntu-18-04-lts/
-- https://superuser.com/questions/1318220/ubuntu-18-04-disable-dnsmasq-base-and-enable-full-dnsmasq
-
-editing the /etc/systemd/resolved.conf and setting "DNSStubListener=no" seem to be the simpliest solution
+If you have some issue on ubutnu 18.04 please take a look here for the configuration https://github.com/akretion/docky/wiki#unreachable-domain-myprojectdy-in-ubuntu-1804
 
 
 For Mac (dnsmasq)
