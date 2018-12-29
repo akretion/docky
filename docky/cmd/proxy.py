@@ -4,11 +4,11 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from .base import Docky, DockySubNoProject, raise_error, logger
-from plumbum import cli
+from plumbum import cli, local
 
 
 @Docky.subcommand("proxy")
-class DockyProxy(cli.Application):
+class DockyProxy(Docky):
     """Start/Restart/Stop your docky proxy"""
 
     def main(self, *args, **kwargs):
@@ -16,7 +16,8 @@ class DockyProxy(cli.Application):
         self.env = self.parent.config.env
         self.config = self.parent.config
         if not self.nested_command:
-            raise_error("Please specify an action, start/stop/restart/kill/ps")
+            raise_error(
+                "Please specify an action, start/stop/restart/kill/ps/logs")
 
 @DockyProxy.subcommand("start")
 class DockyProxyStart(DockySubNoProject):
@@ -56,3 +57,12 @@ class DockyProxyKill(DockySubNoProject):
 
     def _main(self, *args):
         self.proxy.kill()
+
+
+@DockyProxy.subcommand("logs")
+class DockyProxyKill(DockySubNoProject):
+    """Logs your docky proxy"""
+
+    def _main(self, *args):
+        return self._run(local['docker'][
+            'logs', '--tail=100', '-f', self.proxy.container.id])
