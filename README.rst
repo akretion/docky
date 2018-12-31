@@ -92,7 +92,25 @@ Note : You just need to install the base package, you can uninstall dnsmasq pack
 ____________________________________
 
 Edit /etc/systemd/resolved.conf and set "DNSStubListener=no" 
+
+.. code-block:: shell
+
+    # See resolved.conf(5) for details
+
+    [Resolve]
+    #DNS=
+    #FallbackDNS=
+    #Domains=
+    #LLMNR=no
+    #MulticastDNS=no
+    #DNSSEC=no
+    #Cache=yes
+    DNSStubListener=no   #<---- add this line here
+
+
 then restart : 
+
+
 
 .. code-block:: shell
 
