@@ -74,25 +74,69 @@ When doing dev, is quickly a mess to manage the port of your container, docky in
 
 If you want to enjoy this proxy you need to configure a wildcard domain to *.dy to the IP 172.30.0.2
 
-For that on mac and linux system you can install and configure dnsmasq
+For that on mac and linux system you can install and configure **dnsmasq**
 
-For Ubuntu (dnsmasq)
+For Ubuntu 18.04 (dnsmasq)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Install dnsmasq
-```
-sudo apt-get install dnsmasq
-```
+1 Install dnsmasq
+___________________
 
-Then configure dnsmasq y adding the line "address=/dy/172.30.0.2" in "/etc/dnsmasq.conf"
+.. code-block:: shell
 
-Restart it
+    sudo apt-get install dnsmasq-base
+    
+Note : You just need to install the base package, you can uninstall dnsmasq package if installed by error
 
-```
-sudo systemctl restart dnsmasq
-```
+2 Unactive systemd-resolve dns
+____________________________________
 
-If you have some issue on ubutnu 18.04 please take a look here for the configuration https://github.com/akretion/docky/wiki#unreachable-domain-myprojectdy-in-ubuntu-1804
+Edit /etc/systemd/resolved.conf and set "DNSStubListener=no" 
+then restart : 
+
+.. code-block:: shell
+
+    systemctl restart systemd-resolved
+
+3 Enable and configure dnsmasq in NetworkManager
+__________________________________________________
+
+Edit the file /etc/NetworkManager/NetworkManager.conf, and add the line dns=dnsmasq to the [main] section, it will look like this:
+
+.. code-block:: shell
+
+    [main]
+    plugins=ifupdown,keyfile
+    dns=dnsmasq       #<---- just add this line
+
+    [ifupdown]
+    managed=false
+
+    [device]
+    wifi.scan-rand-mac-address=no
+
+
+Let NetworkManager manage /etc/resolv.conf
+
+.. code-block:: shell
+
+    sudo rm /etc/resolv.conf ; sudo ln -s /var/run/NetworkManager/resolv.conf /etc/resolv.conf
+
+Configure dy (add a *.dy wildcard to 172.30.0.2 that will be the ip proxy)
+
+.. code-block:: shell
+    echo 'address=/.dy/172.30.0.2' | sudo tee /etc/NetworkManager/dnsmasq.d/dy-wildcard.conf
+
+
+Reload NetworkManager
+
+.. code-block:: shell
+
+    sudo systemctl reload NetworkManager
+
+
+inspired from : 
+https://askubuntu.com/questions/1029882/how-can-i-set-up-local-wildcard-127-0-0-1-domain-resolution-on-18-04
 
 
 For Mac (dnsmasq)
