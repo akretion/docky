@@ -115,13 +115,13 @@ class Project(object):
             if 'volumes' in service:
                 for volume_path in service['volumes']:
                     volume = volume_path.split(':')[0]
-                    if volume.startswith('.') or volume.startswith('/'):
-                        path = local.path(volume)
+                    if any([volume.startswith(c) for c in ['.', '/', '$']]):
+                        path = local.path(local.env.expand(volume))
                         if not path.exists():
                             logger.info(
                                 "Create missing directory %s for service %s",
-                                volume, name)
-                            local.path(volume).mkdir()
+                                path, name)
+                            path.mkdir()
 
     def build_network(self):
         network = self.docky_config.network

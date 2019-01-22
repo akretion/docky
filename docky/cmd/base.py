@@ -18,7 +18,7 @@ from ..common.proxy import Proxy
 
 class Docky(cli.Application):
     PROGNAME = "docky"
-    VERSION = '5.0.2'
+    VERSION = '5.0.3'
     SUBCOMMAND_HELPMSG = None
 
     force_env = cli.SwitchAttr(
