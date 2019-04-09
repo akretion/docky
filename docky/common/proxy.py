@@ -8,8 +8,8 @@ from .api import logger
 
 client = docker.from_env()
 
-DOCKY_PROXY_DEFAULT_IMAGE = "quay.io/akretion/docky-proxy:20180723"
-
+DOCKY_PROXY_DEFAULT_IMAGE = "traefik:1.7.10"
+DOCKY_PROXY_DEFAULT_CMD = '--api --docker'
 
 class Proxy(object):
 
@@ -20,6 +20,7 @@ class Proxy(object):
         self.image = config.get('custom_image') or DOCKY_PROXY_DEFAULT_IMAGE
         self.name = config['name']
         self.autostart = config['autostart']
+        self.cmd = config.get('custom_cmd') or DOCKY_PROXY_DEFAULT_CMD
         self.container = self._get_container()
 
     def _get_container(self):
@@ -36,11 +37,12 @@ class Proxy(object):
         logger.info("Start Docky proxy")
         client.containers.run(
             self.image,
+            self.cmd,
             hostname=self.name,
             name=self.name,
             network_mode=self.network['name'],
             volumes=[
-                "/var/run/docker.sock:/tmp/docker.sock:ro",
+                "/var/run/docker.sock:/var/run/docker.sock",
                 ],
                 detach=True)
 
