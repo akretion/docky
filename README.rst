@@ -146,7 +146,9 @@ Let NetworkManager manage /etc/resolv.conf
 
     sudo rm /etc/resolv.conf ; sudo ln -s /var/run/NetworkManager/resolv.conf /etc/resolv.conf
 
-Configure dy (add a *.dy wildcard to 172.30.0.2 that will be the ip proxy)
+Configure dy (add a .dy wildcard to the ip that will be the ip proxy)
+Verify in the file ~/.docky/config.yml the subnet ip, it is 172.30.0.2 by default
+Use this ip for the wild card
 
 .. code-block:: shell
     echo 'address=/.dy/172.30.0.2' | sudo tee /etc/NetworkManager/dnsmasq.d/dy-wildcard.conf
