@@ -209,13 +209,21 @@ Docky Labels
 ~~~~~~~~~~~~~
 
 .. code-block:: shell
-    docky.access.helper: http://mycustomer.dy/mystuff
+    docky.access.help: http://mycustomer.dy/mystuff
 
-Will show the help when starting the container
+Will show the following help when starting the container
 
 .. code-block:: shell
     The service odoo is accessible on http://mycustomer.dy/mystuff
 
+
+The label docky.main.service and docky.user
+
+.. code-block:: shell
+    docky.main.service: odoo
+    docky.user: odoo
+
+Allow to define the main service of your docker compose and the user that should be user to enter in the container
 
 Getting Started
 ---------------------
@@ -240,8 +248,9 @@ Changelog
 ----------
 
 UNRELEASED
-- Allow to insert query parameters to urls service as ?key=val...
-
+- refactor remove proxy code and use traefik
+- remove docky.yml now you must use labels on services (see doc)
+- add option "--service=myservice" on docky run and docky open
 
 version 5.0.0:
 
