@@ -13,7 +13,6 @@ import os
 from ..common.api import logger, raise_error
 from ..common.config import DockyConfig
 from ..common.project import Project
-from ..common.proxy import Proxy
 
 
 class Docky(cli.Application):
@@ -71,7 +70,6 @@ class DockySub(cli.Application):
     def main(self, *args, **kwargs):
         local.env['UID'] = str(getpwnam(local.env.user).pw_uid)
         self.env = self.parent.force_env or self.parent.config.env
-        self.proxy = Proxy(self.parent.config)
         if self._project_specific:
             self._init_project()
         self._main(*args, **kwargs)

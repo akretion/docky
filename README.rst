@@ -58,14 +58,6 @@ network
 Docker network configuration for all container run with docky
 See docker configuration
 
-proxy
-~~~~~~
-Proxy configuration:
-
-  - autostart: automatically start proxy when running the container
-  - custom_image: custom image name if needed
-  - name: name of the proxy container
-
 
 service access
 ~~~~~~~~~~~~~~
@@ -76,28 +68,60 @@ myapp.project.dy?key=val
 Automatic Proxy
 ---------------
 
-When doing dev, is quickly a mess to manage the port of your container, docky integrate a proxy (a basic docker image : https://github.com/akretion/docky-proxy/)
+Introduction
+~~~~~~~~~~~~~~~~~
 
-If you want to enjoy this proxy you need to configure a wildcard domain to *.dy to the IP 172.30.0.2
+When doing dev, is quickly a mess to manage the port of your container
 
-For that on mac and linux system you can install and configure **dnsmasq**
+Previous version of docky was including a proxy based on nginx docker image.
+This solution was adding some restriction (like using the same network for all container)
+Now we recommands to simply install traefik and dns resolver like dnsmasq on your host.
 
-For Ubuntu 18.04 (dnsmasq)
-~~~~~~~~~~~~~~~~~~~~~~~
+Dnsmasq will resolve all *.dy* domain to your localhost 127.0.0.1
 
-1 Install dnsmasq
-___________________
+Traefik will route the domain name my-customer.dy to the container of your customer
+
+
+Install traefik (1.7)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Download traefik binary
+
+.. code-block:: shell
+    sudo curl https://github.com/containous/traefik/releases/download/v1.7.11/traefik_linux-amd64 -o /usr/bin/traefik
+    sudo chmod 755 /usr/bin/traefik
+
+
+Add systemd configuration in /etc/systemd/system/traefik.service
+
+.. code-block:: shell
+
+    sudo curl https://raw.githubusercontent.com/akretion/docky/master/traefik/traefik.service -o /etc/traefik/traefik.service
+
+Add traefik configuration at /etc/traefik/traefik.toml (create missing directory before)
+
+.. code-block:: shell
+
+    sudo mkdir /etc/traefik
+    sudo curl https://raw.githubusercontent.com/akretion/docky/master/traefik/traefik.toml -o /etc/traefik/traefik.toml
+
+
+Install Dnsmasq (For Ubuntu 18.04)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1 Install dnsmasq with apt
+_______________________________
 
 .. code-block:: shell
 
     sudo apt-get install dnsmasq-base
-    
+
 Note : You just need to install the base package, you can uninstall dnsmasq package if installed by error
 
 2 Unactive systemd-resolve dns
 ____________________________________
 
-Edit /etc/systemd/resolved.conf and set "DNSStubListener=no" 
+Edit /etc/systemd/resolved.conf and set "DNSStubListener=no"
 
 .. code-block:: shell
 
@@ -114,7 +138,7 @@ Edit /etc/systemd/resolved.conf and set "DNSStubListener=no"
     DNSStubListener=no   #<---- add this line here
 
 
-then restart : 
+then restart :
 
 
 
@@ -161,7 +185,7 @@ Reload NetworkManager
     sudo systemctl reload NetworkManager
 
 
-inspired from : 
+inspired from :
 https://askubuntu.com/questions/1029882/how-can-i-set-up-local-wildcard-127-0-0-1-domain-resolution-on-18-04
 
 

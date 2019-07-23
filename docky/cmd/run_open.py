@@ -30,7 +30,6 @@ class DockyRun(DockySub, DockyExec):
 
     def _main(self, *optionnal_command_line):
         self._check_running()
-        self.proxy.start_if_needed()
         if self._use_specific_user():
             cmd = ['gosu', self.project.user]
         else:

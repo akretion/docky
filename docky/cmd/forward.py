@@ -30,7 +30,6 @@ class DockyUp(DockyForward):
     def _main(self, *args):
         self.project.show_access_url()
         self.project.create_volume()
-        self.proxy.start_if_needed()
         return super(DockyUp, self)._main(*args)
 
 
