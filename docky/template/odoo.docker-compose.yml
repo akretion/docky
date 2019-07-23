@@ -16,7 +16,6 @@ services:
     environment:
       - DB_ENV_USER=magento
       - DB_ENV_PASS=magento
-    expose: 80
     image: akretion/docker-magento
     ports:
       - 80:80
@@ -26,6 +25,10 @@ services:
     volumes:
       - .magento/firstrun:/firstrun
       - .magento/www:/var/www
+    labels:
+      traefik.magento.frontend.rule: "Host:magento.PROJECT_NAME.dy"
+      traefik.magento.port: 80
+      docky.access.helper: "http://magento.PROJECT_NAME.dy"
   memcached:
     optional: Add magento server (with connector) ?
     image: sylvainlasnier/memcached
@@ -50,7 +53,6 @@ services:
       - py3o_tmp:/tmp
   metabase:
     optional: metabase is Web tools for BI with dashboard
-    expose: 3000
     image: metabase/metabase
     environment:
       - MB_DB_FILE=/file/metabase.db
@@ -58,6 +60,10 @@ services:
       - db
     volumes:
       - .:/file
+    labels:
+      traefik.metabase.frontend.rule: "Host:metabase.PROJECT_NAME.dy"
+      traefik.metabase.port: 3000
+      docky.access.helper: "http://metabase.PROJECT_NAME.dy"
   firefox:
     optional: Selenium Standalone with Firefox installed and runs a VNC server
     hostname: firefox
@@ -69,16 +75,22 @@ services:
     - /dev/shm:/dev/shm
   pgadmin:
     optional: Pgadmin v4 is postgresql Web GUI
-    expose: 5050
     image: fenglc/pgadmin4
     links:
       - db
+    labels:
+      traefik.pgadmin.frontend.rule: "Host:pgadmin.PROJECT_NAME.dy"
+      traefik.pgadmin.port: 5050
+      docky.access.helper: "http://pgadmin.PROJECT_NAME.dy"
   adminer:
     optional: Adminer, RDBMS Web GUI (including Postgresql) with usability and perf
     image: adminer
-    expose: 8080
     links:
       - db
+    labels:
+      traefik.adminer.frontend.rule: "Host:adminer.PROJECT_NAME.dy"
+      traefik.adminer.port: 8080
+      docky.access.helper: "http://adminer.PROJECT_NAME.dy"
   db:
     image: quay.io/akretion/postgresql:10
     environment:
@@ -88,8 +100,11 @@ services:
       - .db/:/var/lib/postgresql/data
   mailcatcher:
     optional: Mailcatcher is a fake mail server
-    expose: 1080
     image: akretion/lightweight-mailcatcher
+    labels:
+      traefik.mailcatcher.frontend.rule: "Host:mailcatcher.PROJECT_NAME.dy"
+      traefik.mailcatcher.port: 1080
+      docky.access.helper: "http://mailcatcher.PROJECT_NAME.dy"
   odoo:
     build: odoo
     environment:
@@ -110,4 +125,5 @@ services:
     labels:
       traefik.longpolling.frontend.rule: "Host:PROJECT_NAME.dy;PathPrefix:/longpolling/"
       traefik.www.frontend.rule: "Host:PROJECT_NAME.dy"
+      docky.access.helper: "http://PROJECT_NAME.dy"
 version: '3'

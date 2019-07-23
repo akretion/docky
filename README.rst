@@ -53,17 +53,6 @@ env [dev, prod, preprod]:
 
 Specify which kind of environment is used
 
-network
-~~~~~~~~~~~
-Docker network configuration for all container run with docky
-See docker configuration
-
-
-service access
-~~~~~~~~~~~~~~
-You may specificy QUERY_PARAMETER env var to access contextually to your service:
-myapp.project.dy?key=val
-
 
 Automatic Proxy
 ---------------
@@ -80,6 +69,7 @@ Now we recommands to simply install traefik and dns resolver like dnsmasq on you
 Dnsmasq will resolve all *.dy* domain to your localhost 127.0.0.1
 
 Traefik will route the domain name my-customer.dy to the container of your customer
+
 
 
 Install traefik (1.7)
@@ -170,12 +160,10 @@ Let NetworkManager manage /etc/resolv.conf
 
     sudo rm /etc/resolv.conf ; sudo ln -s /var/run/NetworkManager/resolv.conf /etc/resolv.conf
 
-Configure dy (add a .dy wildcard to the ip that will be the ip proxy)
-Verify in the file ~/.docky/config.yml the subnet ip, it is 172.30.0.2 by default
-Use this ip for the wild card
+Configure dy (add a .dy wildcard to localhost 127.0.0.1)
 
 .. code-block:: shell
-    echo 'address=/.dy/172.30.0.2' | sudo tee /etc/NetworkManager/dnsmasq.d/dy-wildcard.conf
+    echo 'address=/.dy/127.0.0.1' | sudo tee /etc/NetworkManager/dnsmasq.d/dy-wildcard.conf
 
 
 Reload NetworkManager
@@ -203,6 +191,30 @@ For Windows (Acrylic DNS)
 
 Dnsmasq is not available on windows but you can use Acrylic DNS to do exactly the same thing.
 See answer here: https://stackoverflow.com/questions/138162/wildcards-in-a-windows-hosts-file?answertab=votes#tab-top
+
+Service Labels
+-----------------
+Labels are used by docky and traefik.
+
+Traefik Labels
+~~~~~~~~~~~~~~~
+
+.. code-block:: shell
+    traefik.frontend.rule: Host:mycustomer.dy
+
+Will route the domain mycustomer.dy to your container
+more information here : https://docs.traefik.io/configuration/backends/docker/#on-containers
+
+Docky Labels
+~~~~~~~~~~~~~
+
+.. code-block:: shell
+    docky.access.helper: http://mycustomer.dy/mystuff
+
+Will show the help when starting the container
+
+.. code-block:: shell
+    The service odoo is accessible on http://mycustomer.dy/mystuff
 
 
 Getting Started

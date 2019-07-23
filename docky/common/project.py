@@ -89,26 +89,12 @@ class Project(object):
         return self.loaded_config
 
     def show_access_url(self):
-        def extract_env_vars(service, keys):
-            env_vars = {}
-            for var in service.get('environment', []):
-                for key in keys:
-                    if key in var:
-                        position = var.find('=')
-                        if position:
-                            env_vars[key] = var[position + 1:]
-            return env_vars
-
         for name, service in self.config['services'].items():
-            env_vars = extract_env_vars(
-                service, ['QUERY_PARAMETER', 'VIRTUAL_HOST'])
-            # additional key added to service url
-            query_parameter = env_vars.get('QUERY_PARAMETER', '')
-            dns = env_vars.get('VIRTUAL_HOST', False)
-            if dns:
-                logger.info(
-                    "The service %s is accessible on http://%s%s"
-                    % (name, dns, query_parameter))
+            for label, value in service.get('labels', {}).items():
+                if label == 'docky.access.helper':
+                    logger.info(
+                        "The service %s is accessible on %s"
+                        % (name, value))
 
     def create_volume(self):
         for name, service in self.config['services'].items():
