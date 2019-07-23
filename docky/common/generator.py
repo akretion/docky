@@ -22,7 +22,10 @@ class GenerateComposeFile(object):
         self.service = service
         resource_path = '../template/%s.docker-compose.yml' % service
         template = pkg_resources.resource_stream(__name__, resource_path)
-        self.config = yaml.safe_load(template)
+        project_name = slugify(local.cwd.name)
+        config = template.read().replace(
+            b'PROJECT_NAME', project_name.encode('utf-8'))
+        self.config = yaml.safe_load(config)
 
     def _ask_optional_service(self):
         """Container can be set as optional by adding the key
@@ -45,30 +48,8 @@ class GenerateComposeFile(object):
                 else:
                     del self.config['services'][name]
 
-    def _add_container_name(self):
-        project_name = slugify(local.cwd.name)
-        for name, config in self.config['services'].items():
-            expose = config.pop('expose', False)
-            if expose:
-                if name != self.service:
-                    dns = "%s.%s.dy" %(name, project_name)
-                else:
-                    dns = "%s.dy" % project_name
-                if not 'environment' in config:
-                    config['environment'] = []
-                config['environment'].append("VIRTUAL_HOST=%s" % dns)
-                config['environment'].append("VIRTUAL_PORT=%s" % expose)
-                config['networks'] = {}
-                config['networks']['default'] = {}
-                config['networks']['default']['aliases'] = []
-                config['networks']['default']['aliases'].append(dns)
-
-    def _update_config_file(self):
-        self._ask_optional_service()
-        self._add_container_name()
-
     def generate(self):
-        self._update_config_file()
+        self._ask_optional_service()
         with open('dev.docker-compose.yml', 'w') as dc_tmp_file:
             dc_tmp_file.write(yaml.dump(
                 self.config, Dumper=IndentDumper, default_flow_style=False))

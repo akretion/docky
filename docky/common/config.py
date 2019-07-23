@@ -12,14 +12,6 @@ from .api import logger
 DEFAULT_CONF = {
     "verbose": True,
     "env": "dev",
-    "network": {
-        "name": "dy",
-        "subnet": "172.30.0.0/16",
-        "options": {
-            "com.docker.network.bridge.name": "dy",
-            "com.docker.network.bridge.host_binding_ipv4": "127.0.0.1",
-        },
-    },
 }
 
 
@@ -43,7 +35,6 @@ class DockyConfig(object):
             self._update_config_file(config)
         self.env = config['env']
         self.verbose = config['verbose']
-        self.network = config['network']
 
     def _get_config(self):
         if os.path.isfile(self.config_path):

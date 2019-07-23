@@ -62,7 +62,6 @@ class DockySub(cli.Application):
 
     def _init_project(self):
         self.project = Project(self.env, self.parent.config)
-        self.project.build_network()
         self.compose = local['docker-compose'][
             '-f', self.project.compose_file_path,
             '--project-name', self.project.name]

@@ -1,7 +1,3 @@
-networks:
-  default:
-    external:
-      name: dy
 volumes:
   py3o_tmp:
 services:
@@ -96,7 +92,6 @@ services:
     image: akretion/lightweight-mailcatcher
   odoo:
     build: odoo
-    expose: 8069
     environment:
       - PYTHONDONTWRITEBYTECODE=True
       - LOCAL_USER_ID=$UID
@@ -112,4 +107,7 @@ services:
       - ./data/addons:/data/odoo/addons
       - ./data/filestore:/data/odoo/filestore
       - ./data/sessions:/data/odoo/sessions
+    labels:
+      traefik.longpolling.frontend.rule: "Host:PROJECT_NAME.dy;PathPrefix:/longpolling/"
+      traefik.www.frontend.rule: "Host:PROJECT_NAME.dy"
 version: '3'
