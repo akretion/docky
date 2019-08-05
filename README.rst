@@ -257,7 +257,8 @@ see https://github.com/akretion/docky/wiki
 Changelog
 ----------
 
-UNRELEASED
+version 6.0.0
+
 - refactor remove proxy code and use traefik
 - remove docky.yml now you must use labels on services (see doc)
 - add option "--service=myservice" on docky run and docky open
