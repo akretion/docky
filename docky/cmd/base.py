@@ -17,7 +17,7 @@ from ..common.project import Project
 
 class Docky(cli.Application):
     PROGNAME = "docky"
-    VERSION = '6.0.0'
+    VERSION = '6.0.1'
     SUBCOMMAND_HELPMSG = None
 
     force_env = cli.SwitchAttr(

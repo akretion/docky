@@ -1,4 +1,4 @@
-Introduction
+Docky
 =================
 
 docky : Make docker and docker compose simply !
@@ -78,6 +78,7 @@ Install traefik (1.7)
 Download traefik binary
 
 .. code-block:: shell
+
     sudo curl https://github.com/containous/traefik/releases/download/v1.7.11/traefik_linux-amd64 -o /usr/bin/traefik
     sudo chmod 755 /usr/bin/traefik
 
@@ -98,11 +99,13 @@ Add traefik configuration at /etc/traefik/traefik.toml (create missing directory
 Create specific user
 
 .. code-block:: shell
+
     sudo useradd -G docker -r -s /bin/false -U -M traefik
 
 Start traefik automatically
 
 .. code-block:: shell
+
     sudo systemctl enable traefik
 
 
@@ -173,6 +176,7 @@ Let NetworkManager manage /etc/resolv.conf
 Configure dy (add a .dy wildcard to localhost 127.0.0.1)
 
 .. code-block:: shell
+
     echo 'address=/.dy/127.0.0.1' | sudo tee /etc/NetworkManager/dnsmasq.d/dy-wildcard.conf
 
 
@@ -210,6 +214,7 @@ Traefik Labels
 ~~~~~~~~~~~~~~~
 
 .. code-block:: shell
+
     traefik.frontend.rule: Host:mycustomer.dy
 
 Will route the domain mycustomer.dy to your container
@@ -219,17 +224,20 @@ Docky Labels
 ~~~~~~~~~~~~~
 
 .. code-block:: shell
+
     docky.access.help: http://mycustomer.dy/mystuff
 
 Will show the following help when starting the container
 
 .. code-block:: shell
+
     The service odoo is accessible on http://mycustomer.dy/mystuff
 
 
 The label docky.main.service and docky.user
 
 .. code-block:: shell
+
     docky.main.service: odoo
     docky.user: odoo
 
