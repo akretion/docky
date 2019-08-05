@@ -95,6 +95,16 @@ Add traefik configuration at /etc/traefik/traefik.toml (create missing directory
     sudo mkdir /etc/traefik
     sudo curl https://raw.githubusercontent.com/akretion/docky/master/traefik/traefik.toml -o /etc/traefik/traefik.toml
 
+Create specific user
+
+.. code-block:: shell
+    sudo useradd -G docker -r -s /bin/false -U -M traefik
+
+Start traefik automatically
+
+.. code-block:: shell
+    sudo systemctl enable traefik
+
 
 Install Dnsmasq (For Ubuntu 18.04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
