@@ -3,35 +3,25 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from compose.cli.command import get_project
 from compose.project import OneOffFilter
-from plumbum import local
-from plumbum.cli.terminal import ask
 from compose.cli import command
-import docker
-import yaml
-import os
+from compose.config.errors import ComposeFileNotFound
+from plumbum import local
 
-from .api import logger, raise_error
-from .generator import GenerateComposeFile
+from .api import logger
 
-client = docker.from_env()
-
-DOCKER_COMPOSE_PATH = 'docker-compose.yml'
-TEMPLATE_SERVICE = ['odoo']
 
 class Project(object):
 
-    def __init__(self, env, docky_config):
-        self.env = env
-        self.docky_config = docky_config
-        self.compose_file_path = self._get_config_path(self.env)
-        if self.env == 'dev':
-            if not local.path(self.compose_file_path).isfile():
-                self._generate_dev_docker_compose_file()
-        self.project = command.project_from_options(
-            '.', {'--file': [self.compose_file_path]})
-        self.name = self._get_project_name(self.project)
+    def __init__(self):
+        try:
+            self.project = command.project_from_options('.', {})
+        except ComposeFileNotFound:
+            print("No docker-compose found, create one with :")
+            print('$ docky init')
+            exit(-1)
+
+        self.name = self.project.name
         self.loaded_config = None
         self.service = self._get_main_service(self.project)
 
@@ -45,50 +35,11 @@ class Project(object):
             if labels.get('docky.main.service', False):
                 return service.name
 
-    def _get_config_path(self, env):
-        # TODO a virer et utiliser --files de compose
-        config_path = '.'.join([env, DOCKER_COMPOSE_PATH])
-        if env == 'dev':
-            return config_path
-        elif local.path(config_path).is_file():
-            return config_path
-        elif local.path(DOCKER_COMPOSE_PATH).is_file():
-            return DOCKER_COMPOSE_PATH
-        else:
-            raise_error(
-                "There is not %s.%s or %s file, please add one"
-                % (env, DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_PATH))
-
-    def _generate_dev_docker_compose_file(self):
-        print("There is not dev.docker-compose.yml file.\n")
-        for service in TEMPLATE_SERVICE:
-            generate = ask(
-                "Do you want to generate one automatically for %s" % service,
-                default=True)
-            if generate:
-                return GenerateComposeFile(service).generate()
-        raise_error("No dev.docker-compose.yml file, abort!")
-
-    def _get_project_name(self, project):
-        # TODO return proj.name instead
-        return local.env.get(
-            'COMPOSE_PROJECT_NAME',
-            '%s_%s' % (local.env.user, local.cwd.name)
-        )
-
     def get_containers(self, service=None):
         kwargs = {'one_off': OneOffFilter.include}
         if service:
             kwargs['service_names'] = [service]
         return self.project.containers(**kwargs)
-
-    @property
-    def config(self):
-        # TODO avirer !
-        if not self.loaded_config:
-            self.loaded_config = yaml.safe_load(
-                open(self.compose_file_path, 'r'))
-        return self.loaded_config
 
     def show_access_url(self):
         for service in self.project.services:

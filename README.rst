@@ -40,18 +40,10 @@ Update Docky:
 Configuration:
 --------------
 
-The configuration file is in your home : '~/.docky/config.yml'
+Bootstrap a project with :
 
-verbose [True, False]:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Verbose mode is activated by default in order to help you to learn what docky do
-
-
-env [dev, prod, preprod]:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Specify which kind of environment is used
+.. code-block:: shell
+    docky init
 
 
 Automatic Proxy
@@ -256,6 +248,15 @@ see https://github.com/akretion/docky/wiki
 
 Changelog
 ----------
+
+version 7.0.0
+
+- remove the need of docky config file in $HOME
+- use .env to be more compatible with docker-compose
+- improve templates
+- create init command
+- heavy refactoring
+
 
 version 6.0.0
 

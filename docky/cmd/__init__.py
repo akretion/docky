@@ -4,3 +4,4 @@ from . import base
 from . import forward
 from . import run_open
 from . import kill
+from . import init
