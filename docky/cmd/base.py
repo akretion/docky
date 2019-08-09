@@ -23,7 +23,7 @@ class Docky(cli.Application):
     force_env = cli.SwitchAttr(
         ["e", "env"],
         help="Environment flag",
-        group = "Switches")
+        group="Switches")
 
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""

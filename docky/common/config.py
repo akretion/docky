@@ -14,7 +14,6 @@ DEFAULT_CONF = {
     "env": "dev",
 }
 
-
 # TODO refactor code using local object of plumbum instead of os
 class DockyConfig(object):
 
