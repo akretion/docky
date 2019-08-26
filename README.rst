@@ -78,6 +78,7 @@ Install traefik (1.7)
 Download traefik binary
 
 .. code-block:: shell
+
     sudo curl https://github.com/containous/traefik/releases/download/v1.7.11/traefik_linux-amd64 -o /usr/bin/traefik
     sudo chmod 755 /usr/bin/traefik
 
@@ -98,11 +99,13 @@ Add traefik configuration at /etc/traefik/traefik.toml (create missing directory
 Create specific user
 
 .. code-block:: shell
+
     sudo useradd -G docker -r -s /bin/false -U -M traefik
 
 Start traefik automatically
 
 .. code-block:: shell
+
     sudo systemctl enable traefik
 
 
