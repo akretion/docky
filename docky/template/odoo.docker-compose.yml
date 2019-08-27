@@ -125,7 +125,8 @@ services:
       - ./data/sessions:/data/odoo/sessions
     labels:
       traefik.longpolling.frontend.rule: "Host:PROJECT_NAME.dy;PathPrefix:/longpolling/"
-      traefik.www.frontend.rule: "Host:PROJECT_NAME.dy"
+      traefik.frontend.rule: "Host:PROJECT_NAME.dy"
+      traefik.enable: True
       docky.access.help: "http://PROJECT_NAME.dy"
       docky.main.service: True
       docky.user: odoo
