@@ -5,7 +5,8 @@
 
 
 from plumbum import cli
-from .base import Docky, DockySub, raise_error
+from .base import Docky, DockySub
+from ..common.api import raise_error
 
 
 class DockyExec(DockySub):
@@ -13,7 +14,7 @@ class DockyExec(DockySub):
     root = cli.Flag(
         ["root"],
         help="Run or open as root",
-        group = "Meta-switches")
+        group="Meta-switches")
     service = cli.SwitchAttr(["service"])
 
     def _use_specific_user(self, service):
@@ -59,8 +60,6 @@ class DockyRun(DockyExec):
         self.project.show_access_url()
         self.project.create_volume()
         self._exec('docker-compose', [
-            '-f', self.project.compose_file_path,
-            '--project-name', self.project.name,
             'run', '--rm', '--service-ports', '--use-aliases',
             self.service] + self.cmd)
 
@@ -74,6 +73,4 @@ class DockyOpen(DockyExec):
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
         self._exec('dcpatched', [
-            '-f', self.project.compose_file_path,
-            '--project-name', self.project.name,
             'exec', self.service] + self.cmd)

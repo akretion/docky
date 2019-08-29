@@ -113,8 +113,9 @@ services:
       - DB_USER=odoo
       - DB_PASS=odoo
       - DB_NAME=db
-      - RUNNING_ENV=dev
+      - RUNNING_ENV=$ENV
       - MARABUNTA_MODE=demo
+    hostname: ${ENV}-PROJECT_NAME
     links:
       - db
     volumes:
@@ -124,6 +125,9 @@ services:
       - ./data/sessions:/data/odoo/sessions
     labels:
       traefik.longpolling.frontend.rule: "Host:PROJECT_NAME.dy;PathPrefix:/longpolling/"
-      traefik.www.frontend.rule: "Host:PROJECT_NAME.dy"
+      traefik.frontend.rule: "Host:PROJECT_NAME.dy"
+      traefik.enable: True
       docky.access.help: "http://PROJECT_NAME.dy"
+      docky.main.service: True
+      docky.user: odoo
 version: '3'

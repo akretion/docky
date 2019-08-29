@@ -61,5 +61,3 @@ class DockyPull(DockyForward):
 class DockyRestart(DockyForward):
     """Restart service"""
     _cmd = "restart"
-
-
