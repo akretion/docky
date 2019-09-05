@@ -46,185 +46,8 @@ Bootstrap a project with :
     docky init
 
 
-Automatic Proxy
----------------
-
-Introduction
-~~~~~~~~~~~~~~~~~
-
-When doing dev, is quickly a mess to manage the port of your container
-
-Previous version of docky was including a proxy based on nginx docker image.
-This solution was adding some restriction (like using the same network for all container)
-Now we recommands to simply install traefik and dns resolver like dnsmasq on your host.
-
-Dnsmasq will resolve all *.dy* domain to your localhost 127.0.0.1
-
-Traefik will route the domain name my-customer.dy to the container of your customer
-
-
-
-Install traefik (1.7)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Download traefik binary
-
-.. code-block:: shell
-
-    sudo curl https://github.com/containous/traefik/releases/download/v1.7.11/traefik_linux-amd64 -o /usr/bin/traefik
-    sudo chmod 755 /usr/bin/traefik
-
-
-Add systemd configuration in /etc/systemd/system/traefik.service
-
-.. code-block:: shell
-
-    sudo curl https://raw.githubusercontent.com/akretion/docky/master/traefik/traefik.service -o /etc/systemd/system/traefik.service
-
-Add traefik configuration at /etc/traefik/traefik.toml (create missing directory before)
-
-.. code-block:: shell
-
-    sudo mkdir /etc/traefik
-    sudo curl https://raw.githubusercontent.com/akretion/docky/master/traefik/traefik.toml -o /etc/traefik/traefik.toml
-
-Create specific user
-
-.. code-block:: shell
-
-    sudo useradd -G docker -r -s /bin/false -U -M traefik
-
-Start traefik automatically
-
-.. code-block:: shell
-
-    sudo systemctl enable traefik
-
-
-Install Dnsmasq (For Ubuntu 18.04)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-1 Install dnsmasq with apt
-_______________________________
-
-.. code-block:: shell
-
-    sudo apt-get install dnsmasq-base
-
-Note : You just need to install the base package, you can uninstall dnsmasq package if installed by error
-
-2 Unactive systemd-resolve dns
-____________________________________
-
-Edit /etc/systemd/resolved.conf and set "DNSStubListener=no"
-
-.. code-block:: shell
-
-    # See resolved.conf(5) for details
-
-    [Resolve]
-    #DNS=
-    #FallbackDNS=
-    #Domains=
-    #LLMNR=no
-    #MulticastDNS=no
-    #DNSSEC=no
-    #Cache=yes
-    DNSStubListener=no   #<---- add this line here
-
-
-then restart :
-
-
-
-.. code-block:: shell
-
-    systemctl restart systemd-resolved
-
-3 Enable and configure dnsmasq in NetworkManager
-__________________________________________________
-
-Edit the file /etc/NetworkManager/NetworkManager.conf, and add the line dns=dnsmasq to the [main] section, it will look like this:
-
-.. code-block:: shell
-
-    [main]
-    plugins=ifupdown,keyfile
-    dns=dnsmasq       #<---- just add this line
-
-    [ifupdown]
-    managed=false
-
-    [device]
-    wifi.scan-rand-mac-address=no
-
-
-Let NetworkManager manage /etc/resolv.conf
-
-.. code-block:: shell
-
-    sudo rm /etc/resolv.conf ; sudo ln -s /var/run/NetworkManager/resolv.conf /etc/resolv.conf
-
-Configure dy (add a .dy wildcard to localhost 127.0.0.1)
-
-.. code-block:: shell
-
-    echo 'address=/.dy/127.0.0.1' | sudo tee /etc/NetworkManager/dnsmasq.d/dy-wildcard.conf
-
-
-Reload NetworkManager
-
-.. code-block:: shell
-
-    sudo systemctl reload NetworkManager
-
-
-inspired from :
-https://askubuntu.com/questions/1029882/how-can-i-set-up-local-wildcard-127-0-0-1-domain-resolution-on-18-04
-
-
-For Mac (dnsmasq)
-~~~~~~~~~~~~~~~~~~~
-
-Google is your friend by some link found, please share the doc you have found
-
-https://passingcuriosity.com/2013/dnsmasq-dev-osx/
-https://www.computersnyou.com/3786/how-to-setup-dnsmasq-local-dns/
-
-
-For Windows (Acrylic DNS)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Dnsmasq is not available on windows but you can use Acrylic DNS to do exactly the same thing.
-See answer here: https://stackoverflow.com/questions/138162/wildcards-in-a-windows-hosts-file?answertab=votes#tab-top
-
-Service Labels
------------------
-Labels are used by docky and traefik.
-
-Traefik Labels
-~~~~~~~~~~~~~~~
-
-.. code-block:: shell
-
-    traefik.frontend.rule: Host:mycustomer.dy
-
-Will route the domain mycustomer.dy to your container
-more information here : https://docs.traefik.io/configuration/backends/docker/#on-containers
-
 Docky Labels
 ~~~~~~~~~~~~~
-
-.. code-block:: shell
-
-    docky.access.help: http://mycustomer.dy/mystuff
-
-Will show the following help when starting the container
-
-.. code-block:: shell
-
-    The service odoo is accessible on http://mycustomer.dy/mystuff
-
 
 The label docky.main.service and docky.user
 
@@ -242,7 +65,19 @@ Use docky --help
 
 But basically docky run is your friend
 
-READ the documentation: `Docky documentation <http://akretion.github.io/docky/master/index.html>`_
+READ the documentation: `Docky documentation <https://github.com/akretion/docky/blob/master/doc/command_line.rst>`_
+
+
+[Optionnal] Automatic Proxy
+-----------------------------
+
+When doing dev, is quickly a mess to manage the port of your container
+
+Previous version of docky was including a proxy based on nginx docker image.
+This solution was adding some restriction (like using the same network for all container)
+Now we recommands to simply install traefik and dns resolver like dnsmasq on your host.
+
+See documentation : `Install Traefik <https://github.com/akretion/docky/blob/master/doc/install_traefik.rst>`_
 
 
 Troubleshooting
