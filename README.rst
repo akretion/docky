@@ -33,7 +33,7 @@ Then install docky with pipx
 .. code-block:: shell
 
     pipx install docky --include-deps
-    
+
 
 Update Docky:
 ------------------
@@ -48,6 +48,7 @@ Configuration:
 Bootstrap a project with :
 
 .. code-block:: shell
+
     docky init
 
 
