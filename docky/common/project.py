@@ -69,4 +69,5 @@ class Project(object):
     def get_user(self, service_name):
         service = self.project.get_service(name=service_name)
         labels = service.options.get('labels')
-        return labels.get('docky.user', None)
+        if labels:
+            return labels.get('docky.user', None)
