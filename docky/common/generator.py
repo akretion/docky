@@ -27,8 +27,7 @@ class GenerateComposeFile(object):
         resource_path = '../template/%s.docker-compose.yml' % service
         template = pkg_resources.resource_stream(__name__, resource_path)
         project_name = get_project_name()
-        config = template.read().replace(
-            b'PROJECT_NAME', project_name.encode('utf-8'))
+        config = template.read()
         self.config = yaml.safe_load(config)
 
     def _ask_optional_service(self):
