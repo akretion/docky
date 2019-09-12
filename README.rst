@@ -32,7 +32,7 @@ Then install docky with pipx
 
 .. code-block:: shell
 
-    sudo pipx install docky --include-deps
+    pipx install docky --include-deps
     
 
 Update Docky:
@@ -40,7 +40,7 @@ Update Docky:
 
 .. code-block:: shell
 
-    sudo pipx upgrade docky --include-deps
+    pipx upgrade docky --include-deps
 
 Configuration:
 --------------
