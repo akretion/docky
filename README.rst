@@ -23,19 +23,24 @@ Installation and Update
 
 You need to install docker-ce : https://docs.docker.com/install/
 
-Then install docky with python3
+
+
+
+For the installation we recommand to install pipx https://pypi.org/project/pipx/
+
+Then install docky with pipx
 
 .. code-block:: shell
 
-    sudo pip3 install docky
+    sudo pipx install docky --include-deps
+    
 
 Update Docky:
 ------------------
 
 .. code-block:: shell
 
-    sudo pip3 install docky --upgrade
-
+    sudo pipx upgrade docky --include-deps
 
 Configuration:
 --------------
