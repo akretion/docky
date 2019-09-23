@@ -46,6 +46,7 @@ Odoo Example
 .. code-block:: shell
 
     traefik.longpolling.frontend.rule: "Host:my-project.localtest.me;PathPrefix:/longpolling/"
+    traefik.longpolling.port: 8072
     traefik.www.frontend.rule: "Host:my-project.localtest.me"
 
 Will route the domain my-project.dy to your odoo container
