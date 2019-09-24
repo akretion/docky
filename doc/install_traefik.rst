@@ -33,6 +33,14 @@ Start traefik automatically
 .. code-block:: shell
 
     sudo systemctl enable traefik
+    
+
+Now traefik should be up and you can go to traefik dashboard at
+
+.. code-block:: shell
+
+    http://localhost:8080
+
 
 
 Traefik Labels
