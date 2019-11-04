@@ -3,10 +3,12 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-
+import logging
 from plumbum import cli
 from .base import Docky, DockySub
 from ..common.api import raise_error
+
+logger = logging.getLogger(__name__)
 
 
 class DockyExec(DockySub):
@@ -57,7 +59,12 @@ class DockyRun(DockyExec):
         self._check_running()
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '-f'])
-        self.project.show_access_url()
+        show_url = self.project.show_access_url()
+        if show_url:
+            logger.info(
+                "Displayed urls above are set with labels "
+                "`docky.access.help` in each service of your "
+                "docker-compose files")
         self.project.create_volume()
         self._exec('docker-compose', [
             'run', '--rm', '--service-ports', '--use-aliases',

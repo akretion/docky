@@ -42,13 +42,16 @@ class Project(object):
         return self.project.containers(**kwargs)
 
     def show_access_url(self):
+        show_url = False
         for service in self.project.services:
             labels = service.options.get('labels', {})
             url = labels.get('docky.access.help', False)
             if url:
+                show_url = show_url or True
                 logger.info(
                     "The service %s is accessible on %s"
                     % (service.name, url))
+        return show_url
 
     def create_volume(self):
         """Mkdir volumes if they don't exist yet.
