@@ -57,7 +57,7 @@ class DockyRun(DockyExec):
         self._check_running()
         # Remove useless dead container before running a new one
         self._run(self.compose['rm', '-f'])
-        self.project.show_access_url()
+        self.project.display_service_tooltip()
         self.project.create_volume()
         self._exec('docker-compose', [
             'run', '--rm', '--service-ports', '--use-aliases',

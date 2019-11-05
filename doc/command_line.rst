@@ -127,6 +127,18 @@ Hidden-switches:
 Options:
     --service VALEUR:str      Run the choosen service
 
+Additional use: you may add extra content for each services at docker run step.
+Just follow this example which add an url to dive directly into your service:
+
+::
+
+  myservice:
+    ...
+    labels:
+      - "docky.help=My customized info: http://myservice. ... .localhost"
+    ...
+
+
 
 docky up
 --------

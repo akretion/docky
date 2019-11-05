@@ -41,14 +41,16 @@ class Project(object):
             kwargs['service_names'] = [service]
         return self.project.containers(**kwargs)
 
-    def show_access_url(self):
+    def display_service_tooltip(self):
         for service in self.project.services:
             labels = service.options.get('labels', {})
-            url = labels.get('docky.access.help', False)
-            if url:
-                logger.info(
-                    "The service %s is accessible on %s"
-                    % (service.name, url))
+            if labels.get('docky.access.help'):
+                # TODO remove after some versions
+                logger.warning(
+                    "'docky.access.help' is replaced by 'docky.help'. "
+                    "Please update this key in your docker files.")
+            if labels.get('docky.help'):
+                logger.info(labels.get('docky.help'))
 
     def create_volume(self):
         """Mkdir volumes if they don't exist yet.
