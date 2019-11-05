@@ -41,7 +41,7 @@ class Project(object):
             kwargs['service_names'] = [service]
         return self.project.containers(**kwargs)
 
-    def show_access_url(self):
+    def display_service_tooltip(self):
         for service in self.project.services:
             labels = service.options.get('labels', {})
             if labels.get('docky.access.help'):

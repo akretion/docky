@@ -28,7 +28,7 @@ class DockyUp(DockyForward):
     _cmd = "up -d"
 
     def _main(self, *args):
-        self.project.show_access_url()
+        self.project.display_service_tooltip()
         self.project.create_volume()
         return super(DockyUp, self)._main(*args)
 
