@@ -100,7 +100,7 @@ services:
       - .db/:/var/lib/postgresql/data
   mailcatcher:
     optional: Mailcatcher is a fake mail server
-    image: akretion/lightweight-mailcatcher
+    image: tophfr/mailcatcher
     labels:
       traefik.mailcatcher.frontend.rule: "Host:mailcatcher.${COMPOSE_PROJECT_NAME}.dy"
       traefik.mailcatcher.port: 1080
