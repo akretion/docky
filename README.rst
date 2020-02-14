@@ -23,98 +23,46 @@ Installation and Update
 
 You need to install docker-ce : https://docs.docker.com/install/
 
-Then install docky with python3
+
+
+
+For the installation we recommand to install pipx https://pypi.org/project/pipx/
+
+Then install docky with pipx
 
 .. code-block:: shell
 
-    sudo pip3 install docky
+    pipx install docky --include-deps
+
 
 Update Docky:
 ------------------
 
 .. code-block:: shell
 
-    sudo pip3 install docky --upgrade
-
+    pipx upgrade docky --include-deps
 
 Configuration:
 --------------
 
-The configuration file is in your home : '~/.docky/config.yml'
+Bootstrap a project with :
 
-verbose [True, False]:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code-block:: shell
 
-Verbose mode is activated by default in order to help you to learn what docky do
-
-
-env [dev, prod, preprod]:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Specify which kind of environment is used
-
-network
-~~~~~~~~~~~
-Docker network configuration for all container run with docky
-See docker configuration
-
-proxy
-~~~~~~
-Proxy configuration:
-
-  - autostart: automatically start proxy when running the container
-  - custom_image: custom image name if needed
-  - name: name of the proxy container
+    docky init
 
 
-Automatic Proxy
----------------
+Docky Labels
+~~~~~~~~~~~~~
 
-When doing dev, is quickly a mess to manage the port of your container, docky integrate a proxy (a basic docker image : https://github.com/akretion/docky-proxy/)
+The label docky.main.service and docky.user
 
-If you want to enjoy this proxy you need to configure a wildcard domain to *.dy to the IP 172.30.0.2
+.. code-block:: shell
 
-For that on mac and linux system you can install and configure dnsmasq
+    docky.main.service: odoo
+    docky.user: odoo
 
-For Ubuntu (dnsmasq)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Install dnsmasq
-```
-sudo apt-get install dnsmasq
-```
-
-Then configure dnsmasq y adding the line "address=/dy/172.30.0.2" in "/etc/dnsmasq.conf"
-
-Restart it
-
-```
-sudo systemctl restart dnsmasq
-```
-
-If you have some issue on ubutnu 18.04 please take a look here for the configuration
-
-- https://computingforgeeks.com/install-and-configure-dnsmasq-on-ubuntu-18-04-lts/
-- https://superuser.com/questions/1318220/ubuntu-18-04-disable-dnsmasq-base-and-enable-full-dnsmasq
-
-editing the /etc/systemd/resolved.conf and setting "DNSStubListener=no" seem to be the simpliest solution
-
-
-For Mac (dnsmasq)
-~~~~~~~~~~~~~~~~~~~
-
-Google is your friend by some link found, please share the doc you have found
-
-https://passingcuriosity.com/2013/dnsmasq-dev-osx/
-https://www.computersnyou.com/3786/how-to-setup-dnsmasq-local-dns/
-
-
-For Windows (Acrylic DNS)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Dnsmasq is not available on windows but you can use Acrylic DNS to do exactly the same thing.
-See answer here: https://stackoverflow.com/questions/138162/wildcards-in-a-windows-hosts-file?answertab=votes#tab-top
-
+Allow to define the main service of your docker compose and the user that should be user to enter in the container
 
 Getting Started
 ---------------------
@@ -123,7 +71,19 @@ Use docky --help
 
 But basically docky run is your friend
 
-READ the documentation: `Docky documentation <http://akretion.github.io/docky/master/index.html>`_
+READ the documentation: `Docky documentation <https://github.com/akretion/docky/blob/master/doc/command_line.rst>`_
+
+
+[Optionnal] Automatic Proxy
+-----------------------------
+
+When doing dev, is quickly a mess to manage the port of your container
+
+Previous version of docky was including a proxy based on nginx docker image.
+This solution was adding some restriction (like using the same network for all container)
+Now we recommands to simply install traefik and dns resolver like dnsmasq on your host.
+
+See documentation : `Install Traefik <https://github.com/akretion/docky/blob/master/doc/install_traefik.rst>`_
 
 
 Troubleshooting
@@ -137,6 +97,21 @@ see https://github.com/akretion/docky/wiki
 
 Changelog
 ----------
+
+version 7.0.0
+
+- remove the need of docky config file in $HOME
+- use .env to be more compatible with docker-compose
+- improve templates
+- create init command
+- heavy refactoring
+
+
+version 6.0.0
+
+- refactor remove proxy code and use traefik
+- remove docky.yml now you must use labels on services (see doc)
+- add option "--service=myservice" on docky run and docky open
 
 version 5.0.0:
 

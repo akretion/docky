@@ -3,134 +3,73 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from compose.cli.command import get_project
 from compose.project import OneOffFilter
+from compose.cli import command
+from compose.config.errors import ComposeFileNotFound
 from plumbum import local
-from plumbum.cli.terminal import ask
-import docker
-import yaml
-import os
 
-from .api import logger, raise_error
-from .generator import GenerateComposeFile
-
-client = docker.from_env()
-
-DOCKY_PATH = 'docky.yml'
-DOCKER_COMPOSE_PATH = 'docker-compose.yml'
+from .api import logger
 
 
 class Project(object):
 
-    def __init__(self, env, docky_config):
-        self.env = env
-        self.docky_config = docky_config
-        self._parse_docky_file()
-        self.compose_file_path = self._get_config_path()
-        if self.env == 'dev':
-            if not local.path(self.compose_file_path).isfile():
-                self._generate_dev_docker_compose_file()
-        self.name = self._get_project_name()
+    def __init__(self):
+        try:
+            self.project = command.project_from_options('.', {})
+        except ComposeFileNotFound:
+            print("No docker-compose found, create one with :")
+            print('$ docky init')
+            exit(-1)
+
+        self.name = self.project.name
         self.loaded_config = None
+        self.service = self._get_main_service(self.project)
 
-    def _parse_docky_file(self):
-        if os.path.isfile(DOCKY_PATH):
-            config = yaml.safe_load(open(DOCKY_PATH, 'r'))
-            self.service = config.get('service')
-            self.user = config.get('user')
-        else:
-            raise_error(
-                '%s file is missing. Minimal file is a yaml file with:\n'
-                ' service: your_service\nex:\n service: odoo' % DOCKY_PATH)
-
-    def _get_config_path(self):
-        config_path = '.'.join([self.env, DOCKER_COMPOSE_PATH])
-        if self.env == 'dev':
-            return config_path
-        elif local.path(config_path).is_file():
-            return config_path
-        elif local.path(DOCKER_COMPOSE_PATH).is_file():
-            return DOCKER_COMPOSE_PATH
-        else:
-            raise_error(
-                "There is not %s.%s or %s file, please add one"
-                % (self.env, DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_PATH))
-
-    def _generate_dev_docker_compose_file(self):
-        generate = ask(
-            "There is not dev.docker-compose.yml file.\n"
-            "Do you want to generate one automatically",
-            default=True)
-        if generate:
-            GenerateComposeFile(self.service).generate()
-        else:
-            raise_error("No dev.docker-compose.yml file, abort!")
-
-    def _get_project_name(self):
-        return local.env.get(
-            'COMPOSE_PROJECT_NAME',
-            '%s_%s' % (local.env.user, local.cwd.name)
-        )
+    def _get_main_service(self, project):
+        """main_service has docky.main.service defined in
+        his label."""
+        for service in project.services:
+            labels = service.options.get('labels', {})
+            # service.labels() do not contain docky.main.service
+            # see also compose.service.merge_labels
+            if labels.get('docky.main.service', False):
+                return service.name
 
     def get_containers(self, service=None):
-        project = get_project(
-            '.', [self.compose_file_path],
-            project_name=self.name)
         kwargs = {'one_off': OneOffFilter.include}
         if service:
             kwargs['service_names'] = [service]
-        return project.containers(**kwargs)
+        return self.project.containers(**kwargs)
 
-    @property
-    def config(self):
-        if not self.loaded_config:
-            self.loaded_config = yaml.safe_load(
-                open(self.compose_file_path, 'r'))
-        return self.loaded_config
-
-    def show_access_url(self):
-        for name, service in self.config['services'].items():
-            for env in service.get('environment', []):
-                if 'VIRTUAL_HOST=' in env:
-                    dns = env.replace('VIRTUAL_HOST=', '')
-                    logger.info(
-                        "The service %s is accessible on http://%s"
-                        % (name, dns))
+    def display_service_tooltip(self):
+        for service in self.project.services:
+            labels = service.options.get('labels', {})
+            if labels.get('docky.access.help'):
+                # TODO remove after some versions
+                logger.warning(
+                    "'docky.access.help' is replaced by 'docky.help'. "
+                    "Please update this key in your docker files.")
+            if labels.get('docky.help'):
+                logger.info(labels.get('docky.help'))
 
     def create_volume(self):
-        for name, service in self.config['services'].items():
-            if 'volumes' in service:
-                for volume_path in service['volumes']:
-                    volume = volume_path.split(':')[0]
-                    if volume.startswith('.') or volume.startswith('/'):
-                        path = local.path(volume)
-                        if not path.exists():
-                            logger.info(
-                                "Create missing directory %s for service %s",
-                                volume, name)
-                            local.path(volume).mkdir()
+        """Mkdir volumes if they don't exist yet.
 
-    def build_network(self):
-        network = self.docky_config.network
-        if not network:
-            logger.info("No network define, skip it")
-        gateway = '.'.join(network['subnet'].split('.')[0:3] + ["1"])
-        for net in client.networks.list(network['name']):
-            if net.name == network['name']:
-                return
-        ipam_pool = docker.types.IPAMPool(
-            subnet=network['subnet'],
-            iprange=network['subnet'],
-            gateway=gateway,
-        )
-        ipam_config = docker.types.IPAMConfig(
-            pool_configs=[ipam_pool])
+        Only apply to external volumes.
+        docker-compose up do not attemps to create it
+        so we have to do it ourselves"""
+        for service in self.project.services:
+            for volume in service.options.get('volumes', []):
+                if volume.external:
+                    path = local.path(local.env.expand(volume.external))
+                    if not path.exists():
+                        logger.info(
+                            "Create missing directory %s for service %s",
+                            path, service.name)
+                        path.mkdir()
 
-        logger.info("Create '.%s' network" % network['name'])
-
-        client.networks.create(
-            network['name'],
-            driver="bridge",
-            ipam=ipam_config,
-            options=network['options'],
-        )
+    def get_user(self, service_name):
+        service = self.project.get_service(name=service_name)
+        labels = service.options.get('labels')
+        if labels:
+            return labels.get('docky.user', None)

@@ -6,25 +6,17 @@
 
 from plumbum import cli, local
 from plumbum.commands.modifiers import FG
-from pwd import getpwnam
 import logging
 import os
 
-from ..common.api import logger, raise_error
-from ..common.config import DockyConfig
+from ..common.api import logger
 from ..common.project import Project
-from ..common.proxy import Proxy
 
 
 class Docky(cli.Application):
     PROGNAME = "docky"
-    VERSION = '5.0.2'
+    VERSION = '7.0.2'
     SUBCOMMAND_HELPMSG = None
-
-    force_env = cli.SwitchAttr(
-        ["e", "env"],
-        help="Environment flag",
-        group = "Switches")
 
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""
@@ -37,16 +29,7 @@ class Docky(cli.Application):
         logger.debug(cmd + ' '.join(args))
         os.execvpe(cmd, [cmd] + args, local.env)
 
-    def __init__(self, executable):
-        super(Docky, self).__init__(executable)
-        self.config = DockyConfig()
-        if self.config.verbose:
-            self.set_log_level()
-            logger.debug(
-                'Start in verbose mode. You can change the default '
-                'value in ~/.docky/config.yml')
-
-    @cli.switch("--verbose", help="Verbose mode", group = "Meta-switches")
+    @cli.switch("--verbose", help="Verbose mode", group="Meta-switches")
     def set_log_level(self):
         logger.setLevel(logging.DEBUG)
         logger.debug('Verbose mode activated')
@@ -62,16 +45,10 @@ class DockySub(cli.Application):
         self.parent._run(*args, **kwargs)
 
     def _init_project(self):
-        self.project = Project(self.env, self.parent.config)
-        self.project.build_network()
-        self.compose = local['docker-compose'][
-            '-f', self.project.compose_file_path,
-            '--project-name', self.project.name]
+        self.project = Project()
+        self.compose = local['docker-compose']
 
     def main(self, *args, **kwargs):
-        local.env['UID'] = str(getpwnam(local.env.user).pw_uid)
-        self.env = self.parent.force_env or self.parent.config.env
-        self.proxy = Proxy(self.parent.config)
         if self._project_specific:
             self._init_project()
         self._main(*args, **kwargs)

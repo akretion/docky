@@ -1,7 +1,3 @@
-networks:
-  default:
-    external:
-      name: dy
 volumes:
   py3o_tmp:
 services:
@@ -20,7 +16,6 @@ services:
     environment:
       - DB_ENV_USER=magento
       - DB_ENV_PASS=magento
-    expose: 80
     image: akretion/docker-magento
     ports:
       - 80:80
@@ -30,6 +25,10 @@ services:
     volumes:
       - .magento/firstrun:/firstrun
       - .magento/www:/var/www
+    labels:
+      traefik.magento.frontend.rule: "Host:magento.${COMPOSE_PROJECT_NAME}.dy"
+      traefik.magento.port: 80
+      docky.access.help: "http://magento.${COMPOSE_PROJECT_NAME}.dy"
   memcached:
     optional: Add magento server (with connector) ?
     image: sylvainlasnier/memcached
@@ -54,7 +53,6 @@ services:
       - py3o_tmp:/tmp
   metabase:
     optional: metabase is Web tools for BI with dashboard
-    expose: 3000
     image: metabase/metabase
     environment:
       - MB_DB_FILE=/file/metabase.db
@@ -62,6 +60,10 @@ services:
       - db
     volumes:
       - .:/file
+    labels:
+      traefik.metabase.frontend.rule: "Host:metabase.${COMPOSE_PROJECT_NAME}.dy"
+      traefik.metabase.port: 3000
+      docky.access.help: "http://metabase.${COMPOSE_PROJECT_NAME}.dy"
   firefox:
     optional: Selenium Standalone with Firefox installed and runs a VNC server
     hostname: firefox
@@ -73,16 +75,22 @@ services:
     - /dev/shm:/dev/shm
   pgadmin:
     optional: Pgadmin v4 is postgresql Web GUI
-    expose: 5050
     image: fenglc/pgadmin4
     links:
       - db
+    labels:
+      traefik.pgadmin.frontend.rule: "Host:pgadmin.${COMPOSE_PROJECT_NAME}.dy"
+      traefik.pgadmin.port: 5050
+      docky.access.help: "http://pgadmin.${COMPOSE_PROJECT_NAME}.dy"
   adminer:
     optional: Adminer, RDBMS Web GUI (including Postgresql) with usability and perf
     image: adminer
-    expose: 8080
     links:
       - db
+    labels:
+      traefik.adminer.frontend.rule: "Host:adminer.${COMPOSE_PROJECT_NAME}.dy"
+      traefik.adminer.port: 8080
+      docky.access.help: "http://adminer.${COMPOSE_PROJECT_NAME}.dy"
   db:
     image: quay.io/akretion/postgresql:10
     environment:
@@ -92,19 +100,22 @@ services:
       - .db/:/var/lib/postgresql/data
   mailcatcher:
     optional: Mailcatcher is a fake mail server
-    expose: 1080
     image: tophfr/mailcatcher
+    labels:
+      traefik.mailcatcher.frontend.rule: "Host:mailcatcher.${COMPOSE_PROJECT_NAME}.dy"
+      traefik.mailcatcher.port: 1080
+      docky.access.help: "http://mailcatcher.${COMPOSE_PROJECT_NAME}.dy"
   odoo:
     build: odoo
-    expose: 8069
     environment:
       - PYTHONDONTWRITEBYTECODE=True
       - LOCAL_USER_ID=$UID
       - DB_USER=odoo
       - DB_PASS=odoo
       - DB_NAME=db
-      - RUNNING_ENV=dev
+      - RUNNING_ENV=$ENV
       - MARABUNTA_MODE=demo
+    hostname: ${ENV}-${COMPOSE_PROJECT_NAME}
     links:
       - db
     volumes:
@@ -112,4 +123,11 @@ services:
       - ./data/addons:/data/odoo/addons
       - ./data/filestore:/data/odoo/filestore
       - ./data/sessions:/data/odoo/sessions
+    labels:
+      traefik.longpolling.frontend.rule: "Host:${COMPOSE_PROJECT_NAME}.dy;PathPrefix:/longpolling/"
+      traefik.frontend.rule: "Host:${COMPOSE_PROJECT_NAME}.dy"
+      traefik.enable: True
+      docky.access.help: "http://${COMPOSE_PROJECT_NAME}.dy"
+      docky.main.service: True
+      docky.user: odoo
 version: '3'
