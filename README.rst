@@ -54,6 +54,12 @@ Bootstrap a project with:
 It will create you a .env file you have to edit.
 You can also start from a template like this one : https://github.com/akretion/docky-odoo-template
 
+Build a project
+---------------
+
+Very recommended: use `ak` to build the projet. Follow the documentation here : https://github.com/akretion/ak
+
+
 
 Docky Labels
 ~~~~~~~~~~~~~
