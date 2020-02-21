@@ -1,7 +1,7 @@
 Introduction
 =================
 
-docky : Make docker and docker compose simply !
+docky : Make docker and docker-compose simply !
 
 
 History
@@ -17,39 +17,48 @@ Docky is depend on docker-compose and use exactly the same file (so you can move
 
 Docky just make docker-compose simplier and integrate a default docker-compose file generator
 
+Requirements
+------------
 
-Installation and Update
--------------------------
-
-You need to install docker-ce : https://docs.docker.com/install/
-
+You need to install docker-ce : https://docs.docker.com/install/ (or podman)
 
 
-
-For the installation we recommand to install pipx https://pypi.org/project/pipx/
-
-Then install docky with pipx
-
-.. code-block:: shell
-
-    pipx install docky --include-deps
-
-
-Update Docky:
+Installation Docky 
 ------------------
 
+Docky is available from pypi
+
 .. code-block:: shell
 
-    pipx upgrade docky --include-deps
+    pip install docky
+    # or with pipx : pipx install docky --include-deps
+
+
+Update Docky
+-------------
+
+.. code-block:: shell
+
+    pip install docky --upgrade
+    # or with pipx : pipx upgrade docky --include-deps
 
 Configuration:
 --------------
 
-Bootstrap a project with :
+Bootstrap a project with:
 
 .. code-block:: shell
 
     docky init
+
+It will create you a .env file you have to edit.
+You can also start from a template like this one : https://github.com/akretion/docky-odoo-template
+
+Build a project
+---------------
+
+Very recommended: use `ak` to build the projet. Follow the documentation here : https://github.com/akretion/ak
+
 
 
 Docky Labels
@@ -69,21 +78,16 @@ Getting Started
 
 Use docky --help
 
-But basically docky run is your friend
+But basically `docky run is` your friend
 
 READ the documentation: `Docky documentation <https://github.com/akretion/docky/blob/master/doc/command_line.rst>`_
 
 
-[Optionnal] Automatic Proxy
------------------------------
+[Optionnal] Automatic Proxy - Multiproject setup
+------------------------------------------------
 
-When doing dev, is quickly a mess to manage the port of your container
-
-Previous version of docky was including a proxy based on nginx docker image.
-This solution was adding some restriction (like using the same network for all container)
-Now we recommands to simply install traefik and dns resolver like dnsmasq on your host.
-
-See documentation : `Install Traefik <https://github.com/akretion/docky/blob/master/doc/install_traefik.rst>`_
+When doing dev, is quickly a mess to manage the port of your containers.
+We recommand to use traefik. You can find more information.
 
 
 Troubleshooting
@@ -92,8 +96,6 @@ Troubleshooting
 To avoid issue with line wrapping with "docky open" please use a version of docker > to  18.06.0-ce
 see : https://github.com/docker/compose/issues/6151
 
-Other issue :
-see https://github.com/akretion/docky/wiki
 
 Changelog
 ----------
