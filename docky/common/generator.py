@@ -26,7 +26,6 @@ class GenerateComposeFile(object):
         self.service = service
         resource_path = '../template/%s.docker-compose.yml' % service
         template = pkg_resources.resource_stream(__name__, resource_path)
-        project_name = get_project_name()
         config = template.read()
         self.config = yaml.safe_load(config)
 
