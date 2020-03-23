@@ -3,8 +3,7 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-import os
-import re
+import docker
 from compose.project import OneOffFilter
 from compose.cli import command
 from compose.config.errors import ComposeFileNotFound
@@ -60,50 +59,26 @@ class Project(object):
                 logger.info(labels.get('docky.help'))
 
     def _get_services_info(self):
-        """ Docker inspect provides all we need to guess ip of docky services
-            Here is a format to retrieve information with
-            a dedicated separator in this format:
-
-            mystring:  as start separator
-            :mystring  as end separator
+        """ Search IP and Port for each services
         """
-        format_ = "docker inspect --format='name: {{.Name}} :name - " \
-                  "{{range $ip, $_ := .NetworkSettings.Networks}}" \
-                  "ip: {{.IPAddress}}{{$ip}} :ip " \
-                  "{{end}}:{{range $p, $conf := .Config.ExposedPorts}} " \
-                  "port: {{$p}} :port {{end}} :port' $(docker ps -aq)"
-        inspect = os.popen(format_)
-        data, project_services = [], {}
-        data = inspect.read()
-        for info in data.split("\n"):
-            if self.project.name in info:
-                name, url = self._build_service_url(info)
-                if name != "db":
-                    project_services[name] = url
-        return project_services
-
-    def _build_service_url(self, origin):
-        """ We extract informations from one line of docker inspect
-            origin example
-            name: /myproject_mailcatcher_1 :name - ip: 172.18.0.2myproject_local :ip :
-             port: 1025/tcp :port  port: 1080/tcp :port  :port'
-        """
-        key_search = {
-            "name": "/%s_(.*)_[0-9]{1,2}" % self.project.name,
-            "ip": "(.*)%s_local" % self.project.name,
-            "port": "([0-9]*)/tcp",
-        }
+        client = docker.from_env()
+        services = (x for x in client.containers.list()
+                    if self.project.name in x.attrs["Name"])
         infos = {}
-        for key, search in key_search.items():
-            map_ = {"key": key, "search": search}
-            match = re.match(r".*%(key)s: %(search)s :%(key)s" % map_, origin)
-            if match and match.group(1):
-                # we only get the first occurence
-                infos[key] = match.group(1)
-            else:
-                infos[key] = ""
-        url = "%(name)s http://%(ip)s:%(port)s" % infos
-        return (infos.get("name"), url)
+        for serv in services:
+            local = "%s_local" % self.project.name
+            ip = serv.attrs["NetworkSettings"]["Networks"][local].get("IPAddress", "")
+            info = {
+                "name": serv.attrs["Config"]["Labels"].get(
+                    "com.docker.compose.service", ""),
+                "ip": ip,
+                "port": [x for x in serv.attrs["NetworkSettings"].get("Ports", "")]
+            }
+            info["port"] = info["port"] and info["port"][0].replace("/tcp", "") or ""
+            if info["name"] != "db":
+                # There is no web app to access 'db' service: try adminer for that
+                infos[info["name"]] = "%(name)s http://%(ip)s:%(port)s" % (info)
+        return infos
 
     def create_volume(self):
         """Mkdir volumes if they don't exist yet.
