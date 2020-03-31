@@ -6,16 +6,16 @@ docky : Make docker and docker-compose simply !
 
 History
 ----------
-This project was initialy created for building odoo environments without effort based on docker-compose and docker
+This project was initially created for building Odoo environments without effort based on docker-compose and docker.
 
-Step by step we make it generic and now we also use it for our rails, ruby developpment
+Step by step, we have made it generic and now we also use it for our rails and ruby development.
 
 How it works
 ---------------
 
-Docky is depend on docker-compose and use exactly the same file (so you can move from docker-compose to docky and vice-versa without any effort)
+Docky depends on docker-compose and uses exactly the same file (so you can move from docker-compose to docky and vice-versa without any effort)
 
-Docky just make docker-compose simplier and integrate a default docker-compose file generator
+Docky just makes docker-compose simpler and integrates a default docker-compose file generator
 
 Requirements
 ------------
@@ -51,14 +51,14 @@ Bootstrap a project with:
 
     docky init
 
-It will create you a .env file you have to edit.
+It will create for you a .env file that you have to edit.
 You can also start from a template like this one : https://github.com/akretion/docky-odoo-template
 Note that the template presumes that you have a running Traefik container on the "traefik" docker network.
 
 Build a project
 ---------------
 
-Very recommended: use `ak` to build the projet. Follow the documentation here : https://github.com/akretion/ak
+Very recommended: use `ak` to build the project. Follow the documentation here : https://github.com/akretion/ak
 
 
 
@@ -72,7 +72,7 @@ The label docky.main.service and docky.user
     docky.main.service: odoo
     docky.user: odoo
 
-Allow to define the main service of your docker compose and the user that should be user to enter in the container
+Allows you to define the main service of your docker-compose.yml file, and to specify the command line user for the container.
 
 Getting Started
 ---------------------
@@ -87,14 +87,14 @@ READ the documentation: `Docky documentation <https://github.com/akretion/docky/
 [Optionnal] Automatic Proxy - Multiproject setup
 ------------------------------------------------
 
-When doing dev, is quickly a mess to manage the port of your containers.
-We recommand to use traefik. You can find more information.
+When developing, it quickly becomes a mess to manage different ports of your containers.
+We recommend usage of traefik. You can find more information.
 
 
 Troubleshooting
 --------------------
 
-To avoid issue with line wrapping with "docky open" please use a version of docker > to  18.06.0-ce
+To avoid issues with line wrapping with "docky open" please use a version of docker > to  18.06.0-ce
 see : https://github.com/docker/compose/issues/6151
 
 
