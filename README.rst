@@ -53,6 +53,7 @@ Bootstrap a project with:
 
 It will create you a .env file you have to edit.
 You can also start from a template like this one : https://github.com/akretion/docky-odoo-template
+Note that the template presumes that you have a running Traefik container on the "traefik" docker network.
 
 Build a project
 ---------------
