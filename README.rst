@@ -1,8 +1,6 @@
 Introduction
 =================
 
-docky : Make docker and docker-compose simply !
-
 docky is a multi-purpose tool that adds some functionality for creating, running and managing docker-compose.yml files.
 
 
