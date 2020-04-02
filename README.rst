@@ -1,30 +1,33 @@
 Introduction
 =================
 
-docky : Make docker and docker-compose simply !
+docky is a multi-purpose tool that adds some functionality for creating, running and managing docker-compose.yml files.
 
 
-History
-----------
-This project was initialy created for building odoo environments without effort based on docker-compose and docker
+History & motivation
+--------------------
 
-Step by step we make it generic and now we also use it for our rails, ruby developpment
+This project was initially created for building Odoo environments without effort based on docker-compose and docker.
+
+Step by step, we have made it generic and now also use it for our rails and ruby development.
+
 
 How it works
 ---------------
 
-Docky is depend on docker-compose and use exactly the same file (so you can move from docker-compose to docky and vice-versa without any effort)
+Docky integrates a default docker-compose file generator and simplifies running of docker containers.
 
-Docky just make docker-compose simplier and integrate a default docker-compose file generator
+Once your setup is done, docky depends on docker-compose and uses the same file. Except for some convenience features, you will mostly get the same results if you run the generated docker-compose.yml file through docker-compose or docky.
+
 
 Requirements
 ------------
 
-You need to install docker-ce : https://docs.docker.com/install/ (or podman)
+docker-ce : https://docs.docker.com/install/ (or podman)
 
 
-Installation Docky 
-------------------
+Installation
+------------
 
 Docky is available from pypi
 
@@ -42,27 +45,25 @@ Update Docky
     pip install docky --upgrade
     # or with pipx : pipx upgrade docky --include-deps
 
-Configuration:
---------------
 
-Bootstrap a project with:
+Usage: commands
+---------------
 
 .. code-block:: shell
 
     docky init
 
-It will create you a .env file you have to edit.
+Bootstraps a project using a template. This will ask you a series of questions to create customized `.env <https://docs.docker.com/compose/env-file/>`_ and docker-compose.yml files that you can further edit.
+The template used is for running an Odoo server with some optional tools.
+Note that the template presumes that you have a running Traefik container on the "traefik" docker network.
+
 You can also start from a template like this one : https://github.com/akretion/docky-odoo-template
 
-Build a project
----------------
-
-Very recommended: use `ak` to build the projet. Follow the documentation here : https://github.com/akretion/ak
+For more information on other commands, use docky --help and check the `documentation <https://github.com/akretion/docky/blob/master/doc/command_line.rst>`_.
 
 
-
-Docky Labels
-~~~~~~~~~~~~~
+Usage: labels
+-------------
 
 The label docky.main.service and docky.user
 
@@ -71,29 +72,20 @@ The label docky.main.service and docky.user
     docky.main.service: odoo
     docky.user: odoo
 
-Allow to define the main service of your docker compose and the user that should be user to enter in the container
-
-Getting Started
----------------------
-
-Use docky --help
-
-But basically `docky run is` your friend
-
-READ the documentation: `Docky documentation <https://github.com/akretion/docky/blob/master/doc/command_line.rst>`_
+Allows you to define the main service of your docker-compose.yml file, and to specify the command line user for the container when you run for example 'docky run'.
 
 
-[Optionnal] Automatic Proxy - Multiproject setup
-------------------------------------------------
+Usage: recommendations
+----------------------
 
-When doing dev, is quickly a mess to manage the port of your containers.
-We recommand to use traefik. You can find more information.
+* Use `ak <https://github.com/akretion/ak>`_ to build your project.
+* When developing, if you are on several projects at once, it quickly becomes a mess to manage different ports of your containers. We recommend usage of Traefik.
 
 
 Troubleshooting
---------------------
+---------------
 
-To avoid issue with line wrapping with "docky open" please use a version of docker > to  18.06.0-ce
+To avoid issues with line wrapping with "docky open" please use a version of docker > to  18.06.0-ce
 see : https://github.com/docker/compose/issues/6151
 
 
