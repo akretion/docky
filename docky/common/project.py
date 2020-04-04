@@ -66,8 +66,14 @@ class Project(object):
                     if self.project.name in x.attrs["Name"])
         infos = {}
         for serv in services:
-            local = "%s_local" % self.project.name
-            ip = serv.attrs["NetworkSettings"]["Networks"][local].get("IPAddress", "")
+            proj_key = [
+                x for x in serv.attrs["NetworkSettings"]["Networks"].keys()
+                if self.project.name in x]
+            proj_key = proj_key and proj_key[0] or False
+            if not serv.attrs["NetworkSettings"]["Networks"].get(proj_key):
+                continue
+            ip = serv.attrs["NetworkSettings"]["Networks"][proj_key].get(
+                "IPAddress", "")
             info = {
                 "name": serv.attrs["Config"]["Labels"].get(
                     "com.docker.compose.service", ""),
