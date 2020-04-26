@@ -79,8 +79,32 @@ Usage: recommendations
 ----------------------
 
 * Use `ak <https://github.com/akretion/ak>`_ to build your project.
-* When developing, if you are on several projects at once, it quickly becomes a mess to manage different ports of your containers. We recommend usage of Traefik.
+* When developing, if you are on several projects at once, it quickly becomes a mess to manage different ports of your containers. We recommend usage of Traefik. Here is an example docker-compose.yml file for local development purposes:
 
+.. code-block:: yaml
+
+    version: "3.7"
+    services:
+        traefik:
+        image: "traefik:v2.1"
+        restart: always
+        container_name: "traefik"
+        command:
+            - "--api.insecure=true"
+            - "--providers.docker=true"
+            - "--providers.docker.exposedbydefault=false"
+            - "--entrypoints.web.address=:80"
+        ports:
+            - "127.0.0.1:80:80"
+            - "127.0.0.1:8080:8080"
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock:ro"
+        networks:
+        - traefik
+
+    networks:
+        traefik:
+            name: traefik
 
 Troubleshooting
 ---------------
