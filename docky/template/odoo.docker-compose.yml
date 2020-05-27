@@ -26,9 +26,7 @@ services:
       - .magento/firstrun:/firstrun
       - .magento/www:/var/www
     labels:
-      traefik.magento.frontend.rule: "Host:magento.${COMPOSE_PROJECT_NAME}.dy"
       traefik.magento.port: 80
-      docky.access.help: "http://magento.${COMPOSE_PROJECT_NAME}.dy"
   memcached:
     optional: Add magento server (with connector) ?
     image: sylvainlasnier/memcached
@@ -61,9 +59,7 @@ services:
     volumes:
       - .:/file
     labels:
-      traefik.metabase.frontend.rule: "Host:metabase.${COMPOSE_PROJECT_NAME}.dy"
       traefik.metabase.port: 3000
-      docky.access.help: "http://metabase.${COMPOSE_PROJECT_NAME}.dy"
   firefox:
     optional: Selenium Standalone with Firefox installed and runs a VNC server
     hostname: firefox
@@ -79,18 +75,14 @@ services:
     links:
       - db
     labels:
-      traefik.pgadmin.frontend.rule: "Host:pgadmin.${COMPOSE_PROJECT_NAME}.dy"
       traefik.pgadmin.port: 5050
-      docky.access.help: "http://pgadmin.${COMPOSE_PROJECT_NAME}.dy"
   adminer:
     optional: Adminer, RDBMS Web GUI (including Postgresql) with usability and perf
     image: adminer
     links:
       - db
     labels:
-      traefik.adminer.frontend.rule: "Host:adminer.${COMPOSE_PROJECT_NAME}.dy"
       traefik.adminer.port: 8080
-      docky.access.help: "http://adminer.${COMPOSE_PROJECT_NAME}.dy"
   db:
     image: quay.io/akretion/postgresql:10
     environment:
@@ -102,9 +94,7 @@ services:
     optional: Mailcatcher is a fake mail server
     image: tophfr/mailcatcher
     labels:
-      traefik.mailcatcher.frontend.rule: "Host:mailcatcher.${COMPOSE_PROJECT_NAME}.dy"
       traefik.mailcatcher.port: 1080
-      docky.access.help: "http://mailcatcher.${COMPOSE_PROJECT_NAME}.dy"
   odoo:
     build: odoo
     environment:
@@ -124,10 +114,14 @@ services:
       - ./data/filestore:/data/odoo/filestore
       - ./data/sessions:/data/odoo/sessions
     labels:
-      traefik.longpolling.frontend.rule: "Host:${COMPOSE_PROJECT_NAME}.dy;PathPrefix:/longpolling/"
-      traefik.frontend.rule: "Host:${COMPOSE_PROJECT_NAME}.dy"
-      traefik.enable: True
-      docky.access.help: "http://${COMPOSE_PROJECT_NAME}.dy"
-      docky.main.service: True
-      docky.user: odoo
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.rule=Host(`${COMPOSE_PROJECT_NAME}.localhost`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-long.rule=Host(`${COMPOSE_PROJECT_NAME}.localhost`) && PathPrefix(`/longpolling/`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.service=${COMPOSE_PROJECT_NAME}odoo"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-long.service=${COMPOSE_PROJECT_NAME}odoo_long"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}odoo.loadbalancer.server.port=8069"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}odoo_long.loadbalancer.server.port=8072"
+      - "docky.main.service=true"
+      - "docky.user=odoo"
 version: '3'
