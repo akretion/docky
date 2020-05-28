@@ -106,6 +106,8 @@ Usage: recommendations
         traefik:
             name: traefik
 
+More info about Traefik config on this repo: https://github.com/akretion/traefik-template
+
 
 Troubleshooting
 ---------------
