@@ -80,10 +80,11 @@ class Project(object):
                 "ip": ip,
                 "port": [x for x in serv.attrs["NetworkSettings"].get("Ports", "")]
             }
-            info["port"] = info["port"] and info["port"][0].replace("/tcp", "") or ""
-            if info["name"] != "db":
+            if info["name"] != "db" and info.get("port"):
+                urls = ["http://%s:%s" % (info["ip"], port.replace("/tcp", ""))
+                        for port in info["port"]]
                 # There is no web app to access 'db' service: try adminer for that
-                infos[info["name"]] = "%(name)s http://%(ip)s:%(port)s" % (info)
+                infos[info["name"]] = "%s %s" % (info["name"], " ".join(urls))
         return infos
 
     def create_volume(self):
