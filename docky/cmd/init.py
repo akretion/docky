@@ -8,30 +8,16 @@ from plumbum.cli.terminal import ask
 
 
 from .base import Docky
-from ..common.generator import GenerateComposeFile, GenerateEnvFile
-
-TEMPLATE_SERVICE = ['odoo']
+from ..common.generator import GenerateProject
 
 
 @Docky.subcommand("init")
 class DockyInit(cli.Application):
     """Initalize a project"""
-
+    TEMPLATE_URL = "https://github.com/akretion/docky-odoo-template.git"
+    TEMPLATE_BRANCH = "14.0"
+    template_branch = cli.SwitchAttr("--b", help="Template's branch", argtype=str, default=TEMPLATE_BRANCH)
+    template_url = cli.SwitchAttr("--url", help="Template's url", argtype=str, default=TEMPLATE_URL)
+    
     def main(self, *args, **kwargs):
-        self._generate_env()
-        self._generate_dev_docker_compose_file()
-
-    def _generate_dev_docker_compose_file(self):
-        for service in TEMPLATE_SERVICE:
-            generate = ask(
-                "Do you want to generate docker-compose.yml "
-                "automatically for %s" % service,
-                default=True)
-            if generate:
-                return GenerateComposeFile(service).generate()
-
-    def _generate_env(self):
-        generate = ask(
-            "Do you want to generate .env file ?", default=True)
-        if generate:
-            return GenerateEnvFile().generate()
+        GenerateProject().generate(url=self.template_url, branch=self.template_branch)

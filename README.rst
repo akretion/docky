@@ -53,11 +53,9 @@ Usage: commands
 
     docky init
 
-Bootstraps a project using a template. This will ask you a series of questions to create customized `.env <https://docs.docker.com/compose/env-file/>`_ and docker-compose.yml files that you can further edit.
-The template used is for running an Odoo server with some optional tools.
+Bootstraps a odoo project using a template (https://github.com/akretion/docky-odoo-template)
+This will ask you a series of questions to create customized `.env <https://docs.docker.com/compose/env-file/>`_ and docker-compose.yml files that you can further edit.
 Note that the template presumes that you have a running Traefik container on the "traefik" docker network.
-
-You can also start from a template like this one : https://github.com/akretion/docky-odoo-template
 
 For more information on other commands, use docky --help and check the `documentation <https://github.com/akretion/docky/blob/master/doc/command_line.rst>`_.
 
@@ -118,6 +116,9 @@ see : https://github.com/docker/compose/issues/6151
 
 Changelog
 ----------
+
+version 7.0.4
+- use `copier` for managing the template
 
 version 7.0.0
 

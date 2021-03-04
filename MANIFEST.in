@@ -1,5 +1,1 @@
-include docky/template/odoo.docker-compose.yml
-include docky/template/locomotive.docker-compose.yml
-include docky/template/wagon.docker-compose.yml
-include docky/template/ruby.docker-compose.yml
 include requirements.txt
