@@ -117,8 +117,12 @@ see : https://github.com/docker/compose/issues/6151
 Changelog
 ----------
 
+version 7.0.5
+- fix requirements.txt
+
 version 7.0.4
 - use `copier` for managing the template
+- drop python 3.5 support
 
 version 7.0.0
 
