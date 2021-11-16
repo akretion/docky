@@ -117,6 +117,10 @@ see : https://github.com/docker/compose/issues/6151
 Changelog
 ----------
 
+version 7.0.6
+- update copier dep to 6.0.0a9
+- remove dead code (old template)
+
 version 7.0.5
 - fix requirements.txt
 
