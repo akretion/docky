@@ -29,5 +29,5 @@ class GenerateProject(object):
         else:
             if not self._is_empty():
                raise BaseException("Not empty dir")
-            return copier['-d', f'uid={self._uid()}', '-d', f'project_name={self._project_name()}', "-b", branch, url, '.'] & FG
+            return copier['-d', f'UID={self._uid()}', '-d', f'project_name={self._project_name()}', "-b", branch, url, '.'] & FG
         
