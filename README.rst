@@ -1,7 +1,7 @@
 Introduction
 =================
 
-docky is a multi-purpose tool that adds some functionality for creating, running and managing docker-compose.yml files.
+docky is a dev tool to set up and run multiple odoo projects.
 
 
 History & motivation
@@ -9,15 +9,13 @@ History & motivation
 
 This project was initially created for building Odoo environments without effort based on docker-compose and docker.
 
-Step by step, we have made it generic and now also use it for our rails and ruby development.
 
-
-How it works
+Main features
 ---------------
 
-Docky integrates a default docker-compose file generator and simplifies running of docker containers.
+Intialize an odoo project (docky init) from a template and keep it in sync.
 
-Once your setup is done, docky depends on docker-compose and uses the same file. Except for some convenience features, you will mostly get the same results if you run the generated docker-compose.yml file through docker-compose or docky.
+Simplify docker-compose CLI with few short cuts.
 
 
 Requirements
@@ -116,6 +114,10 @@ see : https://github.com/docker/compose/issues/6151
 
 Changelog
 ----------
+
+version 7.0.7
+- update copier depency
+- adapt readme
 
 version 7.0.6
 - update copier dep to 6.0.0a9
