@@ -2,7 +2,7 @@ docker-compose>=1.23.1
 plumbum
 rainbow_logging_handler
 python-slugify
-copier @ git+https://github.com/hparfr/copier@vcs_branch09#egg=copier
+copier @ git+https://github.com/hparfr/copier@vcs_branch22-04#egg=copier
 # Only for solving installation issue with pip that fail to
 # solve the version of request compatible with docker and docker-compose
 requests<3,>=2.20.0
