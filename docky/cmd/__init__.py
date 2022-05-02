@@ -5,3 +5,4 @@ from . import forward
 from . import run_open
 from . import kill
 from . import init
+from . import remote
