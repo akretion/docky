@@ -4,6 +4,9 @@
 
 import os
 from plumbum.cli.terminal import ask, prompt
+from plumbum.cmd import tsh
+
+from ..common.api import logger
 
 
 TELEPORT_PROXY = "teleport.akretion.com:443"
@@ -15,10 +18,9 @@ class RemoteVM(object):
         self.name = name
 
     def _remote_exec(self, command):
-        remote_command = f"tsh --proxy={TELEPORT_PROXY} ssh app@{self.name} bash -c '{command}'"
-        output = os.popen(remote_command).readlines()
-        echo(output)
-        return
+        remote_command = tsh["--proxy", TELEPORT_PROXY, "ssh", f"app@{self.name}", "bash", "-c", f"'{command}'"]
+        logger.info(str(remote_command))
+        return remote_command()
 
     def clone(self, project_url, project_access_token, dir_name):
         project_url_with_token = project_url.replace("https://", f"https://oauth2:{project_access_token}@")

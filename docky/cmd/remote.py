@@ -5,11 +5,11 @@
 import os
 from plumbum import cli
 from plumbum.cli.terminal import ask, prompt
+from plumbum.cmd import git
 
 from .base import Docky
 
 from ..common.remote import RemoteVM
-from ..common.gitlab import Gitlab
 
 
 @Docky.subcommand("remote")
@@ -21,7 +21,7 @@ class DockyRemote(cli.Application):
     """Init remote repository"""
 
     def main(self, *args, **kwargs):
-        project_url = os.popen("git remote get-url origin").readline()
+        project_url = git["remote", "get-url", "origin"]()
         project_url = project_url.replace("\n", "")
         project_url = project_url.replace("ssh://git@", "https://")
         project_url = project_url.replace(":10022/", "/")
