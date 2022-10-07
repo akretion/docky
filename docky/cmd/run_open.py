@@ -60,7 +60,7 @@ class DockyRun(DockyExec):
         self.project.display_service_tooltip()
         self.project.create_volume()
         self._exec('docker-compose', [
-            'run', '--rm', '--service-ports', '--use-aliases',
+            'run', '--rm', '--service-ports', '--use-aliases', '-e', 'NOGOSU=True',
             self.service] + self.cmd)
 
 
@@ -72,5 +72,4 @@ class DockyOpen(DockyExec):
 
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
-        self._exec('dcpatched', [
-            'exec', self.service] + self.cmd)
+        self._exec('dcpatched', ['exec', '-e', 'NOGOSU=True', self.service] + self.cmd)
