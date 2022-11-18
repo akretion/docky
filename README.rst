@@ -13,8 +13,6 @@ This project was initially created for building Odoo environments without effort
 Main features
 ---------------
 
-Intialize an odoo project (docky init) from a template and keep it in sync.
-
 Simplify docker-compose CLI with few short cuts.
 
 
@@ -42,20 +40,6 @@ Update Docky
 
     pip install docky --upgrade
     # or with pipx : pipx upgrade docky --include-deps
-
-
-Usage: commands
----------------
-
-.. code-block:: shell
-
-    docky init
-
-Bootstraps a odoo project using a template (https://github.com/akretion/docky-odoo-template)
-This will ask you a series of questions to create customized `.env <https://docs.docker.com/compose/env-file/>`_ and docker-compose.yml files that you can further edit.
-Note that the template presumes that you have a running Traefik container on the "traefik" docker network.
-
-For more information on other commands, use docky --help and check the `documentation <https://github.com/akretion/docky/blob/master/doc/command_line.rst>`_.
 
 
 Usage: labels
@@ -114,6 +98,9 @@ see : https://github.com/docker/compose/issues/6151
 
 Changelog
 ----------
+
+version 8.0.0
+- remove docky init
 
 version 7.0.7
 - update copier depency
