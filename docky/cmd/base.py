@@ -15,7 +15,7 @@ from ..common.project import Project
 
 class Docky(cli.Application):
     PROGNAME = "docky"
-    VERSION = '7.1.0'
+    VERSION = '8.0.0'
     SUBCOMMAND_HELPMSG = None
 
     def _run(self, cmd, retcode=FG):
