@@ -6,3 +6,4 @@ python-slugify
 # solve the version of request compatible with docker and docker-compose
 requests<3,>=2.20.0
 importlib-metadata; python_version >= '3.10'
+PyYAML >= 5.1, < 5.4
