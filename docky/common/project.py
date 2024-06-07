@@ -14,8 +14,8 @@ class Project(object):
         try:
             self.project = docker.compose.config(return_json=True)
         except:
-            print("No docker-compose found, create one with :")
-            print("$ docky init")
+            logger.error("No docker-compose file found, create one with :")
+            logger.error("$ docky init")
             exit(-1)
 
         self.name = self.project.get("name")
