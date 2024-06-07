@@ -16,7 +16,7 @@ get_ori_container = Service.get_container
 def get_run_container(self, number=1):
     # search for container running in background
     for container in self.containers(
-            labels=['{0}={1}'.format(LABEL_CONTAINER_NUMBER, number)]):
+            labels=["{0}={1}".format(LABEL_CONTAINER_NUMBER, number)]):
         return container
 
     # search for container running with "run" cmd

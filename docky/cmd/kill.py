@@ -14,4 +14,4 @@ class DockyKill(DockySub):
         # docker compose do not kill the container odoo as is was run
         # manually, so we implement our own kill
         containers = self.project.get_containers()
-        parallel_kill(containers, {'signal': 'SIGKILL'})
+        parallel_kill(containers, {"signal": "SIGKILL"})

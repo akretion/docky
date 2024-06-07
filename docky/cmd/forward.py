@@ -9,7 +9,7 @@ class DockyForward(DockySub):
     _cmd = None
 
     def _main(self, *args):
-        cmd = self._cmd.split(' ')
+        cmd = self._cmd.split(" ")
         if args:
             cmd.append(*args)
         return self._run(self.compose[cmd])
