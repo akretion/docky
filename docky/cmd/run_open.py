@@ -46,7 +46,7 @@ class DockyRun(DockyExec):
     """Start services and enter in your dev container"""
 
     def _check_running(self):
-        if self.project.get_containers(service=self.service):
+        if docker.compose.ps(services=[self.service], all=True):
             raise_error("This container is already running, kill it or "
                         "use open to go inside")
 
@@ -57,9 +57,17 @@ class DockyRun(DockyExec):
         self._run(self.compose["rm", "-f"])
         self.project.display_service_tooltip()
         self.project.create_volume()
-        self._exec("docker-compose", [
-            "run", "--rm", "--service-ports", "--use-aliases", "-e", "NOGOSU=True",
-            self.service] + self.cmd)
+        # Default command
+        docky_cmd = ["run", "--rm", "--service-ports", "--use-aliases", "-e", "NOGOSU=True", self.service] + self.cmd
+
+        self._exec("docker", ["compose"] + docky_cmd)
+
+        # TODO: Should we use python-on-whales commands?
+        #  Its possible make
+        # docker.compose.run(self.project.name, and other parameters)
+        # But until now was not possible make the same command as above,
+        # if its possible we should consider the option to use it.
+        # https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/
 
 
 @Docky.subcommand("open")

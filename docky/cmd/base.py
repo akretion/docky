@@ -13,7 +13,7 @@ from ..common.project import Project
 
 class Docky(cli.Application):
     PROGNAME = "docky"
-    VERSION = "8.0.0"
+    VERSION = "9.0.0"
     SUBCOMMAND_HELPMSG = None
 
     def _run(self, cmd, retcode=FG):
@@ -44,7 +44,7 @@ class DockySub(cli.Application):
 
     def _init_project(self):
         self.project = Project()
-        self.compose = local["docker-compose"]
+        self.compose = local["docker"]["compose"]
 
     def main(self, *args, **kwargs):
         if self._project_specific:
