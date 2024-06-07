@@ -2,9 +2,12 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+import sys
 from plumbum import cli
 from .base import Docky, DockySub
-from ..common.api import raise_error
+from ..common.api import raise_error, logger
+
+from python_on_whales import docker
 
 
 class DockyExec(DockySub):
@@ -79,3 +82,27 @@ class DockyOpen(DockyExec):
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
         self._exec("dcpatched", ["exec", "-e", "NOGOSU=True", self.service] + self.cmd)
+
+@Docky.subcommand("system")
+class DockySystem(DockyExec):
+    """
+    Check your System Infos:
+    OS Type, Kernel, OS, Docker, Docker Compose, and Docky versions.
+    """
+    def _main(self):
+        # Info
+        infos = docker.system.info()
+        # OS Type
+        logger.info("OS Type " + infos.os_type)
+        # Kernel Version
+        logger.info("Kernel Version " + infos.kernel_version)
+        # Operation System
+        logger.info("OS " + infos.operating_system)
+        # Python Version
+        logger.info("Python Version " + sys.version)
+        # Docker Version
+        logger.info("Docker Version " + infos.server_version)
+        # Docker Compose Version
+        logger.info(docker.compose.version())
+        # Docky Version
+        logger.info("Docky Version " + Docky.VERSION)
