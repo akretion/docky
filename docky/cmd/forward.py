@@ -43,6 +43,10 @@ class DockyPs(DockyForward):
     """List containers"""
     _cmd = "ps"
 
+@Docky.subcommand("kill")
+class DockyKill(DockyForward):
+    """List containers"""
+    _cmd = "kill"
 
 @Docky.subcommand("logs")
 class DockyLogs(DockyForward):

@@ -3,6 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import sys
+import subprocess
 from plumbum import cli
 from .base import Docky, DockySub
 from ..common.api import raise_error, logger
@@ -19,7 +20,7 @@ class DockyExec(DockySub):
     service = cli.SwitchAttr(["service"])
 
     def _use_specific_user(self, service):
-        return not self.root and self.project.get_user(service)
+        return "root" if self.root else self.project.get_user(service)
 
     def _get_cmd_line(self, optionnal_command_line):
         user = self._use_specific_user(self.service)
@@ -81,7 +82,24 @@ class DockyOpen(DockyExec):
 
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
-        self._exec("dcpatched", ["exec", "-e", "NOGOSU=True", self.service] + self.cmd)
+        # self._exec("dcpatched", ["exec", "-e", "NOGOSU=True", self.service] + self.cmd)
+
+        # Get Project Name
+        # Example:     docky-odoo-brasil-14      odoo
+        project_name = self.project.name + "-" + self.project.service
+
+        # Get User
+        user = self._use_specific_user(self.service)
+
+        # Get Container ID
+        command = "docker ps -aqf name=" + project_name
+        # Example of return value
+        # b'b5db9db21381\n'
+        # Option text=true return as string instead of bytes and strip remove break line
+        # TODO: Is there a better way to do it, for example with Plumbum?
+        container_id = subprocess.check_output(command, shell=True,text=True).strip()
+
+        self._exec("docker", ["exec", "-u", user, "-it", container_id, "/bin/bash"])
 
 @Docky.subcommand("system")
 class DockySystem(DockyExec):
