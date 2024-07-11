@@ -3,4 +3,5 @@
 from . import cmd
 from . import common
 from .main import Docky
-from . import dcpatched
+# TODO: Check the command 'docky open'
+# from . import dcpatched

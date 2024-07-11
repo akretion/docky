@@ -13,18 +13,18 @@ from ..common.project import Project
 
 class Docky(cli.Application):
     PROGNAME = "docky"
-    VERSION = "8.0.0"
+    VERSION = "9.0.0"
     SUBCOMMAND_HELPMSG = None
 
     def _run(self, cmd, retcode=FG):
         """Run a command in a new process and log it"""
-        logger.debug(str(cmd).replace("/usr/local/bin/", ""))
+        logger.debug(str("$ " + str(cmd).rsplit("/")[-1]))
         return cmd & retcode
 
     def _exec(self, cmd, args=[]):
         """Run a command in the same process and log it
         this will replace the current process by the cmd"""
-        logger.debug(cmd + " ".join(args))
+        logger.debug(str("$ " + str(cmd).rsplit("/")[-1]  + " " + " ".join(args)))
         os.execvpe(cmd, [cmd] + args, local.env)
 
     @cli.switch("--verbose", help="Verbose mode", group="Meta-switches")
@@ -44,7 +44,7 @@ class DockySub(cli.Application):
 
     def _init_project(self):
         self.project = Project()
-        self.compose = local["docker-compose"]
+        self.compose = local["docker"]["compose"]
 
     def main(self, *args, **kwargs):
         if self._project_specific:

@@ -3,7 +3,6 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from .base import Docky, DockySub
-from compose.parallel import parallel_kill
 
 
 @Docky.subcommand("kill")
@@ -13,5 +12,4 @@ class DockyKill(DockySub):
     def _main(self, *args):
         # docker compose do not kill the container odoo as is was run
         # manually, so we implement our own kill
-        containers = self.project.get_containers()
-        parallel_kill(containers, {"signal": "SIGKILL"})
+        self._run(self.compose["kill", "-s", "SIGKILL"])

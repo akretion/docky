@@ -2,6 +2,7 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+import subprocess
 from plumbum import cli
 from .base import Docky, DockySub
 from ..common.api import raise_error
@@ -57,9 +58,17 @@ class DockyRun(DockyExec):
         self._run(self.compose["rm", "-f"])
         self.project.display_service_tooltip()
         self.project.create_volume()
-        self._exec("docker-compose", [
-            "run", "--rm", "--service-ports", "--use-aliases", "-e", "NOGOSU=True",
-            self.service] + self.cmd)
+        # Default command
+        docky_cmd = ["run", "--rm", "--use-aliases", "-e", "NOGOSU=True", self.service] + self.cmd
+
+        self._exec("docker", ["compose"] + docky_cmd)
+
+        # TODO: Should we use python-on-whales commands?
+        #  Its possible make
+        # docker.compose.run(self.project.name, and other parameters)
+        # But until now was not possible make the same command as above,
+        # if its possible we should consider the option to use it.
+        # https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/
 
 
 @Docky.subcommand("open")
@@ -70,4 +79,45 @@ class DockyOpen(DockyExec):
 
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
-        self._exec("dcpatched", ["exec", "-e", "NOGOSU=True", self.service] + self.cmd)
+        # self._exec("dcpatched", ["exec", "-e", "NOGOSU=True", self.service] + self.cmd)
+
+        # Get Project Name
+        # Example:     docky-odoo-brasil-14      odoo
+        project_name = self.project.name + "-" + self.project.service
+
+        # Get User
+        user = self._use_specific_user(self.service)
+
+        # Get Container ID
+        command = "docker ps -aqf name=" + project_name
+        # Example of return value
+        # b'b5db9db21381\n'
+        # Option text=true return as string instead of bytes and strip remove break line
+        # TODO: Is there a better way to do it, for example with Plumbum?
+        container_id = subprocess.check_output(command, shell=True,text=True).strip()
+
+        self._exec("docker", ["exec", "-u", user, "-it", container_id, "/bin/bash"])
+
+@Docky.subcommand("system")
+class DockySystem(DockyExec):
+    """
+    Check your System Infos:
+    OS Type, Kernel, OS, Docker, Docker Compose, and Docky versions.
+    """
+    def _main(self):
+        # Info
+        infos = docker.system.info()
+        # OS Type
+        logger.info("OS Type " + infos.os_type)
+        # Kernel Version
+        logger.info("Kernel Version " + infos.kernel_version)
+        # Operation System
+        logger.info("OS " + infos.operating_system)
+        # Python Version
+        logger.info("Python Version " + sys.version)
+        # Docker Version
+        logger.info("Docker Version " + infos.server_version)
+        # Docker Compose Version
+        logger.info(docker.compose.version())
+        # Docky Version
+        logger.info("Docky Version " + Docky.VERSION)
