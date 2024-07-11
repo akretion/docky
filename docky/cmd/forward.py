@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2018 Akretion (http://www.akretion.com).
+# Copyright 2018-TODAY Akretion (http://www.akretion.com).
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -10,7 +9,7 @@ class DockyForward(DockySub):
     _cmd = None
 
     def _main(self, *args):
-        cmd = self._cmd.split(' ')
+        cmd = self._cmd.split(" ")
         if args:
             cmd.append(*args)
         return self._run(self.compose[cmd])
@@ -30,7 +29,7 @@ class DockyUp(DockyForward):
     def _main(self, *args):
         self.project.display_service_tooltip()
         self.project.create_volume()
-        return super(DockyUp, self)._main(*args)
+        return super()._main(*args)
 
 
 @Docky.subcommand("down")

@@ -1,21 +1,19 @@
-# -*- coding: utf-8 -*-
-# Copyright 2018 Akretion (http://www.akretion.com).
+# Copyright 2018-TODAY Akretion (http://www.akretion.com).
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-
 
 import logging
 import sys
 # Optionnal code for colorized log
 from rainbow_logging_handler import RainbowLoggingHandler
 
-logger = logging.getLogger('docky')
+logger = logging.getLogger("docky")
 formatter = logging.Formatter("%(message)s")
 logger.setLevel(logging.INFO)
 
 handler = RainbowLoggingHandler(
     sys.stderr,
-    color_message_info=('green', None, True),
+    color_message_info=("green", None, True),
 )
 handler.setFormatter(formatter)
 logger.addHandler(handler)

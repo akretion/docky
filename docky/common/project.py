@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2018 Akretion (http://www.akretion.com).
+# Copyright 2018-TODAY Akretion (http://www.akretion.com).
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
@@ -16,10 +15,10 @@ class Project(object):
 
     def __init__(self):
         try:
-            self.project = command.project_from_options('.', {})
+            self.project = command.project_from_options(".", {})
         except ComposeFileNotFound:
             print("No docker-compose found, create one with :")
-            print('$ docky init')
+            print("$ docky init")
             exit(-1)
 
         self.name = self.project.name
@@ -30,23 +29,23 @@ class Project(object):
         """main_service has docky.main.service defined in
         his label."""
         for service in project.services:
-            labels = service.options.get('labels', {})
+            labels = service.options.get("labels", {})
             # service.labels() do not contain docky.main.service
             # see also compose.service.merge_labels
-            if labels.get('docky.main.service', False):
+            if labels.get("docky.main.service", False):
                 return service.name
 
     def get_containers(self, service=None):
-        kwargs = {'one_off': OneOffFilter.include}
+        kwargs = {"one_off": OneOffFilter.include}
         if service:
-            kwargs['service_names'] = [service]
+            kwargs["service_names"] = [service]
         return self.project.containers(**kwargs)
 
     def display_service_tooltip(self):
         infos = self._get_services_info()
         for service in self.project.services:
-            labels = service.options.get('labels', {})
-            if labels.get('docky.access.help'):
+            labels = service.options.get("labels", {})
+            if labels.get("docky.access.help"):
                 # TODO remove after some versions
                 logger.warning(
                     "'docky.access.help' is replaced by 'docky.help'. "
@@ -55,8 +54,8 @@ class Project(object):
                 # some applications provide extra parameters to access resource
                 infos[service.name] += labels.get("docky.url_suffix", "")
                 logger.info(infos[service.name])
-            if labels.get('docky.help'):
-                logger.info(labels.get('docky.help'))
+            if labels.get("docky.help"):
+                logger.info(labels.get("docky.help"))
 
     def _get_services_info(self):
         """ Search IP and Port for each services
@@ -94,7 +93,7 @@ class Project(object):
         docker-compose up do not attemps to create it
         so we have to do it ourselves"""
         for service in self.project.services:
-            for volume in service.options.get('volumes', []):
+            for volume in service.options.get("volumes", []):
                 if volume.external:
                     path = local.path(local.env.expand(volume.external))
                     if not path.exists():
@@ -105,6 +104,6 @@ class Project(object):
 
     def get_user(self, service_name):
         service = self.project.get_service(name=service_name)
-        labels = service.options.get('labels')
+        labels = service.options.get("labels")
         if labels:
-            return labels.get('docky.user', None)
+            return labels.get("docky.user", None)

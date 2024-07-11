@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-# Copyright 2018 Akretion (http://www.akretion.com).
+# Copyright 2018-TODAY Akretion (http://www.akretion.com).
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-
 
 from plumbum import cli
 from .base import Docky, DockySub
@@ -24,9 +22,9 @@ class DockyExec(DockySub):
         user = self._use_specific_user(self.service)
         cmd = []
         if user:
-            cmd = ['gosu', user]
+            cmd = ["gosu", user]
         if not optionnal_command_line:
-            cmd.append('bash')
+            cmd.append("bash")
         else:
             cmd += list(optionnal_command_line)
         return cmd
@@ -56,11 +54,11 @@ class DockyRun(DockyExec):
         super()._main(*optionnal_command_line)
         self._check_running()
         # Remove useless dead container before running a new one
-        self._run(self.compose['rm', '-f'])
+        self._run(self.compose["rm", "-f"])
         self.project.display_service_tooltip()
         self.project.create_volume()
-        self._exec('docker-compose', [
-            'run', '--rm', '--service-ports', '--use-aliases', '-e', 'NOGOSU=True',
+        self._exec("docker-compose", [
+            "run", "--rm", "--service-ports", "--use-aliases", "-e", "NOGOSU=True",
             self.service] + self.cmd)
 
 
@@ -72,4 +70,4 @@ class DockyOpen(DockyExec):
 
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
-        self._exec('dcpatched', ['exec', '-e', 'NOGOSU=True', self.service] + self.cmd)
+        self._exec("dcpatched", ["exec", "-e", "NOGOSU=True", self.service] + self.cmd)
