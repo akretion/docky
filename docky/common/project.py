@@ -43,8 +43,8 @@ class Project(object):
         """Mkdir volumes if they don't exist yet.
 
         Only apply to external volumes.
-        docker-compose up do not attemps to create it
-        so we have to do it ourselves"""
+        docker compose will create it but the owner will be root
+        so we have to do it ourselves with the right owner"""
         for service_name, service in self.project.get("services").items():
             for volume in service.get("volumes", []):
                 if volume["type"] == "bind":
