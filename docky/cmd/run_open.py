@@ -50,9 +50,15 @@ class DockyRun(DockyExec):
     """Start services and enter in your dev container"""
 
     def _check_running(self):
-        if docker.compose.ps(services=[self.service], all=True):
-            raise_error("This container is already running, kill it or "
-                        "use open to go inside")
+        for service in docker.compose.ps(services=[self.service], all=True):
+            if service.state.status == "exited":
+                # In case that you have used "docker compose run" without the
+                # option "--rm" you can have exited container
+                # we purge them here as they are useless
+                service.remove()
+            else:
+                raise_error("This container is already running, kill it or "
+                            "use open to go inside")
 
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
