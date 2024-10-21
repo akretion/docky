@@ -37,7 +37,6 @@ setup(
     entry_points="""
     [console_scripts]
     docky=docky.main:main
-    dcpatched=docky.dcpatched:main
     """,
     include_package_data=True,
     packages=find_packages() + ["docky"],

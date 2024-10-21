@@ -88,7 +88,6 @@ class DockyOpen(DockyExec):
 
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
-        # self._exec("dcpatched", ["exec", "-e", "NOGOSU=True", self.service] + self.cmd)
 
         # Get Project Name
         # Example:     docky-odoo-brasil-14      odoo
