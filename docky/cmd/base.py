@@ -13,7 +13,7 @@ from ..common.project import Project
 
 class Docky(cli.Application):
     PROGNAME = "docky"
-    VERSION = "9.0.1"
+    VERSION = "9.0.2"
     SUBCOMMAND_HELPMSG = None
 
     def _run(self, cmd, retcode=FG):
