@@ -1,0 +1,43 @@
+[build-system]
+requires = [
+    "hatchling>=1.6.0",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "docky"
+description = "Make developpement with docker simply"
+readme = "README.rst"
+license = "AGPLv3+"
+authors = [
+    { name = "Akretion", email = "contact@akretion.com" },
+]
+classifiers = [
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "# Only for solving installation issue with pip that fail to",
+    "# solve the version of request compatible with docker and docker-compose",
+    "copier @ git+https://github.com/hparfr/copier@vcs_branch22-04#egg=copier",
+    "docker-compose>=1.23.1",
+    "importlib-metadata; python_version >= '3.10'",
+    "plumbum",
+    "python-slugify",
+    "rainbow_logging_handler",
+    "requests<3,>=2.20.0",
+]
+dynamic = [
+    "version",
+]
+
+[project.urls]
+Homepage = "https://github.com/akretion/docky/"
+
+[tool.hatch.version]
+path = "docky/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/docky",
+]
