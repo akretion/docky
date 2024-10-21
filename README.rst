@@ -98,6 +98,8 @@ see : https://github.com/docker/compose/issues/6151
 
 Changelog
 ----------
+version 9.0.0
+- Migration from docker-compose to docker compose
 
 version 8.0.0
 - remove docky init
