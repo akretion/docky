@@ -7,6 +7,7 @@ import subprocess
 from plumbum import cli
 from .base import Docky, DockySub
 from ..common.api import raise_error, logger
+from ..common.tools import spawn_url_forwarder
 
 from python_on_whales import docker
 
@@ -48,6 +49,12 @@ class DockyExec(DockySub):
 @Docky.subcommand("run")
 class DockyRun(DockyExec):
     """Start services and enter in your dev container"""
+
+    forward_url = cli.Flag(
+        ["forward_url"],
+        help="Run an browser url opener in the host (for debuggers like kalong)",
+        group="Meta-switches",
+    )
 
     def _check_running(self):
         for service in docker.compose.ps(services=[self.service], all=True):
