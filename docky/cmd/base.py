@@ -6,6 +6,7 @@ from plumbum import cli, local
 from plumbum.commands.modifiers import FG
 import logging
 import os
+import subprocess
 
 from ..common.api import logger
 from ..common.project import Project
@@ -24,8 +25,9 @@ class Docky(cli.Application):
     def _exec(self, cmd, args=[]):
         """Run a command in the same process and log it
         this will replace the current process by the cmd"""
-        logger.debug(str("$ " + str(cmd).rsplit("/")[-1]  + " " + " ".join(args)))
-        os.execvpe(cmd, [cmd] + args, local.env)
+        logger.debug(str("$ " + str(cmd).rsplit("/")[-1] + " " + " ".join(args)))
+        # os.execvpe(cmd, [cmd] + args, local.env)
+        subprocess.run([cmd] + args, env=dict(local.env))
 
     @cli.switch("--verbose", help="Verbose mode", group="Meta-switches")
     def set_log_level(self):

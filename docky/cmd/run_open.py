@@ -3,8 +3,10 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import sys
+from os import getuid, killpg
+import signal
 import subprocess
-from plumbum import cli
+from plumbum import cli, local
 from .base import Docky, DockySub
 from ..common.api import raise_error, logger
 from ..common.tools import spawn_url_forwarder
@@ -13,11 +15,7 @@ from python_on_whales import docker
 
 
 class DockyExec(DockySub):
-
-    root = cli.Flag(
-        ["root"],
-        help="Run or open as root",
-        group="Meta-switches")
+    root = cli.Flag(["root"], help="Run or open as root", group="Meta-switches")
     service = cli.SwitchAttr(["service"])
 
     def _use_specific_user(self, service):
@@ -42,7 +40,8 @@ class DockyExec(DockySub):
                 "Fail to define the service to start\n"
                 "No service '--service=foo' have been pass\n"
                 "And there is no label: docky.main.service: True "
-                "in your docker-compose file.")
+                "in your docker-compose file."
+            )
         self.cmd = self._get_cmd_line(optionnal_command_line)
 
 
@@ -51,9 +50,23 @@ class DockyRun(DockyExec):
     """Start services and enter in your dev container"""
 
     forward_url = cli.Flag(
-        ["forward_url"],
+        ["-f", "--forward_url"],
         help="Run an browser url opener in the host (for debuggers like kalong)",
         group="Meta-switches",
+    )
+    kalong_host = cli.SwitchAttr(
+        ["-kh", "--kalong_host"],
+        str,
+        help="Host of the kalong server",
+        group="Meta-switches",
+        default="127.0.0.1",
+    )
+    kalong_port = cli.SwitchAttr(
+        ["-kp", "--kalong_port"],
+        str,
+        help="Port of the kalong server",
+        group="Meta-switches",
+        default="59999",
     )
 
     def _check_running(self):
@@ -64,8 +77,10 @@ class DockyRun(DockyExec):
                 # we purge them here as they are useless
                 service.remove()
             else:
-                raise_error("This container is already running, kill it or "
-                            "use open to go inside")
+                raise_error(
+                    "This container is already running, kill it or "
+                    "use open to go inside"
+                )
 
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
@@ -74,8 +89,47 @@ class DockyRun(DockyExec):
         self._run(self.compose["rm", "-f"])
         self.project.display_service_tooltip()
         self.project.create_volume()
+
+        mount_socat = []
+        # run socat
+        if self.forward_url:
+            logger.info("Starting socat")
+            socket_name = f"/run/user/{getuid()}/kalong_{self.project.name}.sock"
+            socat = local["socat"][
+                f"unix-listen:{socket_name},fork",
+                'system:"xargs xdg-open"',
+            ]
+            logger.info(f"Socket created for kalong at {socket_name}")
+            socat_process = socat.popen(start_new_session=True)
+            mount_socat = [
+                "-v",
+                f"{socket_name}:{socket_name}",
+                "-e",
+                f"KALONG_HOST={self.kalong_host}",
+                "-e",
+                f"KALONG_PORT={self.kalong_port}",
+                "-e",
+                "PYTHONBREAKPOINT=kalong.breakpoint",
+                "-e",
+                f"KALONG_URLSOCKET={socket_name}",
+            ]
+
         # Default command
-        docky_cmd = ["run", "--rm", "--service-ports", "--use-aliases", "-e", "NOGOSU=True", self.service] + self.cmd
+        docky_cmd = (
+            [
+                "run",
+                "--rm",
+                "--service-ports",
+                "--use-aliases",
+                "-e",
+                "NOGOSU=True",
+            ]
+            + mount_socat
+            + [
+                self.service,
+            ]
+            + self.cmd
+        )
 
         self._exec("docker", ["compose"] + docky_cmd)
 
@@ -85,6 +139,11 @@ class DockyRun(DockyExec):
         # But until now was not possible make the same command as above,
         # if its possible we should consider the option to use it.
         # https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/
+
+        if self.forward_url:
+            logger.info("Killing socat")
+            killpg(socat_process.pid, signal.SIGKILL)
+            socat_process.wait()
 
 
 @Docky.subcommand("open")
@@ -109,9 +168,10 @@ class DockyOpen(DockyExec):
         # b'b5db9db21381\n'
         # Option text=true return as string instead of bytes and strip remove break line
         # TODO: Is there a better way to do it, for example with Plumbum?
-        container_id = subprocess.check_output(command, shell=True,text=True).strip()
+        container_id = subprocess.check_output(command, shell=True, text=True).strip()
 
         self._exec("docker", ["exec", "-u", user, "-it", container_id, "/bin/bash"])
+
 
 @Docky.subcommand("system")
 class DockySystem(DockyExec):
@@ -119,6 +179,7 @@ class DockySystem(DockyExec):
     Check your System Infos:
     OS Type, Kernel, OS, Docker, Docker Compose, and Docky versions.
     """
+
     def _main(self):
         # Info
         infos = docker.system.info()
