@@ -3,7 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import sys
-from os import getuid, killpg
+from os import getuid, killpg, kill
 import signal
 import subprocess
 from plumbum import cli, local
@@ -105,9 +105,9 @@ class DockyRun(DockyExec):
                 "-v",
                 f"{socket_name}:{socket_name}",
                 "-e",
-                f"KALONG_HOST={self.kalong_host}",
+                f"KALONG_FRONT_HOST={self.kalong_host}",
                 "-e",
-                f"KALONG_PORT={self.kalong_port}",
+                f"KALONG_FRONT_PORT={self.kalong_port}",
                 "-e",
                 "PYTHONBREAKPOINT=kalong.breakpoint",
                 "-e",
@@ -142,7 +142,7 @@ class DockyRun(DockyExec):
 
         if self.forward_url:
             logger.info("Killing socat")
-            killpg(socat_process.pid, signal.SIGKILL)
+            kill(socat_process.pid, signal.SIGINT)
             socat_process.wait()
 
 
