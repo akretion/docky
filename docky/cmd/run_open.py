@@ -105,6 +105,8 @@ class DockyRun(DockyExec):
                 "-v",
                 f"{socket_name}:{socket_name}",
                 "-e",
+                f"KALONG_BASE_PATH=/proxy/",
+                "-e",
                 f"KALONG_FRONT_HOST={self.kalong_host}",
                 "-e",
                 f"KALONG_FRONT_PORT={self.kalong_port}",
