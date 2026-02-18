@@ -3,12 +3,13 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import sys
-import subprocess
-from plumbum import cli
-from .base import Docky, DockySub
-from ..common.api import raise_error, logger
+from os import getuid
 
+from plumbum import cli
 from python_on_whales import docker
+
+from ..common.api import logger, raise_error
+from .base import Docky, DockySub
 
 
 class DockyExec(DockySub):
@@ -45,9 +46,47 @@ class DockyExec(DockySub):
 DOCKER_DOWN_STATUS = ["created", "exited"]
 
 
+def find_free_port(start_port):
+    import socket
+
+    port = start_port
+    while port < 65535:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex(("localhost", port)) != 0:
+                return port
+            port += 1
+    raise RuntimeError("No free port found")
+
+
 @Docky.subcommand("run")
 class DockyRun(DockyExec):
     """Start services and enter in your dev container"""
+
+    kalong = cli.Flag(
+        ["-k", "--kalong"],
+        help="Set up kalong in docker and forward url to open in your browser",
+        group="Meta-switches",
+    )
+    kalong_host = cli.SwitchAttr(
+        ["--kalong_host"],
+        str,
+        help="Host of the kalong server",
+        group="Meta-switches",
+        default="localhost",
+    )
+    kalong_port = cli.SwitchAttr(
+        ["--kalong_port"],
+        str,
+        help="Port of the kalong server, default to first free port after 50000",
+        group="Meta-switches",
+    )
+    kalong_url_socket = cli.SwitchAttr(
+        ["--kalong_url_socket"],
+        str,
+        help="Path of the socket used to forward url to open in your browser, "
+        "default to /run/user/UID/kalong_PROJECTNAME.sock",
+        group="Meta-switches",
+    )
 
     def _check_running(self):
         for service in docker.compose.ps(services=[self.service], all=True):
@@ -69,16 +108,61 @@ class DockyRun(DockyExec):
         self._run(self.compose["rm", "-f"])
         self.project.display_service_tooltip()
         self.project.create_volume()
-        # Default command
-        docky_cmd = [
+
+        base_cmd = [
             "run",
             "--rm",
             "--service-ports",
             "--use-aliases",
             "-e",
             "NOGOSU=True",
-            self.service,
-        ] + self.cmd
+        ]
+
+        if self.kalong:
+            import threading
+
+            from ..common.url_opener import url_opener
+
+            if self.kalong_port is None:
+                self.kalong_port = find_free_port(50000)
+
+            socket_name = (
+                self.kalong_url_socket
+                or f"/run/user/{getuid()}/kalong_{self.project.name}.sock"
+            )
+
+            threading.Thread(
+                target=url_opener, args=(socket_name,), daemon=True
+            ).start()
+
+            # Can’t use service ports here since we need to publish kalong port
+            base_cmd = [cmd for cmd in base_cmd if cmd != "--service-ports"]
+
+            base_cmd += [
+                "-p",
+                f"{self.kalong_port}:{self.kalong_port}",
+                "-v",
+                f"{socket_name}:{socket_name}",
+                "-e",
+                "KALONG_HOST=0.0.0.0",  # Inside docker, bind to all interfaces
+                "-e",
+                f"KALONG_FRONT_HOST={self.kalong_host}",  # Outside docker, use the provided host (which should be localhost)
+                "-e",
+                f"KALONG_PORT={self.kalong_port}",
+                "-e",
+                "PYTHONBREAKPOINT=kalong.breakpoint",
+                "-e",
+                f"KALONG_URLSOCKET={socket_name}",
+            ]
+
+        # Default command
+        docky_cmd = (
+            base_cmd
+            + [
+                self.service,
+            ]
+            + self.cmd
+        )
 
         self._exec("docker", ["compose"] + docky_cmd)
 
@@ -96,7 +180,17 @@ class DockyOpen(DockyExec):
 
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
-        self._exec("docker", ["compose", "exec", "-e", "NOGOSU=True", self.service] + self.cmd)
+        self._exec(
+            "docker",
+            [
+                "compose",
+                "exec",
+                "-e",
+                "NOGOSU=True",
+                self.service,
+            ]
+            + self.cmd,
+        )
 
 
 @Docky.subcommand("system")
