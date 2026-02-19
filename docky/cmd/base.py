@@ -22,12 +22,6 @@ class Docky(cli.Application):
         logger.debug(str("$ " + str(cmd).rsplit("/")[-1]))
         return cmd & retcode
 
-    def _exec(self, cmd, args=[]):
-        """Run a command in the same process and log it
-        this will replace the current process by the cmd"""
-        logger.debug(str("$ " + str(cmd).rsplit("/")[-1] + " " + " ".join(args)))
-        subprocess.run([cmd] + args, env=dict(local.env))
-
     @cli.switch("--verbose", help="Verbose mode", group="Meta-switches")
     def set_log_level(self):
         logger.setLevel(logging.DEBUG)
@@ -36,9 +30,6 @@ class Docky(cli.Application):
 
 class DockySub(cli.Application):
     _project_specific = True
-
-    def _exec(self, *args, **kwargs):
-        self.parent._exec(*args, **kwargs)
 
     def _run(self, *args, **kwargs):
         self.parent._run(*args, **kwargs)

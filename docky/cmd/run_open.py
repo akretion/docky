@@ -3,12 +3,15 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import sys
+import tempfile
+import threading
 from os import getuid
 
 from plumbum import cli
-from python_on_whales import docker
+from python_on_whales import DockerClient, docker
 
 from ..common.api import logger, raise_error
+from ..common.url_opener import url_opener
 from .base import Docky, DockySub
 
 
@@ -29,6 +32,11 @@ class DockyExec(DockySub):
         else:
             cmd += list(optionnal_command_line)
         return cmd
+
+    def _get_base_docker_env(self):
+        return {
+            "NOGOSU": "True",
+        }
 
     def _main(self, *optionnal_command_line):
         if not self.service:
@@ -109,22 +117,33 @@ class DockyRun(DockyExec):
         self.project.display_service_tooltip()
         self.project.create_volume()
 
-        base_cmd = [
-            "run",
-            "--rm",
-            "--service-ports",
-            "--use-aliases",
-            "-e",
-            "NOGOSU=True",
-        ]
+        docker_env = self._get_base_docker_env()
+        volumes = []
 
         if self.kalong:
-            import threading
-
-            from ..common.url_opener import url_opener
+            global docker
 
             if self.kalong_port is None:
                 self.kalong_port = find_free_port(50000)
+
+            # As we can’t have service_ports and publish at the same time,
+            # we have to use a temporary compose files to set up the port forwarding
+            kalong_temp_compose_file = tempfile.NamedTemporaryFile(
+                mode="w+", suffix=".yml", prefix="kalong_"
+            )
+            kalong_temp_compose_file.write(
+                "services:\n"
+                f"  {self.service}:\n"
+                "    ports:\n"
+                f"      - {self.kalong_port}:{self.kalong_port}\n"
+            )
+            kalong_temp_compose_file.flush()
+            docker = DockerClient(
+                compose_files=[
+                    *self.project._get_compose_files(),
+                    kalong_temp_compose_file.name,
+                ]
+            )
 
             socket_name = (
                 self.kalong_url_socket
@@ -135,43 +154,28 @@ class DockyRun(DockyExec):
                 target=url_opener, args=(socket_name,), daemon=True
             ).start()
 
-            # Can’t use service ports here since we need to publish kalong port
-            base_cmd = [cmd for cmd in base_cmd if cmd != "--service-ports"]
+            docker_env.update(
+                # Inside docker, bind to all interfaces
+                KALONG_HOST="0.0.0.0",
+                # Outside docker, use the provided host (which should be localhost)
+                KALONG_FRONT_HOST=self.kalong_host,
+                KALONG_PORT=self.kalong_port,
+                # Path of the socket used to forward the kalong url to the host browser
+                KALONG_URLSOCKET=socket_name,
+                # Set up kalong as the default breakpoint handler
+                PYTHONBREAKPOINT="kalong.breakpoint",
+            )
+            volumes.append((socket_name, socket_name))
 
-            base_cmd += [
-                "-p",
-                f"{self.kalong_port}:{self.kalong_port}",
-                "-v",
-                f"{socket_name}:{socket_name}",
-                "-e",
-                "KALONG_HOST=0.0.0.0",  # Inside docker, bind to all interfaces
-                "-e",
-                f"KALONG_FRONT_HOST={self.kalong_host}",  # Outside docker, use the provided host (which should be localhost)
-                "-e",
-                f"KALONG_PORT={self.kalong_port}",
-                "-e",
-                "PYTHONBREAKPOINT=kalong.breakpoint",
-                "-e",
-                f"KALONG_URLSOCKET={socket_name}",
-            ]
-
-        # Default command
-        docky_cmd = (
-            base_cmd
-            + [
-                self.service,
-            ]
-            + self.cmd
+        docker.compose.run(
+            service=self.service,
+            remove=True,
+            service_ports=True,
+            use_aliases=True,
+            envs=docker_env,
+            volumes=volumes,
+            command=self.cmd,
         )
-
-        self._exec("docker", ["compose"] + docky_cmd)
-
-        # TODO: Should we use python-on-whales commands?
-        #  Its possible make
-        # docker.compose.run(self.project.name, and other parameters)
-        # But until now was not possible make the same command as above,
-        # if its possible we should consider the option to use it.
-        # https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/
 
 
 @Docky.subcommand("open")
@@ -180,16 +184,10 @@ class DockyOpen(DockyExec):
 
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
-        self._exec(
-            "docker",
-            [
-                "compose",
-                "exec",
-                "-e",
-                "NOGOSU=True",
-                self.service,
-            ]
-            + self.cmd,
+        docker.compose.execute(
+            service=self.service,
+            envs=self._get_base_docker_env(),
+            command=self.cmd,
         )
 
 
