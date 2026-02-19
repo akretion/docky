@@ -70,6 +70,14 @@ def find_free_port(start_port):
 class DockyRun(DockyExec):
     """Start services and enter in your dev container"""
 
+    volumes = cli.SwitchAttr(
+        ["-v", "--volume"],
+        str,
+        help="Add a volume to the container, in the format host_path:container_path",
+        group="Meta-switches",
+        list=True,
+    )
+
     kalong = cli.Flag(
         ["-k", "--kalong"],
         help="Set up kalong in docker and forward url to open in your browser",
@@ -112,13 +120,9 @@ class DockyRun(DockyExec):
     def _main(self, *optionnal_command_line):
         super()._main(*optionnal_command_line)
         self._check_running()
-        # Remove useless dead container before running a new one
-        self._run(self.compose["rm", "-f"])
-        self.project.display_service_tooltip()
-        self.project.create_volume()
 
         docker_env = self._get_base_docker_env()
-        volumes = []
+        volumes = [volume.split(":", 1) for volume in self.volumes]
 
         if self.kalong:
             global docker
@@ -166,6 +170,11 @@ class DockyRun(DockyExec):
                 PYTHONBREAKPOINT="kalong.breakpoint",
             )
             volumes.append((socket_name, socket_name))
+
+        # Remove useless dead container before running a new one
+        docker.compose.rm()
+        self.project.display_service_tooltip()
+        self.project.create_volume()
 
         docker.compose.run(
             service=self.service,

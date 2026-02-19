@@ -5,7 +5,7 @@ import atexit
 import os
 import socket
 import subprocess
-import webbrowser
+import sys
 
 
 def url_opener(socket_name):
@@ -29,8 +29,13 @@ def url_opener(socket_name):
                 if not data:
                     break
                 url += data.decode("utf-8")
-            if not webbrowser.open(url):
-                try:
-                    subprocess.run(["xdg-open", url])
-                except Exception as e:
-                    print(f"Failed to open URL: {url}", e)
+            try:
+                # Use a subprocess instead of directly the webbrowser module
+                # in order to silence the output
+                subprocess.check_call(
+                    [sys.executable, "-m", "webbrowser", url],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except Exception:
+                print(f"Failed to open URL: {url}", file=sys.stderr)
