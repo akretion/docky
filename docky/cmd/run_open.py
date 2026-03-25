@@ -190,6 +190,7 @@ class DockyOpen(DockyExec):
         super()._main(*optionnal_command_line)
         docker.compose.execute(
             service=self.service,
+            index=0,
             envs=self._get_base_docker_env(),
             command=self.cmd,
         )
