@@ -54,16 +54,12 @@ class DockyExec(DockySub):
 DOCKER_DOWN_STATUS = ["created", "exited"]
 
 
-def find_free_port(start_port):
+def find_free_port():
     import socket
 
-    port = start_port
-    while port < 65535:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            if s.connect_ex(("localhost", port)) != 0:
-                return port
-            port += 1
-    raise RuntimeError("No free port found")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("", 0))
+        return s.getsockname()[1]
 
 
 @Docky.subcommand("run")
@@ -127,8 +123,7 @@ class DockyRun(DockyExec):
         if self.kalong:
             global docker
 
-            if self.kalong_port is None:
-                self.kalong_port = find_free_port(50000)
+            self.kalong_port = self.kalong_port or find_free_port()
 
             # As we can’t have service_ports and publish at the same time,
             # we have to use a temporary compose files to set up the port forwarding
