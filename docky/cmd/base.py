@@ -2,10 +2,11 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+import logging
+import subprocess
+
 from plumbum import cli, local
 from plumbum.commands.modifiers import FG
-import logging
-import os
 
 from ..common.api import logger
 from ..common.project import Project
@@ -21,12 +22,6 @@ class Docky(cli.Application):
         logger.debug(str("$ " + str(cmd).rsplit("/")[-1]))
         return cmd & retcode
 
-    def _exec(self, cmd, args=[]):
-        """Run a command in the same process and log it
-        this will replace the current process by the cmd"""
-        logger.debug(str("$ " + str(cmd).rsplit("/")[-1]  + " " + " ".join(args)))
-        os.execvpe(cmd, [cmd] + args, local.env)
-
     @cli.switch("--verbose", help="Verbose mode", group="Meta-switches")
     def set_log_level(self):
         logger.setLevel(logging.DEBUG)
@@ -35,9 +30,6 @@ class Docky(cli.Application):
 
 class DockySub(cli.Application):
     _project_specific = True
-
-    def _exec(self, *args, **kwargs):
-        self.parent._exec(*args, **kwargs)
 
     def _run(self, *args, **kwargs):
         self.parent._run(*args, **kwargs)

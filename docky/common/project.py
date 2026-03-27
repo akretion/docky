@@ -2,14 +2,16 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from python_on_whales import docker
-from plumbum import local
 import os
+
+from plumbum import local
+from python_on_whales import docker
+from python_on_whales.utils import run
+
 from .api import logger
 
 
 class Project(object):
-
     def __init__(self):
         try:
             self.project = docker.compose.config(return_json=True)
@@ -18,9 +20,11 @@ class Project(object):
             # If we fail to read the config file, it's mean that the config
             # is not valid. In order to raise the same error as docker compose
             # we launch the cmd to validate the config
-            os.execvpe("docker",  [
-                "docker", "--log-level", "ERROR", "compose", "config"
-                ], local.env)
+            os.execvpe(
+                "docker",
+                ["docker", "--log-level", "ERROR", "compose", "config"],
+                local.env,
+            )
 
         self.name = self.project.get("name")
         self.service = self._get_main_service(self.project)
@@ -52,10 +56,29 @@ class Project(object):
                     if not path.exists():
                         logger.info(
                             "Create missing directory %s for service %s",
-                            path, service_name)
+                            path,
+                            service_name,
+                        )
                         path.mkdir()
 
     def get_user(self, service_name):
         labels = self.project["services"].get(service_name).get("labels")
         if labels:
             return labels.get("docky.user")
+
+    def _get_compose_env(self):
+        raw_env = run(docker.compose.docker_compose_cmd + ["config", "--environment"])
+        env = {}
+        for line in raw_env.splitlines():
+            if "=" in line:
+                key, value = line.split("=", 1)
+                env[key] = value
+        return env
+
+    def _get_compose_files(self):
+        compose_files = []
+        env = self._get_compose_env()
+        for env_var in ["COMPOSE_FILE", "DOCKER_COMPOSE_FILE"]:
+            if env_var in env:
+                compose_files += env[env_var].split(":")
+        return compose_files
